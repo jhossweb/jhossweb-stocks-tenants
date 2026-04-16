@@ -31,9 +31,11 @@ return new class extends Migration {
             $table->decimal('invoice_subtotal', 10, 4);
             $table->decimal('invoice_exento', 10, 4);
             $table->decimal('invoice_iva', 10, 4);
-            $table->enum('invoice_type_iva', TypeIva::values());
+
             $table->decimal('invoice_total', 10, 4);
             $table->enum('invoice_status', StatusPurchases::values())->default(StatusPurchases::PENDING->value);
+
+            $table->string('invoice_reference')->nullable();
             $table->timestamps();
 
         });

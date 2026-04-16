@@ -28,7 +28,7 @@ class PurchaseOrderFactory extends Factory
             'invoice_subtotal' => fake()->randomFloat(4, 1, 10),
             'invoice_exento' => fake()->randomFloat(4, 1, 10),
             'invoice_iva' => fake()->randomFloat(4, 1, 10),
-            'invoice_type_iva' => fake()->randomElement(\App\Enum\TypeIva::values()),
+
             'invoice_total' => fake()->randomFloat(4, 1, 10),
             'invoice_status' => fake()->randomElement(StatusPurchases::values()),
         ];

@@ -29,11 +29,13 @@ return new class extends Migration {
                 ->references('pro_code')
                 ->on('products')
                 ->onDelete('cascade');
+            $table->integer('mov_pro_iva')->default(0);
 
             $table->foreignId('mov_war_id')->constrained('warehouses')->cascadeOnDelete();
 
-            $table->decimal('mov_quantity', 10, 2);
-            $table->decimal('mov_unit_cost', 10, 2);
+            $table->decimal('mov_quantity', 10, 4)->default(0);
+            $table->decimal('mov_unit_cost', 10, 4)->default(0);
+            $table->decimal('mov_unit_cost_ref', 10, 4)->default(0);
 
 
             $table->timestamps();

@@ -33,7 +33,21 @@ class DatabaseSeeder extends Seeder
         Warehouse::factory()->count(2)->create();
         Product::factory()->count(100)->create();
         Supplier::factory()->count(10)->create();
-        TransactionType::factory()->count(3)->create();
+        TransactionType::create(
+            [
+                'trans_type_code' => 'FAC',
+                'trans_type_description' => 'FACTURA COMPRA',
+                'trans_type_factor' => '1',
+            ]
+        );
+
+        TransactionType::create(
+            [
+                'trans_type_code' => 'DEVC',
+                'trans_type_description' => 'DEVOLUCION COMPRA',
+                'trans_type_factor' => '-1',
+            ]
+        );
 
         $purchaseOrders = PurchaseOrder::factory()->count(10)->create();
         foreach ($purchaseOrders as $purchaseOrder) {
@@ -42,9 +56,11 @@ class DatabaseSeeder extends Seeder
                 'mov_invoice_trans_type_code' => $purchaseOrder->invoice_trans_type_code,
                 'mov_factor' => fake()->randomElement(['1', '-1']),
                 'mov_pro_code' => Product::inRandomOrder()->first()->pro_code,
+                'mov_pro_iva' => fake()->numberBetween(0, 16),
                 'mov_war_id' => Warehouse::inRandomOrder()->first()->id,
                 'mov_quantity' => fake()->numberBetween(1, 100),
                 'mov_unit_cost' => fake()->numberBetween(1, 100),
+                'mov_unit_cost_ref' => fake()->numberBetween(1, 100),
             ]);
         }
 
