@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2 } from 'lucide-vue-next';
+import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2, Search } from 'lucide-vue-next';
 import Input from '@/components/ui/input/Input.vue';
+import SelectorModal from '@/components/SelectorModal.vue';
 
 const props = defineProps<{
     suppliers: any[];
@@ -221,6 +222,25 @@ const removeItem = (index: number) => {
     }
 };
 
+const getSupplierName = (id: string | number) => {
+    const s = props.suppliers.find(s => s.id == id);
+    return s ? (s.supplier_name || s.name) : 'Seleccione proveedor';
+};
+
+const getProductName = (code: string) => {
+    const p = props.products.find(p => p.pro_code === code);
+    return p ? p.pro_name : 'Seleccione producto';
+};
+
+const selectSupplier = (supplier: any) => {
+    form.invoice_supplier_id = supplier.id;
+};
+
+const selectProduct = (index: number, product: any) => {
+    form.items[index].mov_pro_code = product.pro_code;
+    calculateTotals();
+};
+
 const submit = () => {
     console.log('Enviando formulario...', form.data());
     form.post('/purchases', { 
@@ -286,10 +306,19 @@ onMounted(() => updateExchangeRate());
 
                         <div>
                             <label class="block text-sm font-medium text-zinc-400 mb-1.5">Proveedor</label>
-                            <select v-model="form.invoice_supplier_id" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition-colors">
-                                <option value="">Seleccione proveedor</option>
-                                <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.supplier_name || s.name }}</option>
-                            </select>
+                            <SelectorModal
+                                title="Seleccionar Proveedor"
+                                description="Busque y seleccione un proveedor de la lista"
+                                :items="suppliers"
+                                :searchFields="['supplier_name', 'name', 'supplier_rif', 'rif']"
+                                :displayFields="[
+                                    { label: 'Nombre', key: 'supplier_name' },
+                                    { label: 'RIF', key: 'supplier_rif' }
+                                ]"
+                                :triggerLabel="getSupplierName(form.invoice_supplier_id)"
+                                :selectedValue="form.invoice_supplier_id"
+                                @select="selectSupplier"
+                            />
                             <p v-if="form.errors.invoice_supplier_id" class="text-xs text-red-500 mt-1">{{ form.errors.invoice_supplier_id }}</p>
                         </div>
 
@@ -358,11 +387,20 @@ onMounted(() => updateExchangeRate());
                             </thead>
                             <tbody class="divide-y divide-zinc-800">
                                 <tr v-for="(item, index) in form.items" :key="index" class="hover:bg-zinc-800/30 transition-colors">
-                                    <td class="p-3">
-                                        <select v-model="item.mov_pro_code" @change="calculateTotals" class="w-full bg-transparent border-none focus:ring-0 text-sm text-zinc-300">
-                                            <option value="" class="bg-zinc-900">Seleccione...</option>
-                                            <option v-for="p in products" :key="p.pro_code" :value="p.pro_code" class="bg-zinc-900">{{ p.pro_name }}</option>
-                                        </select>
+                                    <td class="p-3 min-w-[250px]">
+                                        <SelectorModal
+                                            title="Seleccionar Producto"
+                                            :items="products"
+                                            :searchFields="['pro_name', 'pro_code']"
+                                            :displayFields="[
+                                                { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
+                                                { label: 'Nombre', key: 'pro_name' }
+                                            ]"
+                                            :triggerLabel="getProductName(item.mov_pro_code)"
+                                            :selectedValue="item.mov_pro_code"
+                                            triggerClass="bg-transparent border-none hover:bg-zinc-800/50"
+                                            @select="(p) => selectProduct(index, p)"
+                                        />
                                         <p v-if="form.errors[`items.${index}.mov_pro_code`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mov_pro_code`] }}</p>
                                     </td>
                                     <td class="p-3">
@@ -411,6 +449,8 @@ onMounted(() => updateExchangeRate());
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   margin: 0;
 }
 input[type=number] {

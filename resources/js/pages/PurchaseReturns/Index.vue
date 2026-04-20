@@ -95,9 +95,11 @@ const props = defineProps<{
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                                    Ver Detalles
-                                </Button>
+                                <Link :href="`/purchase-returns/${item.id}/edit`">
+                                    <Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                                        Ver Detalles
+                                    </Button>
+                                </Link>
                             </td>
                         </tr>
                     </tbody>

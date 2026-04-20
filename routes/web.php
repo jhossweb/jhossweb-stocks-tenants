@@ -11,13 +11,14 @@ Route::inertia('/', 'Welcome', [
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
-    Route::resource('purchases', PurchaseOrderController::class)->only(['index', 'create', 'store']);
-    Route::resource('purchase-returns', PurchaseReturnController::class)->only(['index', 'create', 'store']);
+    Route::resource('purchases', PurchaseOrderController::class);
+    Route::resource('purchase-returns', PurchaseReturnController::class);
     
     // API Routes for Purchase Returns
     Route::prefix('api')->group(function () {
         Route::get('suppliers/{supplier}/unpaid-invoices', [PurchaseReturnController::class, 'getUnpaidInvoices']);
         Route::get('purchase-orders/{purchaseOrder}/items', [PurchaseReturnController::class, 'getPurchaseOrderItems']);
+        Route::get('purchase-orders/by-number/{invoice_number}', [PurchaseReturnController::class, 'getPurchaseOrderByNumber']);
     });
 });
 

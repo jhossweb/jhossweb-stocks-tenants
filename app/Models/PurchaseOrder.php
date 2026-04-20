@@ -38,4 +38,24 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(MovementsPurchase::class, 'mov_invoice_number', 'invoice_number');
     }
+
+    /**
+     * Relación con otras facturas que la referencian como origen (sus devoluciones)
+     */
+    public function childrenReturns()
+    {
+        return $this->hasMany(PurchaseOrder::class, 'invoice_reference', 'invoice_number');
+    }
+
+    public function returnedMovements()
+    {
+        return $this->hasManyThrough(
+            MovementsPurchase::class, 
+            PurchaseOrder::class,
+            'invoice_reference', // Foreign key on the intermediates table (purchase_orders for returns)
+            'mov_invoice_number', // Foreign key on the target table (movements_purchases)
+            'invoice_number', // Local key on the parent table (purchase_orders)
+            'invoice_number' // Local key on the intermediate table
+        );
+    }
 }
