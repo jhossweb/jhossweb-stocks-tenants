@@ -11,6 +11,10 @@ use App\Models\Supplier;
 use App\Models\TransactionType;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\BankAccount;
+use App\Models\BankTransaction;
+use App\Models\AccountsPayable;
+use App\Models\AccountPayments;
 use App\Models\Warehouse;
 use Illuminate\Database\Seeder;
 
@@ -62,6 +66,41 @@ class DatabaseSeeder extends Seeder
                 'mov_unit_cost' => fake()->numberBetween(1, 100),
                 'mov_unit_cost_ref' => fake()->numberBetween(1, 100),
             ]);
+        }
+
+        // Seed Bank Accounts
+        $bankAccounts = BankAccount::factory()->count(3)->create();
+
+        // Seed Accounts Payable for existing Purchase Orders
+        foreach ($purchaseOrders as $order) {
+            $payable = AccountsPayable::create([
+                'acp_purchase_number' => $order->invoice_number,
+                'acp_total' => $order->invoice_total,
+                'acp_balance' => $order->invoice_total,
+                'acp_status' => 'pending',
+            ]);
+
+            // Create a payment for some of them (50% chance)
+            if (fake()->boolean(50)) {
+                $transaction = BankTransaction::factory()->create([
+                    'btr_bank_account_id' => $bankAccounts->random()->id,
+                    'btr_type' => 'outflow',
+                    'btr_amount' => $order->invoice_total,
+                    'btr_description' => 'Pago de factura ' . $order->invoice_number,
+                    'btr_valorcam' => $order->invoice_valorcam,
+                ]);
+
+                AccountPayments::create([
+                    'apy_bank_transaction_id' => $transaction->id,
+                    'apy_account_payable_id' => $payable->id,
+                    'apy_type' => 'PAYMENT',
+                ]);
+
+                $payable->update([
+                    'acp_balance' => 0,
+                    'acp_status' => 'paid',
+                ]);
+            }
         }
 
     }

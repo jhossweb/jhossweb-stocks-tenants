@@ -19,7 +19,7 @@ class PurchaseOrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'invoice_number' => fake()->unique()->text(6),
+            'invoice_number' => fake()->unique()->bothify('INV-#####'),
             'invoice_date' => fake()->date(),
             'invoice_trans_type_code' => \App\Models\TransactionType::inRandomOrder()->first()->trans_type_code,
             'invoice_supplier_id' => \App\Models\Supplier::inRandomOrder()->first()->id,
