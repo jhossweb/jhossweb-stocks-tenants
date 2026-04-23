@@ -28,4 +28,6 @@ class Rate extends Model
             'rate_date' => 'date',
         ];
     }
+
+
 }

@@ -23,6 +23,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: editAppearance(),
     },
+    {
+        title: 'Rates',
+        href: '/settings/rates',
+    },
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();

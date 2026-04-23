@@ -325,7 +325,7 @@ onMounted(() => updateExchangeRate());
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-zinc-400 mb-1.5">Fecha</label>
-                                <input type="date" v-model="form.invoice_date" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm focus:ring-indigo-600" />
+                                <Input type="date" v-model="form.invoice_date" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm focus:ring-indigo-600" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-zinc-400 mb-1.5">Moneda</label>
@@ -337,7 +337,7 @@ onMounted(() => updateExchangeRate());
 
                         <div class="p-4 bg-indigo-900/10 rounded-lg border border-indigo-500/20">
                             <label class="block text-xs font-bold text-indigo-400 uppercase mb-1.5">Tasa de Cambio Manual</label>
-                            <input 
+                            <Input 
                                 type="number" 
                                 step="0.0001" 
                                 v-model="form.invoice_valorcam" 
@@ -406,7 +406,7 @@ onMounted(() => updateExchangeRate());
                                     <td class="p-3">
                                         <select v-model="item.mov_war_id" class="w-full bg-transparent border-none focus:ring-0 text-sm text-zinc-300">
                                             <option value="" class="bg-zinc-900">Seleccione...</option>
-                                            <option v-for="w in warehouses" :key="w.id" :value="w.id" class="bg-zinc-900">{{ w.war_name }}</option>
+                                            <option v-for="w in warehouses" :key="w.id" :value="w.id" class="bg-zinc-900">{{ w.id }}</option>
                                         </select>
                                         <p v-if="form.errors[`items.${index}.mov_war_id`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mov_war_id`] }}</p>
                                     </td>

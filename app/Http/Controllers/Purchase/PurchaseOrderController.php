@@ -22,6 +22,7 @@ class PurchaseOrderController extends Controller
     public function index()
     {
         $purchases = PurchaseOrder::with(['supplier', 'transactionType'])
+            ->where('invoice_trans_type_code', 'FAC')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -151,7 +152,7 @@ class PurchaseOrderController extends Controller
     public function update(Request $request, $id)
     {
         $purchase = PurchaseOrder::findOrFail($id);
-        
+
         $validated = $request->validate([
             'invoice_number' => 'required|string|max:50|unique:purchase_orders,invoice_number,' . $purchase->id,
             'invoice_date' => 'required|date',
@@ -201,15 +202,15 @@ class PurchaseOrderController extends Controller
                     $movement->mov_invoice_trans_type_code = $purchase->invoice_trans_type_code ?? $transactionType->trans_type_code;
                     $movement->mov_factor = $transactionType->trans_type_factor;
                 }
-                
+
                 $movement->mov_pro_code = $item['mov_pro_code'];
                 $movement->mov_pro_iva = $item['mov_pro_iva'];
                 $movement->mov_war_id = $item['mov_war_id'];
                 $movement->mov_quantity = $item['mov_quantity'];
                 $movement->mov_unit_cost = $item['mov_unit_cost'];
                 $movement->mov_unit_cost_ref = $item['mov_unit_cost_ref'];
-                $movement->save(); 
-                
+                $movement->save();
+
                 $newIds[] = $movement->id;
             }
 

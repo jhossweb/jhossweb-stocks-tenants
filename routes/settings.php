@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\RateController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,4 +22,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('user-password.update');
 
     Route::inertia('settings/appearance', 'settings/Appearance')->name('appearance.edit');
+
+    Route::resource('settings/rates', RateController::class)->names([
+        'index' => 'rates.index',
+        'create' => 'rates.create',
+        'store' => 'rates.store',
+        'show' => 'rates.show',
+        'edit' => 'rates.edit',
+        'update' => 'rates.update',
+        'destroy' => 'rates.destroy',
+    ]);
 });

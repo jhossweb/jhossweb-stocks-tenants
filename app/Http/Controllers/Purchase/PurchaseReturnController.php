@@ -22,9 +22,7 @@ class PurchaseReturnController extends Controller
     public function index()
     {
         $returns = PurchaseOrder::with(['supplier', 'transactionType'])
-            ->whereHas('transactionType', function ($query) {
-                $query->where('trans_type_factor', '-1');
-            })
+            ->where('invoice_trans_type_code', 'DEVC')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -99,12 +97,12 @@ class PurchaseReturnController extends Controller
                     ->where('mov_pro_code', $item['mov_pro_code'])
                     ->where('mov_war_id', $item['mov_war_id'])
                     ->sum('mov_quantity');
-                
+
                 $alreadyReturned = $returnedMovements
                     ->where('mov_pro_code', $item['mov_pro_code'])
                     ->where('mov_war_id', $item['mov_war_id'])
                     ->sum('mov_quantity');
-                
+
                 // Usar round() para evitar problemas de coma flotante si ocurren decimales
                 if (round($item['mov_quantity'], 4) > round($originalQty - $alreadyReturned, 4)) {
                     throw new \RuntimeException("La cantidad de devolución para el producto con código {$item['mov_pro_code']} supera el máximo permitido disponible.");
@@ -180,7 +178,7 @@ class PurchaseReturnController extends Controller
     public function update(Request $request, $id)
     {
         $purchaseReturn = PurchaseOrder::findOrFail($id);
-        
+
         $validated = $request->validate([
             'invoice_number' => 'required|string|max:50|unique:purchase_orders,invoice_number,' . $purchaseReturn->id,
             'invoice_date' => 'required|date',
@@ -232,15 +230,15 @@ class PurchaseReturnController extends Controller
                     $movement->mov_invoice_trans_type_code = $purchaseReturn->invoice_trans_type_code;
                     $movement->mov_factor = $transactionType->trans_type_factor;
                 }
-                
+
                 $movement->mov_pro_code = $item['mov_pro_code'];
                 $movement->mov_pro_iva = $item['mov_pro_iva'];
                 $movement->mov_war_id = $item['mov_war_id'];
                 $movement->mov_quantity = $item['mov_quantity'];
                 $movement->mov_unit_cost = $item['mov_unit_cost'];
                 $movement->mov_unit_cost_ref = $item['mov_unit_cost_ref'];
-                $movement->save(); 
-                
+                $movement->save();
+
                 $newIds[] = $movement->id;
             }
 
@@ -266,7 +264,7 @@ class PurchaseReturnController extends Controller
     public function getUnpaidInvoices(Supplier $supplier, Request $request)
     {
         $currentInvoiceId = $request->query('current_invoice_id');
-        
+
         $invoices = PurchaseOrder::where('invoice_supplier_id', $supplier->id)
             ->whereHas('transactionType', fn($q) => $q->where('trans_type_factor', 1))
             ->withSum("movements", "mov_quantity")
@@ -302,7 +300,7 @@ class PurchaseReturnController extends Controller
         // Si estamos editando, queremos excluir los movimientos de LA DEVOLUCIÓN ACTUAL de la sumatoria
         // para saber el verdadero 'disponible'.
         $returnedMovementsQuery = $purchaseOrder->returnedMovements();
-        
+
         if ($excludeReturnId) {
             // returnedMovements es una relación hasManyThrough. 
             // Necesitamos asegurarnos de filtrar por el ID de la tabla purchase_orders intermedia
@@ -317,12 +315,12 @@ class PurchaseReturnController extends Controller
                 ->where('mov_pro_code', $item->mov_pro_code)
                 ->where('mov_war_id', $item->mov_war_id)
                 ->sum('mov_quantity');
-                
+
             $remainingQty = max(0, $item->mov_quantity - $returnedQty);
             // Formatear a máximo 4 decimales para javascript
             $item->mov_quantity_remaining = round($remainingQty, 4);
-            $item->mov_quantity = $item->mov_quantity_remaining; 
-            
+            $item->mov_quantity = $item->mov_quantity_remaining;
+
             return $item;
         })->filter(function ($item) {
             // Ignorar los items que ya se han devuelto en su totalidad
