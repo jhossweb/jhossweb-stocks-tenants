@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\MovementsPurchase;
+use App\Models\PurchaseOrder;
 use App\Observers\Purchases\MovPurchasesObserver;
+use App\Observers\Purchases\PurchaseOrderObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         MovementsPurchase::observe(MovPurchasesObserver::class);
+        PurchaseOrder::observe(PurchaseOrderObserver::class);
     }
 
     /**

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, ShoppingCart, Undo2 } from 'lucide-vue-next';
+import { BookOpen, FolderGit2, LayoutGrid, ShoppingCart, Undo2, FileText, ArrowRightLeft, BarChart3, Users, CreditCard, Building2 } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -25,13 +25,58 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Compras',
-        href: '/purchases',
+        href: '#',
         icon: ShoppingCart,
+        items: [
+            {
+                title: 'Fichero',
+                href: '#',
+                icon: FileText,
+                items: [
+                    {
+                        title: 'Proveedores',
+                        href: '/suppliers', // Assuming this path, might need to be adjusted
+                    },
+                ],
+            },
+            {
+                title: 'Transacciones',
+                href: '#',
+                icon: ArrowRightLeft,
+                items: [
+                    {
+                        title: 'Compras',
+                        href: '/purchases',
+                    },
+                    {
+                        title: 'Devoluciones',
+                        href: '/purchase-returns',
+                    },
+                ],
+            },
+            {
+                title: 'Análisis',
+                href: '#',
+                icon: BarChart3,
+                items: [
+                    {
+                        title: 'Cuentas por Pagar',
+                        href: '/accounts-payable',
+                    },
+                ],
+            },
+        ],
     },
     {
-        title: 'Dev. Compras',
-        href: '/purchase-returns',
-        icon: Undo2,
+        title: 'Finanzas',
+        href: '#',
+        icon: Building2,
+        items: [
+            {
+                title: 'Bancos',
+                href: '/bank-accounts',
+            },
+        ],
     },
 ];
 

@@ -58,4 +58,9 @@ class PurchaseOrder extends Model
             'invoice_number' // Local key on the intermediate table
         );
     }
+
+    public function accountsPayable()
+    {
+        return $this->hasOne(AccountsPayable::class, 'acp_purchase_number', 'invoice_number');
+    }
 }

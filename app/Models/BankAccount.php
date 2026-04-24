@@ -19,6 +19,22 @@ class BankAccount extends Model
         "bank_balance",
     ];
 
+    /**
+     * Scope to filter active bank accounts.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('bank_status', true);
+    }
+
+    /**
+     * Formatted balance with currency.
+     */
+    public function getFormattedBalanceAttribute(): string
+    {
+        return number_format($this->bank_balance, 2) . ' ' . $this->bank_currency;
+    }
+
     public function bankTransactions()
     {
         return $this->hasMany(BankTransaction::class, "btr_bank_account_id");
