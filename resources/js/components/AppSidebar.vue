@@ -73,8 +73,24 @@ const mainNavItems: NavItem[] = [
         icon: Building2,
         items: [
             {
-                title: 'Bancos',
-                href: '/bank-accounts',
+                title: 'Crear',
+                href: '#',
+                items: [
+                    {
+                        title: 'Bancos',
+                        href: '/bank-accounts',
+                    },
+                ],
+            },
+            {
+                title: 'Transacciones',
+                href: '#',
+                items: [
+                    {
+                        title: 'Pagos',
+                        href: '/payments/create',
+                    },
+                ],
             },
         ],
     },

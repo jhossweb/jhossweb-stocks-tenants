@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\BankTransaction;
 use App\Models\MovementsPurchase;
 use App\Models\PurchaseOrder;
+use App\Observers\BankTransactionObserver;
 use App\Observers\Purchases\MovPurchasesObserver;
 use App\Observers\Purchases\PurchaseOrderObserver;
 use Carbon\CarbonImmutable;
@@ -30,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         MovementsPurchase::observe(MovPurchasesObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);
+        BankTransaction::observe(BankTransactionObserver::class);
     }
 
     /**

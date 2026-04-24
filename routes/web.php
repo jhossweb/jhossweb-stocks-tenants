@@ -18,12 +18,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('purchase-returns', PurchaseReturnController::class);
     Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
     Route::resource('bank-accounts', BankAccountController::class);
-    // API Routes for Purchase Returns
+    Route::get('payments/create', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'create'])->name('payments.create');
+    Route::post('payments', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'store'])->name('payments.store');
+
+    // API Routes for Finance/Tesoreria
     Route::prefix('api')->group(function () {
+        Route::get('suppliers/{supplier}/pending-invoices', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'getPendingInvoices']);
         Route::get('suppliers/{supplier}/unpaid-invoices', [PurchaseReturnController::class, 'getUnpaidInvoices']);
         Route::get('purchase-orders/{purchaseOrder}/items', [PurchaseReturnController::class, 'getPurchaseOrderItems']);
         Route::get('purchase-orders/by-number/{invoice_number}', [PurchaseReturnController::class, 'getPurchaseOrderByNumber']);
-
     });
 });
 

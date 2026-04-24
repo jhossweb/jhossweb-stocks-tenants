@@ -11,6 +11,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { FileText, CreditCard, Search, X } from 'lucide-vue-next';
+import paymentRoutes from '@/routes/payments';
+import accountsPayableRoutes from '@/routes/accounts-payable';
 
 defineOptions({
     layout: {
@@ -56,10 +58,12 @@ let timeoutId: ReturnType<typeof setTimeout>;
 watch([search, status], () => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-        router.get('/accounts-payable', {
-            search: search.value,
-            status: status.value === 'all' ? null : status.value
-        }, {
+        router.get(accountsPayableRoutes.index.url({
+            query: {
+                search: search.value,
+                status: status.value === 'all' ? null : status.value
+            }
+        }), {}, {
             preserveState: true,
             replace: true
         });
@@ -86,6 +90,13 @@ const clearFilters = () => {
                     Visualiza y gestiona las deudas pendientes con proveedores.
                 </p>
             </div>
+            
+            <Link :href="paymentRoutes.create.url()">
+                <Button class="shadow-md hover:shadow-lg transition-all">
+                    <CreditCard class="mr-2 h-4 w-4" />
+                    Registrar Pago
+                </Button>
+            </Link>
         </div>
 
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white dark:bg-gray-900 border border-sidebar-border p-4 rounded-xl shadow-sm">
