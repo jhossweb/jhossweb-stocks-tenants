@@ -287,7 +287,7 @@ const getStatusBadgeClass = (status: boolean) => {
                             Saldo Actual
                         </div>
                         <div class="text-2xl font-black text-gray-900 dark:text-white">
-                            {{ account.formatted_balance }}
+                            {{ account.bank_balance }}
                         </div>
                     </div>
                 </div>

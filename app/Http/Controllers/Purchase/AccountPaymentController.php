@@ -89,11 +89,26 @@ class AccountPaymentController extends Controller
             // $bankTransaction->btr_transactionable()->associate(...)
 
             foreach ($activePayments as $paymentData) {
-                $acp = AccountsPayable::findOrFail($paymentData['acp_id']);
+                $acp = AccountsPayable::with('purchaseOrder')->findOrFail($paymentData['acp_id']);
                 
-                // We assume amount is already in the currency of the invoice (usually USD)
+                $amountToRegister = $paymentData['amount'];
+                $docCurrency = $acp->purchaseOrder->invoice_coin ?? 'USD';
+                $payCurrency = $validated['payment_currency'];
+                $rate = (float) $validated['payment_rate'];
+
+                if ($docCurrency !== $payCurrency) {
+                    // Doc COP, Pay USD -> DocValue = PayValue * Rate
+                    if ($docCurrency === 'COP' && $payCurrency === 'USD') {
+                        $amountToRegister = $amountToRegister * $rate;
+                    } 
+                    // Doc USD, Pay COP/BS/VES -> DocValue = PayValue / Rate
+                    elseif ($docCurrency === 'USD' && (in_array($payCurrency, ['COP', 'BS', 'VES']))) {
+                        $amountToRegister = $amountToRegister / $rate;
+                    }
+                }
+
                 $acp->registerPayment(
-                    $paymentData['amount'],
+                    $amountToRegister,
                     \App\Enum\Tesoreria\TypePayment::PAYMENT->value,
                     $bankTransaction->id
                 );

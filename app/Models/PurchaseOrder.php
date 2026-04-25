@@ -21,6 +21,7 @@ class PurchaseOrder extends Model
         'invoice_exento',
         'invoice_iva',
         'invoice_total',
+        'invoice_status',
         'invoice_reference',
     ];
 

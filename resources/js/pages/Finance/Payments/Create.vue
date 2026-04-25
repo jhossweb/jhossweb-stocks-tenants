@@ -85,6 +85,7 @@ const fetchPendingInvoices = async (supplierId: string | number) => {
             acp_id: inv.id,
             invoice_number: inv.acp_purchase_number,
             balance: Number(inv.acp_balance),
+            currency: inv.purchase_order?.invoice_coin || 'USD',
             amount: 0
         }));
     } catch (error) {
@@ -176,6 +177,30 @@ onMounted(() => {
 const selectedBankAccount = computed(() => {
     return props.bankAccounts.find(ba => ba.id == form.bank_account_id);
 });
+
+const calculateConvertedBalance = (invoicePayment: any) => {
+    const balance = invoicePayment.balance; // original balance
+    const fromCurrency = invoicePayment.currency;
+    const toCurrency = form.payment_currency;
+    const rate = Number(form.payment_rate);
+
+    if (fromCurrency === toCurrency) return balance;
+
+    // Fórmula del usuario: Doc COP, Pay USD -> Balance / Tasa (COP_Rate)
+    if (fromCurrency === 'COP' && toCurrency === 'USD') {
+        const currentRate = getBestRateForDate(form.payment_date);
+        const copRate = currentRate ? Number(currentRate.rate_cop) : 1;
+        return balance / copRate;
+    }
+
+    // Fórmula del usuario: Doc USD, Pay COP/BS -> Balance * Tasa (SelectedRate)
+    if (fromCurrency === 'USD' && (toCurrency === 'COP' || toCurrency === 'BS' || toCurrency === 'VES')) {
+        return balance * rate;
+    }
+
+    // Caso general si no aplica lo anterior
+    return balance;
+};
 
 </script>
 
@@ -355,8 +380,8 @@ const selectedBankAccount = computed(() => {
                                         </td>
                                         <td class="px-6 py-5">
                                             <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
-                                                <span class="text-[10px] text-zinc-600">USD</span>
-                                                {{ invoice.balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                                <span class="text-[10px] text-zinc-600">{{ form.payment_currency }}</span>
+                                                {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-5">
@@ -365,11 +390,11 @@ const selectedBankAccount = computed(() => {
                                                     type="number" 
                                                     step="0.01" 
                                                     v-model="invoice.amount" 
-                                                    @input="invoice.amount = Math.min(Number(invoice.amount), invoice.balance)"
+                                                    @input="invoice.amount = Math.min(Number(invoice.amount), calculateConvertedBalance(invoice))"
                                                     class="text-right h-10 bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/50 rounded-lg text-sm font-black tabular-nums transition-all focus:ring-indigo-600" 
                                                 />
                                                 <button 
-                                                    @click="invoice.amount = invoice.balance"
+                                                    @click="invoice.amount = calculateConvertedBalance(invoice)"
                                                     class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-indigo-500 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
                                                     MÁX

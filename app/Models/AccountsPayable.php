@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enum\Purchases\StatusPurchases;
 
 class AccountsPayable extends Model
 {
@@ -62,13 +63,19 @@ class AccountsPayable extends Model
         $this->acp_balance -= $amount;
 
         if ($this->acp_balance <= 0) {
-            $this->acp_status = 'paid';
+            $this->acp_status = StatusPurchases::PAID->value;
             $this->acp_balance = 0;
         } else {
-            $this->acp_status = 'partial';
+            $this->acp_status = StatusPurchases::PARTIAL->value;
         }
 
         $this->save();
+
+        // Sincronizar el estado con el documento original (PurchaseOrder)
+        if ($this->purchaseOrder) {
+            $this->purchaseOrder->invoice_status = $this->acp_status;
+            $this->purchaseOrder->save();
+        }
 
         $this->payments()->create([
             'apy_bank_transaction_id' => $bankTransactionId,
