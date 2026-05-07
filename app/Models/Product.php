@@ -16,16 +16,16 @@ class Product extends Model
         'pro_und',
         'pro_iva',
         'pro_cat_id',
-        'pro_brand_id',
+        'pro_bra_id',
     ];
 
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class, 'pro_cat_id');
     }
 
     public function brand()
     {
-        return $this->belongsTo(Brand::class);
+        return $this->belongsTo(Brand::class, 'pro_bra_id');
     }
 }

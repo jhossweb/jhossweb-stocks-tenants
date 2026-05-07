@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('payments/{payment}/edit', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'edit'])->name('payments.edit');
     Route::put('payments/{payment}', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'update'])->name('payments.update');
     Route::delete('payments/{payment}', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'destroy'])->name('payments.destroy');
+    Route::resource('products', \App\Http\Controllers\Inventory\ProductController::class)->except(['create', 'edit', 'show']);
     // API Routes for Finance/Tesoreria
     Route::prefix('api')->group(function () {
         Route::get('suppliers/{supplier}/pending-invoices', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'getPendingInvoices']);
