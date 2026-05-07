@@ -80,6 +80,7 @@ class AccountsPayable extends Model
         $this->payments()->create([
             'apy_bank_transaction_id' => $bankTransactionId,
             'apy_type' => $type,
+            'apy_amount' => $amount,
         ]);
     }
 

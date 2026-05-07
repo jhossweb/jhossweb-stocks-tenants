@@ -14,6 +14,7 @@ class AccountPayments extends Model
         "apy_bank_transaction_id",
         "apy_account_payable_id",
         "apy_type",
+        "apy_amount",
     ];
 
     public function bankTransaction()

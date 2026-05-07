@@ -17,6 +17,7 @@ return new class extends Migration {
 
             $table->foreignId("apy_bank_transaction_id")->constrained("bank_transactions")->onDelete("cascade");
             $table->foreignId("apy_account_payable_id")->constrained("accounts_payables")->onDelete("cascade");
+            $table->decimal('apy_amount', 15, 4)->default(0);
             $table->enum("apy_type", TypePayment::values())->default(TypePayment::PAYMENT->value);
 
             $table->timestamps();

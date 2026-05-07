@@ -10,7 +10,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { FileText, CreditCard, Search, X } from 'lucide-vue-next';
+import { FileText, CreditCard, Search, X, Eye, Pencil, Trash2, Calendar, Hash } from 'lucide-vue-next';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import paymentRoutes from '@/routes/payments';
 import accountsPayableRoutes from '@/routes/accounts-payable';
 
@@ -36,6 +43,19 @@ interface AccountsPayable {
             supplier_name: string;
         };
     };
+    payments?: {
+        id: number;
+        apy_amount: string;
+        created_at: string;
+        bank_transaction?: {
+            btr_reference: string;
+            btr_description: string;
+            btr_amount: string;
+            btr_type: string;
+            created_at: string;
+            btr_valorcam: string;
+        }
+    }[];
     created_at: string;
 }
 
@@ -73,6 +93,28 @@ watch([search, status], () => {
 const clearFilters = () => {
     search.value = '';
     status.value = 'all';
+};
+
+const isPaymentsModalOpen = ref(false);
+const selectedAccount = ref<AccountsPayable | null>(null);
+
+const viewPayments = (account: AccountsPayable) => {
+    selectedAccount.value = account;
+    isPaymentsModalOpen.value = true;
+};
+
+const editPayment = (paymentId: number) => {
+    router.get(`/payments/${paymentId}/edit`);
+};
+
+const deletePayment = (paymentId: number) => {
+    if (confirm('¿Estás seguro de que deseas eliminar este pago? Esta acción restaurará el balance de la deuda original.')) {
+        router.delete(`/payments/${paymentId}`, {
+            onSuccess: () => {
+                isPaymentsModalOpen.value = false;
+            }
+        });
+    }
 };
 </script>
 
@@ -177,7 +219,8 @@ const clearFilters = () => {
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                                <Button @click="viewPayments(account)" variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                                    <Eye class="h-4 w-4 mr-2" />
                                     Ver Pagos
                                 </Button>
                             </td>
@@ -196,5 +239,60 @@ const clearFilters = () => {
                 </div>
             </div>
         </div>
+
+        <!-- Payments Modal -->
+        <Dialog :open="isPaymentsModalOpen" @update:open="isPaymentsModalOpen = $event">
+            <DialogContent class="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                    <DialogTitle>Historial de Pagos</DialogTitle>
+                    <DialogDescription>
+                        Visualizando los pagos de la factura #{{ selectedAccount?.acp_purchase_number }} del proveedor {{ selectedAccount?.purchase_order?.supplier?.supplier_name || 'Desconocido' }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="mt-4">
+                    <div v-if="!selectedAccount?.payments || selectedAccount.payments.length === 0" class="text-center py-8 text-gray-500">
+                        <FileText class="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                        No hay pagos registrados para esta factura.
+                    </div>
+                    
+                    <div v-else class="space-y-4">
+                        <div v-for="payment in selectedAccount.payments" :key="payment.id" class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
+                                        ${{ parseFloat(payment.apy_amount).toFixed(2) }}
+                                    </h4>
+                                    <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                                        <Calendar class="h-4 w-4" />
+                                        {{ new Date(payment.bank_transaction?.created_at || payment.created_at).toLocaleDateString() }}
+                                    </div>
+                                    <div class="flex items-center gap-2 text-sm text-gray-500 mt-1" v-if="payment.bank_transaction?.btr_reference">
+                                        <Hash class="h-4 w-4" />
+                                        Ref: {{ payment.bank_transaction?.btr_reference }}
+                                    </div>
+                                    <div class="text-sm mt-2 text-gray-600 dark:text-gray-400" v-if="payment.bank_transaction?.btr_description">
+                                        Nota: {{ payment.bank_transaction.btr_description }}
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-2">
+                                    <Button @click="editPayment(payment.id)" variant="outline" size="sm" class="h-8 shadow-sm">
+                                        <Pencil class="h-3.5 w-3.5 mr-1" /> Editar
+                                    </Button>
+                                    <Button @click="deletePayment(payment.id)" variant="ghost" size="sm" class="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                        <Trash2 class="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <Button variant="outline" @click="isPaymentsModalOpen = false">Cerrar</Button>
+                </div>
+            </DialogContent>
+        </Dialog>
     </div>
 </template>

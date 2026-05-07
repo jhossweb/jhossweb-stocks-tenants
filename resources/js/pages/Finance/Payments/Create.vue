@@ -31,6 +31,7 @@ import SelectorModal from '@/components/SelectorModal.vue';
 import paymentRoutes from '@/routes/payments';
 
 const props = defineProps<{
+    payment?: any;
     suppliers: any[];
     bankAccounts: any[];
     latestRate: any;
@@ -39,19 +40,21 @@ const props = defineProps<{
     methods: string[];
 }>();
 
+const isEditMode = computed(() => !!props.payment);
+
 const pendingInvoices = ref<any[]>([]);
 const isLoadingInvoices = ref(false);
 
 const form = useForm({
-    payment_date: new Date().toISOString().split('T')[0],
-    supplier_id: '',
-    bank_account_id: '',
+    payment_date: props.payment?.bank_transaction?.created_at ? props.payment.bank_transaction.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+    supplier_id: props.payment?.account_payable?.purchase_order?.invoice_supplier_id?.toString() || props.payment?.account_payable?.purchase_order?.supplier?.id?.toString() || '',
+    bank_account_id: props.payment?.bank_transaction?.btr_bank_account_id?.toString() || '',
     payment_currency: 'USD',
-    payment_rate: props.latestRate ? Number(props.latestRate.rate_usd) : 1,
-    payment_method: 'TRANSFERENCIA',
-    payment_reference: '',
-    payment_description: '',
-    payments: [] as { acp_id: number, invoice_number: string, balance: number, amount: number }[],
+    payment_rate: props.payment?.bank_transaction?.btr_valorcam ? Number(props.payment.bank_transaction.btr_valorcam) : (props.latestRate ? Number(props.latestRate.rate_usd) : 1),
+    payment_method: props.payment?.bank_transaction?.btr_type || 'TRANSFERENCIA',
+    payment_reference: props.payment?.bank_transaction?.btr_reference || '',
+    payment_description: props.payment?.bank_transaction?.btr_description || '',
+    payments: [] as { acp_id: number, invoice_number: string, balance: number, currency: string, amount: number }[],
 });
 
 const totalToPay = computed(() => {
@@ -106,6 +109,23 @@ const getSupplierName = (id: string | number) => {
 };
 
 const submit = () => {
+    if (isEditMode.value) {
+        if (form.payments.length === 0 || form.payments[0].amount <= 0 || form.payments[0].amount > form.payments[0].balance) {
+            alert('Monto inválido');
+            return;
+        }
+        
+        form.transform((data) => ({
+            payment_date: data.payment_date,
+            bank_account_id: data.bank_account_id,
+            payment_reference: data.payment_reference,
+            payment_description: data.payment_description,
+            amount: data.payments[0].amount,
+        })).put(`/payments/${props.payment.id}`);
+        
+        return;
+    }
+
     if (totalToPay.value <= 0) {
         alert('Debe ingresar al menos un monto a pagar');
         return;
@@ -171,7 +191,25 @@ watch(() => [form.payment_currency, form.payment_date], () => {
 });
 
 onMounted(() => {
-    updateExchangeRate();
+    if (isEditMode.value && props.payment) {
+        const docCurrency = props.payment.account_payable?.purchase_order?.invoice_coin || 'USD';
+        form.payment_currency = docCurrency;
+        form.payment_rate = 1;
+
+        const acp = props.payment.account_payable;
+        const currentBalance = Number(acp?.acp_balance || 0);
+        const originallyPaid = Number(props.payment.apy_amount || 0);
+        
+        form.payments = [{
+            acp_id: acp?.id,
+            invoice_number: acp?.acp_purchase_number,
+            balance: currentBalance + originallyPaid,
+            currency: docCurrency,
+            amount: originallyPaid
+        }];
+    } else {
+        updateExchangeRate();
+    }
 });
 
 const selectedBankAccount = computed(() => {
@@ -222,9 +260,11 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                     </Link>
                     <div>
                         <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
-                            Comprobante de Pago
+                            {{ isEditMode ? 'Editar Pago' : 'Comprobante de Pago' }}
                         </h1>
-                        <p class="text-xs text-zinc-500 font-medium tracking-wide first-letter:uppercase">Registro de egresos y abonos a proveedores</p>
+                        <p class="text-xs text-zinc-500 font-medium tracking-wide first-letter:uppercase">
+                            {{ isEditMode ? 'Actualización de pago registrado' : 'Registro de egresos y abonos a proveedores' }}
+                        </p>
                     </div>
                 </div>
                 
@@ -236,8 +276,19 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                 >
                     <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
                     <Save v-else class="w-4 h-4 mr-2" />
-                    Generar Pago
+                    {{ isEditMode ? 'Actualizar Pago' : 'Generar Pago' }}
                 </Button>
+            </div>
+
+            <!-- Errors -->
+            <div v-if="Object.keys(form.errors).length > 0" class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-start gap-3">
+                <AlertCircle class="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                    <h4 class="text-sm font-bold text-red-500">Por favor, corrige los siguientes errores:</h4>
+                    <ul class="text-xs text-red-400 list-disc list-inside mt-1 space-y-1">
+                        <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -252,7 +303,10 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                         <div class="space-y-4">
                             <div class="space-y-2">
                                 <Label class="text-zinc-400 text-xs font-semibold">Proveedor</Label>
-                                <SelectorModal
+                                <div v-if="isEditMode" class="h-11 bg-zinc-950/50 border border-zinc-800 rounded-xl px-3 flex items-center text-sm text-zinc-300">
+                                    {{ getSupplierName(form.supplier_id) }}
+                                </div>
+                                <SelectorModal v-else
                                     title="Seleccionar Proveedor"
                                     description="Busque y seleccione el proveedor a pagar"
                                     :items="suppliers"
@@ -265,6 +319,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                     :selectedValue="form.supplier_id"
                                     @select="selectSupplier"
                                 />
+                                <span v-if="form.errors.supplier_id" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.supplier_id }}</span>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
@@ -272,12 +327,13 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                     <Label class="text-zinc-400 text-xs font-semibold">Fecha de Pago</Label>
                                     <div class="relative">
                                         <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                                        <Input type="date" v-model="form.payment_date" class="pl-10 h-11 bg-zinc-950/50 border-zinc-800 text-sm focus:ring-indigo-600 rounded-xl" />
+                                        <Input type="date" v-model="form.payment_date" :class="{'border-red-500': form.errors.payment_date}" class="pl-10 h-11 bg-zinc-950/50 border-zinc-800 text-sm focus:ring-indigo-600 rounded-xl" />
                                     </div>
+                                    <span v-if="form.errors.payment_date" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_date }}</span>
                                 </div>
                                 <div class="space-y-2">
                                     <Label class="text-zinc-400 text-xs font-semibold">Moneda de Pago</Label>
-                                    <Select v-model="form.payment_currency">
+                                    <Select v-model="form.payment_currency" :disabled="isEditMode">
                                         <SelectTrigger class="h-11 bg-zinc-950/50 border-zinc-800 rounded-xl">
                                             <SelectValue placeholder="Moneda" />
                                         </SelectTrigger>
@@ -285,6 +341,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                             <SelectItem v-for="c in currencies" :key="c" :value="c">{{ c }}</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <span v-if="form.errors.payment_currency" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_currency }}</span>
                                 </div>
                             </div>
 
@@ -295,13 +352,15 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                 </div>
                                 <div class="relative">
                                     <DollarSign class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400/50" />
-                                    <Input 
-                                        type="number" 
-                                        step="0.0001" 
-                                        v-model="form.payment_rate" 
-                                        class="pl-10 h-11 bg-zinc-950 border-zinc-800 text-sm font-mono font-bold text-indigo-400 focus:ring-indigo-600 rounded-xl" 
-                                    />
+                                        <Input 
+                                            type="number" 
+                                            step="0.0001" 
+                                            v-model="form.payment_rate" 
+                                            :disabled="isEditMode"
+                                            class="pl-10 h-11 bg-zinc-950 border-zinc-800 text-sm font-mono font-bold text-indigo-400 focus:ring-indigo-600 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed" 
+                                        />
                                 </div>
+                                <span v-if="form.errors.payment_rate" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_rate }}</span>
                             </div>
                         </div>
                     </div>
@@ -435,11 +494,12 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <span v-if="form.errors.bank_account_id" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.bank_account_id }}</span>
                                 </div>
 
                                 <div class="space-y-2">
                                     <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Tipo de Transacción</Label>
-                                    <Select v-model="form.payment_method">
+                                    <Select v-model="form.payment_method" :disabled="isEditMode">
                                         <SelectTrigger class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl">
                                             <SelectValue placeholder="Método de pago" />
                                         </SelectTrigger>
@@ -447,17 +507,20 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                             <SelectItem v-for="m in methods" :key="m" :value="m">{{ m }}</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <span v-if="form.errors.payment_method" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_method }}</span>
                                 </div>
                             </div>
 
                             <div class="space-y-4">
                                 <div class="space-y-2">
                                     <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Referencia / Voucher</Label>
-                                    <Input v-model="form.payment_reference" placeholder="N° de transacción o referencia" class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl" />
+                                    <Input v-model="form.payment_reference" placeholder="N° de transacción o referencia" :class="{'border-red-500': form.errors.payment_reference}" class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl" />
+                                    <span v-if="form.errors.payment_reference" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_reference }}</span>
                                 </div>
                                 <div class="space-y-2">
                                     <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Observaciones</Label>
-                                    <Input v-model="form.payment_description" placeholder="Opcional" class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl" />
+                                    <Input v-model="form.payment_description" placeholder="Opcional" :class="{'border-red-500': form.errors.payment_description}" class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl" />
+                                    <span v-if="form.errors.payment_description" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_description }}</span>
                                 </div>
                             </div>
                         </div>

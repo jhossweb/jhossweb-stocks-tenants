@@ -14,7 +14,7 @@ class AccountsPayableController extends Controller
      */
     public function index(Request $request)
     {
-        $query = AccountsPayable::with(['purchaseOrder.supplier'])
+        $query = AccountsPayable::with(['purchaseOrder.supplier', 'payments.bankTransaction'])
             ->orderBy('created_at', 'desc');
 
         // Apply filters if needed
