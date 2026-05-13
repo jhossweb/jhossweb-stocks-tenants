@@ -7,6 +7,7 @@ use App\Models\MovementsPurchase;
 use App\Models\PurchaseOrder;
 use App\Observers\BankTransactionObserver;
 use App\Observers\Purchases\MovPurchasesObserver;
+use App\Observers\Purchases\CostHistoryObserver;
 use App\Observers\Purchases\PurchaseOrderObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         MovementsPurchase::observe(MovPurchasesObserver::class);
+        MovementsPurchase::observe(CostHistoryObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);
         BankTransaction::observe(BankTransactionObserver::class);
     }
