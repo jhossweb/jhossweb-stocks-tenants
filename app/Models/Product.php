@@ -6,6 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\PriceHistory;
+
 
 class Product extends Model
 {
@@ -49,4 +51,20 @@ class Product extends Model
             ->latest('id')
             ->first();
     }
+    /**
+     * Get the price histories for the product.
+     */
+    public function priceHistories(): HasMany
+    {
+        return $this->hasMany(PriceHistory::class, 'price_pro_code', 'pro_code');
+    }
+
+    /**
+     * Get the latest price for the product.
+     */
+    public function latestPrice(): ?PriceHistory
+    {
+        return $this->priceHistories()->latest('price_date')->latest('id')->first();
+    }
 }
+
