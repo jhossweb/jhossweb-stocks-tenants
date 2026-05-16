@@ -7,6 +7,8 @@ use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\PurchaseReturnController;
 use App\Http\Controllers\Purchase\AccountsPayableController;
 use App\Http\Controllers\Finance\Bank\BankAccountController;
+use App\Http\Controllers\Sales\SaleOrderController;
+use App\Http\Controllers\Sales\CustomerController;
 
 Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -16,6 +18,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
     Route::resource('purchases', PurchaseOrderController::class);
     Route::resource('purchase-returns', PurchaseReturnController::class);
+    Route::resource('sales', SaleOrderController::class);
+    Route::resource('customers', CustomerController::class);
     Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
     Route::resource('bank-accounts', BankAccountController::class);
     Route::get('payments/create', [\App\Http\Controllers\Purchase\AccountPaymentController::class, 'create'])->name('payments.create');
