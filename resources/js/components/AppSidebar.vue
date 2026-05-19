@@ -112,6 +112,35 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
+    {
+        title: 'Ventas',
+        href: '#',
+        icon: Users,
+        items: [
+            {
+                title: 'Fichero',
+                href: '#',
+                icon: FileText,
+                items: [
+                    {
+                        title: 'Clientes',
+                        href: '/customers',
+                    },
+                ],
+            },
+            {
+                title: 'Transacciones',
+                href: '#',
+                icon: ArrowRightLeft,
+                items: [
+                    {
+                        title: 'Factura de venta',
+                        href: '/sales',
+                    },
+                ],
+            },
+        ],
+    },
 ];
 
 const footerNavItems: NavItem[] = [

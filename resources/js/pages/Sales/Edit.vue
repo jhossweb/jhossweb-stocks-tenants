@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2 } from 'lucide-vue-next';
 import Input from '@/components/ui/input/Input.vue';
+import SelectorModal from '@/components/SelectorModal.vue';
 
 const props = defineProps<{
     customers: any[];
@@ -68,32 +69,27 @@ const updateExchangeRate = () => {
                 form.sls_valorcam = 1;
             } else if (form.sls_coin === 'COP') {
                 form.sls_valorcam = Number(selectedRate.rate_cop);
-                alert(selectedRate.rate_cop)
             } else if (form.sls_coin === 'VES' || form.sls_coin === 'BS') {
                 form.sls_valorcam = Number(selectedRate.rate_usd);
-                alert(selectedRate.rate_usd)
             } else if (form.sls_coin === 'EUR') {
                 form.sls_valorcam = Number(selectedRate.rate_eur);
-                alert(selectedRate.rate_eur)
             }
         }
     }
-    form.items.forEach((_, i) => updatePriceRef(i));
+    form.items.forEach((_, i) => updatePriceFromRef(i));
 };
 
-const updatePriceRef = (index: number) => {
+const updatePriceFromRef = (index: number) => {
     const item = form.items[index];
     const tasaManual = Number(form.sls_valorcam) || 1;
-    const precioUnitario = Number(item.mvs_unit_price) || 0;
-    let totalEnUsd = 0;
+    const usdPrice = Number(item.mvs_unit_price_ref) || 0;
 
     if (form.sls_coin === 'USD') {
-        totalEnUsd = precioUnitario;
+        item.mvs_unit_price = usdPrice;
     } else {
-        totalEnUsd = precioUnitario / tasaManual;
+        item.mvs_unit_price = usdPrice * tasaManual;
     }
 
-    item.mvs_unit_price_ref = Number(totalEnUsd.toFixed(4));
     calculateTotals();
 };
 
@@ -150,6 +146,29 @@ const removeItem = (index: number) => {
         form.items.splice(index, 1);
         calculateTotals();
     }
+};
+
+const getProductName = (code: string) => {
+    const p = props.products.find(p => p.pro_code === code);
+    return p ? `${p.pro_name} - $${p.latest_price}` : 'Seleccione producto';
+};
+
+const selectProduct = (index: number, product: any) => {
+    form.items[index].mvs_pro_code = product.pro_code;
+    form.items[index].mvs_pro_iva = Number(product.pro_iva) || 0;
+
+    const usdPrice = Number(product.latest_price) || 0;
+    const tasaManual = Number(form.sls_valorcam) || 1;
+
+    form.items[index].mvs_unit_price_ref = usdPrice;
+
+    if (form.sls_coin === 'USD') {
+        form.items[index].mvs_unit_price = usdPrice;
+    } else {
+        form.items[index].mvs_unit_price = usdPrice * tasaManual;
+    }
+
+    calculateTotals();
 };
 
 const submit = () => {
@@ -237,7 +256,7 @@ const submit = () => {
                                 type="number"
                                 step="0.0001"
                                 v-model="form.sls_valorcam"
-                                @input="form.items.forEach((_, i) => updatePriceRef(i))"
+                                @input="form.items.forEach((_, i) => updatePriceFromRef(i))"
                                 class="w-full bg-zinc-950 border-zinc-700 rounded-md text-sm font-mono font-bold text-indigo-300 focus:ring-indigo-600"
                             />
                         </div>
@@ -282,11 +301,22 @@ const submit = () => {
                             </thead>
                             <tbody class="divide-y divide-zinc-800">
                                 <tr v-for="(item, index) in form.items" :key="index" class="hover:bg-zinc-800/30 transition-colors">
-                                    <td class="p-3">
-                                        <select v-model="item.mvs_pro_code" @change="calculateTotals" class="w-full bg-transparent border-none focus:ring-0 text-sm text-zinc-300">
-                                            <option value="" class="bg-zinc-900">Seleccione...</option>
-                                            <option v-for="p in products" :key="p.pro_code" :value="p.pro_code" class="bg-zinc-900">{{ p.pro_name }}</option>
-                                        </select>
+                                    <td class="p-3 min-w-[250px]">
+                                        <SelectorModal
+                                            title="Seleccionar Producto"
+                                            :items="products"
+                                            :searchFields="['pro_name', 'pro_code']"
+                                            :displayFields="[
+                                                { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
+                                                { label: 'Nombre', key: 'pro_name' },
+                                                { label: 'Precio $', key: 'latest_price', class: 'font-mono text-xs text-right' },
+                                                { label: 'Stock', key: 'total_stock', class: 'font-mono text-xs text-right' }
+                                            ]"
+                                            :triggerLabel="getProductName(item.mvs_pro_code)"
+                                            :selectedValue="item.mvs_pro_code"
+                                            triggerClass="bg-transparent border-none hover:bg-zinc-800/50"
+                                            @select="(p) => selectProduct(index, p)"
+                                        />
                                         <p v-if="form.errors[`items.${index}.mvs_pro_code`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mvs_pro_code`] }}</p>
                                     </td>
                                     <td class="p-3">
@@ -304,7 +334,9 @@ const submit = () => {
                                         <p v-if="form.errors[`items.${index}.mvs_quantity`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mvs_quantity`] }}</p>
                                     </td>
                                     <td class="p-3">
-                                        <input type="number" step="0.0001" v-model="item.mvs_unit_price" @input="updatePriceRef(index)" class="w-full text-right border-none bg-transparent font-bold text-zinc-200 focus:ring-0" />
+                                        <span class="block w-full text-right font-bold text-zinc-200 py-1.5">
+                                            {{ Number(item.mvs_unit_price).toFixed(4) }}
+                                        </span>
                                         <p v-if="form.errors[`items.${index}.mvs_unit_price`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mvs_unit_price`] }}</p>
                                     </td>
                                     <td class="p-3">

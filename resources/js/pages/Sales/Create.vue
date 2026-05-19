@@ -67,22 +67,20 @@ const updateExchangeRate = () => {
             }
         }
     }
-    form.items.forEach((_, i) => updatePriceRef(i));
+    form.items.forEach((_, i) => updatePriceFromRef(i));
 };
 
-const updatePriceRef = (index: number) => {
+const updatePriceFromRef = (index: number) => {
     const item = form.items[index];
     const tasaManual = Number(form.sls_valorcam) || 1;
-    const precioUnitario = Number(item.mvs_unit_price) || 0;
-    let totalEnUsd = 0;
+    const usdPrice = Number(item.mvs_unit_price_ref) || 0;
 
     if (form.sls_coin === 'USD') {
-        totalEnUsd = precioUnitario;
+        item.mvs_unit_price = usdPrice;
     } else {
-        totalEnUsd = precioUnitario / tasaManual;
+        item.mvs_unit_price = usdPrice * tasaManual;
     }
 
-    item.mvs_unit_price_ref = Number(totalEnUsd.toFixed(4));
     calculateTotals();
 };
 
@@ -157,6 +155,19 @@ const selectCustomer = (customer: any) => {
 
 const selectProduct = (index: number, product: any) => {
     form.items[index].mvs_pro_code = product.pro_code;
+    form.items[index].mvs_pro_iva = Number(product.pro_iva) || 0;
+
+    const usdPrice = Number(product.latest_price) || 0;
+    const tasaManual = Number(form.sls_valorcam) || 1;
+
+    form.items[index].mvs_unit_price_ref = usdPrice;
+
+    if (form.sls_coin === 'USD') {
+        form.items[index].mvs_unit_price = usdPrice;
+    } else {
+        form.items[index].mvs_unit_price = usdPrice * tasaManual;
+    }
+
     calculateTotals();
 };
 
@@ -256,7 +267,7 @@ onMounted(() => updateExchangeRate());
                                 type="number"
                                 step="0.0001"
                                 v-model="form.sls_valorcam"
-                                @input="form.items.forEach((_, i) => updatePriceRef(i))"
+                                    @input="form.items.forEach((_, i) => updatePriceFromRef(i))"
                                 class="w-full bg-zinc-950 border-zinc-700 rounded-md text-sm font-mono font-bold text-indigo-300 focus:ring-indigo-600"
                             />
                         </div>
@@ -308,7 +319,9 @@ onMounted(() => updateExchangeRate());
                                             :searchFields="['pro_name', 'pro_code']"
                                             :displayFields="[
                                                 { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
-                                                { label: 'Nombre', key: 'pro_name' }
+                                                { label: 'Nombre', key: 'pro_name' },
+                                                { label: 'Precio $', key: 'latest_price', class: 'font-mono text-xs text-right' },
+                                                { label: 'Stock', key: 'total_stock', class: 'font-mono text-xs text-right' }
                                             ]"
                                             :triggerLabel="getProductName(item.mvs_pro_code)"
                                             :selectedValue="item.mvs_pro_code"
@@ -332,7 +345,9 @@ onMounted(() => updateExchangeRate());
                                         <p v-if="form.errors[`items.${index}.mvs_quantity`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mvs_quantity`] }}</p>
                                     </td>
                                     <td class="p-3">
-                                        <input type="number" step="0.0001" v-model="item.mvs_unit_price" @input="updatePriceRef(index)" class="w-full text-right border-none bg-transparent font-bold text-zinc-200 focus:ring-0" />
+                                        <span class="block w-full text-right font-bold text-zinc-200 py-1.5">
+                                            {{ Number(item.mvs_unit_price).toFixed(4) }}
+                                        </span>
                                         <p v-if="form.errors[`items.${index}.mvs_unit_price`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mvs_unit_price`] }}</p>
                                     </td>
                                     <td class="p-3">

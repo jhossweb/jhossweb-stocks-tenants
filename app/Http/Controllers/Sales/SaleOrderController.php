@@ -10,6 +10,7 @@ use App\Models\MovementsSale;
 use App\Models\Product;
 use App\Models\Rate;
 use App\Models\SaleOrder;
+use App\Models\Stock;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
 use App\Enum\TypeCoin;
@@ -32,11 +33,45 @@ class SaleOrderController extends Controller
         ]);
     }
 
+    private function getAvailableProducts()
+    {
+        $stockByProduct = Stock::where('stk_war_id', 1)
+            ->where('stk_cant', '>', 0)
+            ->pluck('stk_cant', 'stk_pro_code');
+
+        return Product::with(['category', 'brand'])
+            ->whereIn('pro_code', $stockByProduct->keys())
+            ->get()
+            ->filter(function ($product) {
+                $latestPrice = $product->latestPrice();
+                $latestCost = $product->latestCost();
+                return $latestPrice && $latestCost
+                    && $latestPrice->price_usd > $latestCost->cost_pro_cost_ref;
+            })
+            ->map(function ($product) use ($stockByProduct) {
+                $latestPrice = $product->latestPrice();
+                return [
+                    'pro_code' => $product->pro_code,
+                    'pro_name' => $product->pro_name,
+                    'pro_und' => $product->pro_und,
+                    'pro_iva' => $product->pro_iva,
+                    'pro_cat_id' => $product->pro_cat_id,
+                    'pro_bra_id' => $product->pro_bra_id,
+                    'category' => $product->category,
+                    'brand' => $product->brand,
+                    'latest_price' => $latestPrice->price_usd,
+                    'latest_utility' => $latestPrice->price_utility,
+                    'total_stock' => (float) $stockByProduct->get($product->pro_code, 0),
+                ];
+            })
+            ->values();
+    }
+
     public function create()
     {
         return Inertia::render('Sales/Create', [
             'customers' => Customer::all(),
-            'products' => Product::all(),
+            'products' => $this->getAvailableProducts(),
             'warehouses' => Warehouse::all(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
@@ -111,7 +146,7 @@ class SaleOrderController extends Controller
         return Inertia::render('Sales/Edit', [
             'sale' => $sale,
             'customers' => Customer::all(),
-            'products' => Product::all(),
+            'products' => $this->getAvailableProducts(),
             'warehouses' => Warehouse::all(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {

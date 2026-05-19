@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Stock;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\PriceHistory;
 
 
 class Product extends Model
@@ -22,6 +22,11 @@ class Product extends Model
         'pro_cat_id',
         'pro_bra_id',
     ];
+
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(Stock::class, 'stk_pro_code', 'pro_code');
+    }
 
     public function category()
     {
