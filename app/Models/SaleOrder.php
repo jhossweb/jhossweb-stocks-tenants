@@ -49,4 +49,9 @@ class SaleOrder extends Model
     {
         return $this->hasOne(AccountsReceivable::class, 'acr_sls_number', 'sls_number');
     }
+
+    public function returnedMovements()
+    {
+        return $this->hasManyThrough(MovementsSale::class, SaleOrder::class, 'sls_reference', 'mvs_number', 'sls_number', 'mvs_number');
+    }
 }

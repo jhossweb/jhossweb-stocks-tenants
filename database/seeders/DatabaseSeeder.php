@@ -53,6 +53,22 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        TransactionType::create(
+            [
+                'trans_type_code' => 'FACV',
+                'trans_type_description' => 'FACTURA VENTA',
+                'trans_type_factor' => '-1',
+            ]
+        );
+
+        TransactionType::create(
+            [
+                'trans_type_code' => 'DEVV',
+                'trans_type_description' => 'DEVOLUCION VENTA',
+                'trans_type_factor' => '1',
+            ]
+        );
+
         $purchaseOrders = PurchaseOrder::factory()->count(10)->create();
         foreach ($purchaseOrders as $purchaseOrder) {
             MovementsPurchase::factory()->count(50)->create([

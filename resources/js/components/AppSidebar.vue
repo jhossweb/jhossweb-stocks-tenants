@@ -137,6 +137,10 @@ const mainNavItems: NavItem[] = [
                         title: 'Factura de venta',
                         href: '/sales',
                     },
+                    {
+                        title: 'Devoluciones de Ventas',
+                        href: '/sale-returns',
+                    },
                 ],
             },
         ],
