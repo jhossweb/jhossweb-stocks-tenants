@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\SupplierFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Supplier extends Model
 {
-    /** @use HasFactory<\Database\Factories\SupplierFactory> */
+    /** @use HasFactory<SupplierFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -19,7 +20,7 @@ class Supplier extends Model
         'supplier_logo',
     ];
 
-    function purchases()
+    public function purchases()
     {
         return $this->hasMany(PurchaseOrder::class, 'invoice_supplier_id', 'id');
     }

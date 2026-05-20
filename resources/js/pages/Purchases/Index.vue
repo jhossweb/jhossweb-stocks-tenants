@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
 import { PlusCircle, FileText, ShoppingCart } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 
 defineOptions({
     layout: {

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Purchase;
 
+use App\Enum\Purchases\StatusPurchases;
+use App\Enum\TypeCoin;
+use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
 use App\Models\MovementsPurchase;
 use App\Models\Product;
@@ -10,9 +13,6 @@ use App\Models\Rate;
 use App\Models\Supplier;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
-use App\Enum\Purchases\StatusPurchases;
-use App\Enum\TypeCoin;
-use App\Enum\TypeIva;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -65,7 +65,6 @@ class PurchaseReturnController extends Controller
             'invoice_total' => 'required|numeric',
             'invoice_reference' => 'required|string|exists:purchase_orders,invoice_number',
 
-
             'items' => 'required|array|min:1',
             'items.*.mov_pro_code' => 'required|exists:products,pro_code',
             'items.*.mov_war_id' => 'required|exists:warehouses,id',
@@ -81,13 +80,13 @@ class PurchaseReturnController extends Controller
             $transactionType = TransactionType::query()
                 ->where('trans_type_code', 'DEVC')->first();
 
-            if (!$transactionType) {
+            if (! $transactionType) {
                 throw new \RuntimeException('No existe un tipo de transacción de devolución configurado.');
             }
 
             // Validar que las cantidades a devolver no superen lo disponible (compras originales - devoluciones previas)
             $originalPurchase = PurchaseOrder::where('invoice_number', $validated['invoice_reference'])->first();
-            if (!$originalPurchase) {
+            if (! $originalPurchase) {
                 throw new \RuntimeException('Factura origen no encontrada.');
             }
             $returnedMovements = $originalPurchase->returnedMovements;
@@ -109,7 +108,7 @@ class PurchaseReturnController extends Controller
                 }
             }
 
-            $purchaseReturn = new PurchaseOrder();
+            $purchaseReturn = new PurchaseOrder;
             $purchaseReturn->invoice_number = $validated['invoice_number'];
             $purchaseReturn->invoice_date = $validated['invoice_date'];
             $purchaseReturn->invoice_trans_type_code = $transactionType->trans_type_code;
@@ -125,7 +124,7 @@ class PurchaseReturnController extends Controller
             $purchaseReturn->save();
 
             foreach ($validated['items'] as $item) {
-                $movement = new MovementsPurchase();
+                $movement = new MovementsPurchase;
                 $movement->mov_invoice_number = $purchaseReturn->invoice_number;
                 $movement->mov_invoice_trans_type_code = $purchaseReturn->invoice_trans_type_code;
                 $movement->mov_factor = $transactionType->trans_type_factor;
@@ -143,7 +142,8 @@ class PurchaseReturnController extends Controller
             return redirect()->route('purchase-returns.index')->with('success', 'Devolución de compra guardada exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Ocurrió un error al guardar la devolución: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Ocurrió un error al guardar la devolución: '.$e->getMessage()]);
         }
     }
 
@@ -180,7 +180,7 @@ class PurchaseReturnController extends Controller
         $purchaseReturn = PurchaseOrder::findOrFail($id);
 
         $validated = $request->validate([
-            'invoice_number' => 'required|string|max:50|unique:purchase_orders,invoice_number,' . $purchaseReturn->id,
+            'invoice_number' => 'required|string|max:50|unique:purchase_orders,invoice_number,'.$purchaseReturn->id,
             'invoice_date' => 'required|date',
             'invoice_supplier_id' => 'required|exists:suppliers,id',
             'invoice_valorcam' => 'required|numeric',
@@ -225,7 +225,7 @@ class PurchaseReturnController extends Controller
                 if (isset($item['id']) && in_array($item['id'], $existingIds)) {
                     $movement = MovementsPurchase::find($item['id']);
                 } else {
-                    $movement = new MovementsPurchase();
+                    $movement = new MovementsPurchase;
                     $movement->mov_invoice_number = $purchaseReturn->invoice_number;
                     $movement->mov_invoice_trans_type_code = $purchaseReturn->invoice_trans_type_code;
                     $movement->mov_factor = $transactionType->trans_type_factor;
@@ -243,7 +243,7 @@ class PurchaseReturnController extends Controller
             }
 
             $itemsToDelete = array_diff($existingIds, $newIds);
-            if (!empty($itemsToDelete)) {
+            if (! empty($itemsToDelete)) {
                 foreach ($itemsToDelete as $delId) {
                     if ($model = MovementsPurchase::find($delId)) {
                         $model->delete();
@@ -257,7 +257,8 @@ class PurchaseReturnController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la devolución: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la devolución: '.$e->getMessage()]);
         }
     }
 
@@ -266,8 +267,8 @@ class PurchaseReturnController extends Controller
         $currentInvoiceId = $request->query('current_invoice_id');
 
         $invoices = PurchaseOrder::where('invoice_supplier_id', $supplier->id)
-            ->whereHas('transactionType', fn($q) => $q->where('trans_type_factor', 1))
-            ->withSum("movements", "mov_quantity")
+            ->whereHas('transactionType', fn ($q) => $q->where('trans_type_factor', 1))
+            ->withSum('movements', 'mov_quantity')
             ->withSum('returnedMovements', 'mov_quantity') // total devuelto
             ->get()
             ->filter(function ($invoice) use ($currentInvoiceId) {
@@ -278,6 +279,7 @@ class PurchaseReturnController extends Controller
 
                 $totalMovs = (float) $invoice->movements_sum_mov_quantity;
                 $totalRet = (float) ($invoice->returned_movements_sum_mov_quantity ?? 0);
+
                 return $totalRet < $totalMovs;
             })
             ->values();
@@ -288,6 +290,7 @@ class PurchaseReturnController extends Controller
     public function getPurchaseOrderByNumber($invoiceNumber)
     {
         $purchase = PurchaseOrder::where('invoice_number', $invoiceNumber)->firstOrFail();
+
         return response()->json($purchase);
     }
 
@@ -302,7 +305,7 @@ class PurchaseReturnController extends Controller
         $returnedMovementsQuery = $purchaseOrder->returnedMovements();
 
         if ($excludeReturnId) {
-            // returnedMovements es una relación hasManyThrough. 
+            // returnedMovements es una relación hasManyThrough.
             // Necesitamos asegurarnos de filtrar por el ID de la tabla purchase_orders intermedia
             $returnedMovementsQuery->where('purchase_orders.id', '!=', $excludeReturnId);
         }

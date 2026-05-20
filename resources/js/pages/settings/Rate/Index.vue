@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
 import { Head, usePage, useForm } from '@inertiajs/vue3';
 import { 
     Plus, 
@@ -11,13 +10,19 @@ import {
     Loader2,
     Save
 } from 'lucide-vue-next';
+import { ref, computed, watch } from 'vue';
 import RateController from '@/actions/App/Http/Controllers/Settings/RateController';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -26,13 +31,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Rate {
     id: number;
@@ -94,8 +94,12 @@ const deleteRate = (id: number) => {
 
 // --- HELPERS ---
 const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
+    if (!dateStr) {
+return '-';
+}
+
     const [year, month, day] = dateStr.split('-');
+
     return `${day}/${month}/${year}`;
 };
 
@@ -118,6 +122,7 @@ watch(() => currentRate.value, (newRate: Rate | null) => {
     } else {
         form.reset();
     }
+
     form.clearErrors();
 });
 

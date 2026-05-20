@@ -17,23 +17,17 @@ class CostHistoryObserver
         $this->registerCostHistory($movement, 'UPDATED');
     }
 
-    public function deleted(MovementsPurchase $movement): void
-    {
-    }
+    public function deleted(MovementsPurchase $movement): void {}
 
-    public function restored(MovementsPurchase $movement): void
-    {
-    }
+    public function restored(MovementsPurchase $movement): void {}
 
-    public function forceDeleted(MovementsPurchase $movement): void
-    {
-    }
+    public function forceDeleted(MovementsPurchase $movement): void {}
 
     protected function registerCostHistory(MovementsPurchase $movement, string $eventType): void
     {
         $purchase = $movement->purchaseOrder;
 
-        if (!$purchase) {
+        if (! $purchase) {
             return;
         }
 

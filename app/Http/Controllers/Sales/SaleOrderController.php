@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Enum\Sales\StatusSales;
+use App\Enum\TypeCoin;
+use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Http\Requests\Sales\UpdateSaleRequest;
@@ -13,9 +16,6 @@ use App\Models\SaleOrder;
 use App\Models\Stock;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
-use App\Enum\TypeCoin;
-use App\Enum\TypeIva;
-use App\Enum\Sales\StatusSales;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -45,11 +45,13 @@ class SaleOrderController extends Controller
             ->filter(function ($product) {
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
+
                 return $latestPrice && $latestCost
                     && $latestPrice->price_usd > $latestCost->cost_pro_cost_ref;
             })
             ->map(function ($product) use ($stockByProduct) {
                 $latestPrice = $product->latestPrice();
+
                 return [
                     'pro_code' => $product->pro_code,
                     'pro_name' => $product->pro_name,
@@ -97,7 +99,7 @@ class SaleOrderController extends Controller
 
             $transactionType = TransactionType::where('trans_type_code', 'facv')->first();
 
-            $sale = new SaleOrder();
+            $sale = new SaleOrder;
             $sale->sls_number = $validated['sls_number'];
             $sale->sls_date = $validated['sls_date'];
             $sale->sls_trans_type_code = $transactionType->trans_type_code;
@@ -112,7 +114,7 @@ class SaleOrderController extends Controller
             $sale->save();
 
             foreach ($validated['items'] as $item) {
-                $movement = new MovementsSale();
+                $movement = new MovementsSale;
                 $movement->mvs_number = $sale->sls_number;
                 $movement->mvs_trans_type_code = $sale->sls_trans_type_code;
                 $movement->mvs_factor = $transactionType->trans_type_factor;
@@ -130,7 +132,8 @@ class SaleOrderController extends Controller
             return redirect()->route('sales.index')->with('success', 'Venta guardada exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Ocurrió un error al guardar la venta: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Ocurrió un error al guardar la venta: '.$e->getMessage()]);
         }
     }
 
@@ -191,7 +194,7 @@ class SaleOrderController extends Controller
                 if (isset($item['id']) && in_array($item['id'], $existingIds)) {
                     $movement = MovementsSale::find($item['id']);
                 } else {
-                    $movement = new MovementsSale();
+                    $movement = new MovementsSale;
                     $movement->mvs_number = $sale->sls_number;
                     $movement->mvs_trans_type_code = $sale->sls_trans_type_code ?? $transactionType->trans_type_code;
                     $movement->mvs_factor = $transactionType->trans_type_factor;
@@ -209,7 +212,7 @@ class SaleOrderController extends Controller
             }
 
             $itemsToDelete = array_diff($existingIds, $newIds);
-            if (!empty($itemsToDelete)) {
+            if (! empty($itemsToDelete)) {
                 foreach ($itemsToDelete as $delId) {
                     if ($model = MovementsSale::find($delId)) {
                         $model->delete();
@@ -222,7 +225,8 @@ class SaleOrderController extends Controller
             return redirect()->route('sales.index')->with('success', 'Venta actualizada exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la venta: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la venta: '.$e->getMessage()]);
         }
     }
 }

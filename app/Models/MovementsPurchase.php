@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\MovementsPurchaseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MovementsPurchase extends Model
 {
-    /** @use HasFactory<\Database\Factories\MovementsPurchaseFactory> */
+    /** @use HasFactory<MovementsPurchaseFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -22,37 +23,37 @@ class MovementsPurchase extends Model
         'mov_unit_cost_ref',
     ];
 
-    function product()
+    public function product()
     {
         return $this->belongsTo(Product::class, 'mov_pro_code', 'pro_code');
     }
 
-    function warehouse()
+    public function warehouse()
     {
         return $this->belongsTo(Warehouse::class, 'mov_war_id', 'id');
     }
 
-    function purchaseOrder()
+    public function purchaseOrder()
     {
         return $this->belongsTo(PurchaseOrder::class, 'mov_invoice_number', 'invoice_number');
     }
 
-    function transactionType()
+    public function transactionType()
     {
         return $this->belongsTo(TransactionType::class, 'mov_invoice_trans_type_code', 'trans_type_code');
     }
 
-    function getMovQuantityAttribute($value)
+    public function getMovQuantityAttribute($value)
     {
         return (float) $value;
     }
 
-    function getMovUnitCostAttribute($value)
+    public function getMovUnitCostAttribute($value)
     {
         return (float) $value;
     }
 
-    function getMovFactorAttribute($value)
+    public function getMovFactorAttribute($value)
     {
         return (int) $value;
     }

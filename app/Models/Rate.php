@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
+use Database\Factories\RateFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Rate extends Model
 {
-    /** @use HasFactory<\Database\Factories\RateFactory> */
+    /** @use HasFactory<RateFactory> */
     use HasFactory;
-
 
     protected $fillable = [
         'rate_date',
         'rate_usd',
         'rate_cop',
-        'rate_eur'
+        'rate_eur',
     ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -28,6 +29,4 @@ class Rate extends Model
             'rate_date' => 'date',
         ];
     }
-
-
 }

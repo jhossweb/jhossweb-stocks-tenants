@@ -4,6 +4,8 @@ namespace Database\Factories;
 
 use App\Enum\Purchases\StatusPurchases;
 use App\Models\PurchaseOrder;
+use App\Models\Supplier;
+use App\Models\TransactionType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,8 +23,8 @@ class PurchaseOrderFactory extends Factory
         return [
             'invoice_number' => fake()->unique()->bothify('INV-#####'),
             'invoice_date' => fake()->date(),
-            'invoice_trans_type_code' => \App\Models\TransactionType::inRandomOrder()->first()->trans_type_code,
-            'invoice_supplier_id' => \App\Models\Supplier::inRandomOrder()->first()->id,
+            'invoice_trans_type_code' => TransactionType::inRandomOrder()->first()->trans_type_code,
+            'invoice_supplier_id' => Supplier::inRandomOrder()->first()->id,
             'invoice_valorcam' => fake()->randomFloat(4, 1, 10),
             'invoice_coin' => fake()->randomElement(['USD', 'COP', 'EUR']),
             'invoice_subtotal' => fake()->randomFloat(4, 1, 10),

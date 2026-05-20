@@ -5,7 +5,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -14,7 +15,7 @@ return new class extends Migration {
         Schema::create('cost_histories', function (Blueprint $table) {
             $table->id();
 
-            $table->string("cost_pro_code", 50);
+            $table->string('cost_pro_code', 50);
             $table->foreign('cost_pro_code')->references('pro_code')->on('products')->cascadeOnDelete();
 
             $table->decimal('cost_pro_cost', 10, 4);
@@ -22,9 +23,8 @@ return new class extends Migration {
             $table->decimal('cost_valorcam', 10, 4);
             $table->enum('cost_currency', TypeCoin::values())->default(TypeCoin::USD->value);
             $table->date('cost_date');
-            $table->decimal("cost_valorcambio", 10, 4)->default(0);
+            $table->decimal('cost_valorcambio', 10, 4)->default(0);
             $table->foreignId('cost_user_id')->constrained('users')->cascadeOnDelete();
-
 
             $table->timestamps();
         });

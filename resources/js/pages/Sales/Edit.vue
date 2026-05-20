@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2 } from 'lucide-vue-next';
-import Input from '@/components/ui/input/Input.vue';
+import { ref, onMounted } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
+import Input from '@/components/ui/input/Input.vue';
 
 const props = defineProps<{
     customers: any[];
@@ -42,12 +42,20 @@ const form = useForm({
 });
 
 const getBestRateForDate = (date: string) => {
-    if (!props.rates || props.rates.length === 0) return null;
+    if (!props.rates || props.rates.length === 0) {
+return null;
+}
+
     const exactRate = props.rates.find(r => r.rate_date === date);
-    if (exactRate) return exactRate;
+
+    if (exactRate) {
+return exactRate;
+}
+
     const pastRates = props.rates
         .filter(r => r.rate_date < date)
         .sort((a, b) => b.rate_date.localeCompare(a.rate_date));
+
     return pastRates.length > 0 ? pastRates[0] : props.rates[0];
 };
 
@@ -64,6 +72,7 @@ const updateExchangeRate = () => {
         }
     } else {
         const selectedRate = getBestRateForDate(form.sls_date);
+
         if (selectedRate) {
             if (form.sls_coin === 'USD') {
                 form.sls_valorcam = 1;
@@ -76,6 +85,7 @@ const updateExchangeRate = () => {
             }
         }
     }
+
     form.items.forEach((_, i) => updatePriceFromRef(i));
 };
 
@@ -94,15 +104,26 @@ const updatePriceFromRef = (index: number) => {
 };
 
 const getProductIvaRate = (proCode: string) => {
-    if (!proCode) return 0;
+    if (!proCode) {
+return 0;
+}
+
     const product = props.products.find(p => p.pro_code === proCode);
+
     return product && product.pro_iva ? Number(product.pro_iva) / 100 : 0;
 };
 
 const getProductIvaLabel = (proCode: string) => {
-    if (!proCode) return '-';
+    if (!proCode) {
+return '-';
+}
+
     const product = props.products.find(p => p.pro_code === proCode);
-    if (!product || !product.pro_iva) return '-';
+
+    if (!product || !product.pro_iva) {
+return '-';
+}
+
     return product.pro_iva === '0' ? 'EX' : `${product.pro_iva}%`;
 };
 
@@ -134,6 +155,7 @@ const calculateTotals = () => {
 const getItemTotal = (item: any) => {
     const baseTotal = Number(item.mvs_quantity) * Number(item.mvs_unit_price);
     const ivaRate = getProductIvaRate(item.mvs_pro_code);
+
     return (baseTotal + (baseTotal * ivaRate)).toFixed(2);
 };
 
@@ -150,6 +172,7 @@ const removeItem = (index: number) => {
 
 const getProductName = (code: string) => {
     const p = props.products.find(p => p.pro_code === code);
+
     return p ? `${p.pro_name} - $${p.latest_price}` : 'Seleccione producto';
 };
 

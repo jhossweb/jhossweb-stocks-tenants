@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('price_histories', function (Blueprint $table) {
             $table->id();
 
-            $table->string("price_pro_code", 50);
+            $table->string('price_pro_code', 50);
             $table->foreign('price_pro_code')->references('pro_code')->on('products')->cascadeOnDelete();
 
             $table->decimal('price_utility', 10, 2); // Percentage

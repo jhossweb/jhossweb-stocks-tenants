@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Enum\Purchases\StatusPurchases;
+use Database\Factories\AccountsPayableFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Enum\Purchases\StatusPurchases;
 
 class AccountsPayable extends Model
 {
-    /** @use HasFactory<\Database\Factories\AccountsPayableFactory> */
+    /** @use HasFactory<AccountsPayableFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -87,5 +88,10 @@ class AccountsPayable extends Model
     public function payments()
     {
         return $this->hasMany(AccountPayments::class, 'apy_account_payable_id');
+    }
+
+    public function bankTransactions()
+    {
+        return $this->morphMany(BankTransaction::class, 'btr_transactionable');
     }
 }

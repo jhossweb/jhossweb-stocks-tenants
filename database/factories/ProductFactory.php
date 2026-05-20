@@ -4,6 +4,8 @@ namespace Database\Factories;
 
 use App\Enum\Inventary\UndProduct;
 use App\Enum\TypeIva;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,12 +22,12 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            "pro_code" => fake()->unique()->word,
-            "pro_name" => fake()->name,
-            "pro_und" => fake()->randomElement(UndProduct::values()),
-            "pro_iva" => fake()->randomElement(TypeIva::values()),
-            "pro_cat_id" => \App\Models\Category::inRandomOrder()->first()->id,
-            "pro_bra_id" => \App\Models\Brand::inRandomOrder()->first()->id,
+            'pro_code' => fake()->unique()->word,
+            'pro_name' => fake()->name,
+            'pro_und' => fake()->randomElement(UndProduct::values()),
+            'pro_iva' => fake()->randomElement(TypeIva::values()),
+            'pro_cat_id' => Category::inRandomOrder()->first()->id,
+            'pro_bra_id' => Brand::inRandomOrder()->first()->id,
         ];
     }
 }

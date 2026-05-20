@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\PurchaseOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PurchaseOrder extends Model
 {
-    /** @use HasFactory<\Database\Factories\PurchaseOrderFactory> */
+    /** @use HasFactory<PurchaseOrderFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -25,17 +26,17 @@ class PurchaseOrder extends Model
         'invoice_reference',
     ];
 
-    function supplier()
+    public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'invoice_supplier_id', 'id');
     }
 
-    function transactionType()
+    public function transactionType()
     {
         return $this->belongsTo(TransactionType::class, 'invoice_trans_type_code', 'trans_type_code');
     }
 
-    function movements()
+    public function movements()
     {
         return $this->hasMany(MovementsPurchase::class, 'mov_invoice_number', 'invoice_number');
     }
@@ -51,7 +52,7 @@ class PurchaseOrder extends Model
     public function returnedMovements()
     {
         return $this->hasManyThrough(
-            MovementsPurchase::class, 
+            MovementsPurchase::class,
             PurchaseOrder::class,
             'invoice_reference', // Foreign key on the intermediates table (purchase_orders for returns)
             'mov_invoice_number', // Foreign key on the target table (movements_purchases)

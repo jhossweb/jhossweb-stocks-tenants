@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,12 +14,12 @@ return new class extends Migration {
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
 
-            $table->string("supplier_name", 100)->unique();
-            $table->string("supplier_address", 255);
-            $table->string("supplier_phone", 20)->unique();
-            $table->string("supplier_email", 100)->unique();
-            $table->string("supplier_website", 100)->nullable();
-            $table->string("supplier_logo", 100)->nullable();
+            $table->string('supplier_name', 100)->unique();
+            $table->string('supplier_address', 255);
+            $table->string('supplier_phone', 20)->unique();
+            $table->string('supplier_email', 100)->unique();
+            $table->string('supplier_website', 100)->nullable();
+            $table->string('supplier_logo', 100)->nullable();
 
             $table->timestamps();
         });

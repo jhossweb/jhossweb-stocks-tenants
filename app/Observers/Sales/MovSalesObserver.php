@@ -39,13 +39,9 @@ class MovSalesObserver
         }
     }
 
-    public function restored(MovementsSale $movementsSale): void
-    {
-    }
+    public function restored(MovementsSale $movementsSale): void {}
 
-    public function forceDeleted(MovementsSale $movementsSale): void
-    {
-    }
+    public function forceDeleted(MovementsSale $movementsSale): void {}
 
     protected function updateStock($proCode, $warehouseId, $amount)
     {

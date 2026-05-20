@@ -2,15 +2,15 @@
 
 namespace App\Observers\Sales;
 
-use App\Models\SaleOrder;
-use App\Models\AccountsReceivable;
 use App\Enum\Sales\StatusSales;
+use App\Models\AccountsReceivable;
+use App\Models\SaleOrder;
 
 class SaleOrderObserver
 {
     public function created(SaleOrder $saleOrder): void
     {
-        if (strtoupper($saleOrder->sls_trans_type_code) === 'FAVC') {
+        if ($saleOrder->sls_trans_type_code === 'facv') {
             AccountsReceivable::create([
                 'acr_sls_number' => $saleOrder->sls_number,
                 'acr_total' => $saleOrder->sls_total,

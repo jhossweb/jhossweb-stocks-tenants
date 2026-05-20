@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Purchase;
 
 use App\Http\Controllers\Controller;
 use App\Models\AccountsPayable;
-use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class AccountsPayableController extends Controller
 {
@@ -23,11 +23,11 @@ class AccountsPayableController extends Controller
         }
 
         if ($request->has('search')) {
-            $query->whereHas('purchaseOrder', function($q) use ($request) {
+            $query->whereHas('purchaseOrder', function ($q) use ($request) {
                 $q->where('invoice_number', 'like', "%{$request->search}%")
-                  ->orWhereHas('supplier', function($sq) use ($request) {
-                      $sq->where('supplier_name', 'like', "%{$request->search}%");
-                  });
+                    ->orWhereHas('supplier', function ($sq) use ($request) {
+                        $sq->where('supplier_name', 'like', "%{$request->search}%");
+                    });
             });
         }
 

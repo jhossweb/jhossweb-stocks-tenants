@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { FileText, CreditCard, Search, X, Eye, Pencil, Trash2, Calendar, Hash } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -10,16 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { FileText, CreditCard, Search, X, Eye, Pencil, Trash2, Calendar, Hash } from 'lucide-vue-next';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog';
-import paymentRoutes from '@/routes/payments';
 import accountsPayableRoutes from '@/routes/accounts-payable';
+import paymentRoutes from '@/routes/payments';
 
 defineOptions({
     layout: {

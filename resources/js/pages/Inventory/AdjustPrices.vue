@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { 
     Calculator,
     Save,
@@ -12,7 +9,10 @@ import {
     Box,
     AlertCircle
 } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 import adjustPriceRoutes from '@/routes/inventory/adjust-prices';
 
@@ -54,8 +54,12 @@ const localAdjustments = ref<ProductAdjustment[]>(
 );
 
 const filteredAdjustments = computed(() => {
-    if (!searchQuery.value) return localAdjustments.value;
+    if (!searchQuery.value) {
+return localAdjustments.value;
+}
+
     const query = searchQuery.value.toLowerCase();
+
     return localAdjustments.value.filter(adj => 
         adj.pro_code.toLowerCase().includes(query) || 
         adj.pro_name.toLowerCase().includes(query)
@@ -65,9 +69,12 @@ const filteredAdjustments = computed(() => {
 const calculatePrice = (adj: ProductAdjustment) => {
     if (adj.new_utility >= 100) {
         adj.new_price = 0;
+
         return;
     }
+
     const marginFactor = 1 - (adj.new_utility / 100);
+
     if (marginFactor <= 0) {
         adj.new_price = 0;
     } else {
@@ -79,8 +86,10 @@ const calculatePrice = (adj: ProductAdjustment) => {
 const calculateUtility = (adj: ProductAdjustment) => {
     if (adj.new_price <= 0 || adj.new_price <= adj.last_cost) {
         adj.new_utility = 0;
+
         return;
     }
+
     // Utility = (Price - Cost) / Price * 100
     adj.new_utility = ((adj.new_price - adj.last_cost) / adj.new_price) * 100;
 };

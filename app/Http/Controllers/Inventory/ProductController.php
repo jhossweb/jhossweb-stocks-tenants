@@ -20,7 +20,7 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with(['category', 'brand'])->latest()->get();
-        
+
         return Inertia::render('Inventory/Products/Index', [
             'products' => $products,
             'categories' => Category::all(['id', 'cat_name']),
@@ -29,7 +29,7 @@ class ProductController extends Controller
             'ivaOptions' => array_combine(TypeIva::values(), array_map(function ($case) {
                 return $case->name; // GN, RE, EX etc if needed
             }, TypeIva::cases())),
-            'rawIvaOptions' => TypeIva::values()
+            'rawIvaOptions' => TypeIva::values(),
         ]);
     }
 

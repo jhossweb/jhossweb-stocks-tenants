@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\MovementsSaleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MovementsSale extends Model
 {
-    /** @use HasFactory<\Database\Factories\MovementsSaleFactory> */
+    /** @use HasFactory<MovementsSaleFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -22,37 +23,37 @@ class MovementsSale extends Model
         'mvs_unit_price_ref',
     ];
 
-    function product()
+    public function product()
     {
         return $this->belongsTo(Product::class, 'mvs_pro_code', 'pro_code');
     }
 
-    function warehouse()
+    public function warehouse()
     {
         return $this->belongsTo(Warehouse::class, 'mvs_war_id', 'id');
     }
 
-    function saleOrder()
+    public function saleOrder()
     {
         return $this->belongsTo(SaleOrder::class, 'mvs_number', 'sls_number');
     }
 
-    function transactionType()
+    public function transactionType()
     {
         return $this->belongsTo(TransactionType::class, 'mvs_trans_type_code', 'trans_type_code');
     }
 
-    function getMvsQuantityAttribute($value)
+    public function getMvsQuantityAttribute($value)
     {
         return (float) $value;
     }
 
-    function getMvsUnitPriceAttribute($value)
+    public function getMvsUnitPriceAttribute($value)
     {
         return (float) $value;
     }
 
-    function getMvsFactorAttribute($value)
+    public function getMvsFactorAttribute($value)
     {
         return (int) $value;
     }

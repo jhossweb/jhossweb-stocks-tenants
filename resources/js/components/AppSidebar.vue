@@ -86,33 +86,6 @@ const mainNavItems: NavItem[] = [
         ],
     },
     {
-        title: 'Finanzas',
-        href: '#',
-        icon: Building2,
-        items: [
-            {
-                title: 'Crear',
-                href: '#',
-                items: [
-                    {
-                        title: 'Bancos',
-                        href: '/bank-accounts',
-                    },
-                ],
-            },
-            {
-                title: 'Transacciones',
-                href: '#',
-                items: [
-                    {
-                        title: 'Pagos',
-                        href: '/payments/create',
-                    },
-                ],
-            },
-        ],
-    },
-    {
         title: 'Ventas',
         href: '#',
         icon: Users,
@@ -143,8 +116,51 @@ const mainNavItems: NavItem[] = [
                     },
                 ],
             },
+            {
+                title: 'Análisis',
+                href: '#',
+                icon: BarChart3,
+                items: [
+                    {
+                        title: 'Cuentas por Cobrar',
+                        href: '/accounts-receivable',
+                    },
+                ],
+            },
         ],
     },
+    {
+        title: 'Finanzas',
+        href: '#',
+        icon: Building2,
+        items: [
+            {
+                title: 'Crear',
+                href: '#',
+                items: [
+                    {
+                        title: 'Bancos',
+                        href: '/bank-accounts',
+                    },
+                ],
+            },
+            {
+                title: 'Transacciones',
+                href: '#',
+                items: [
+                    {
+                        title: 'Pagos',
+                        href: '/payments/create',
+                    },
+                    {
+                        title: 'Cobranza',
+                        href: '/receipts/create',
+                    },
+                ],
+            },
+        ],
+    },
+    
 ];
 
 const footerNavItems: NavItem[] = [

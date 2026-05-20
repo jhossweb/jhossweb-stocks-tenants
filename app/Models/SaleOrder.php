@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\SaleOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class SaleOrder extends Model
 {
-    /** @use HasFactory<\Database\Factories\SaleOrderFactory> */
+    /** @use HasFactory<SaleOrderFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -25,17 +26,17 @@ class SaleOrder extends Model
         'sls_reference',
     ];
 
-    function customer()
+    public function customer()
     {
         return $this->belongsTo(Customer::class, 'sls_customer_id', 'id');
     }
 
-    function transactionType()
+    public function transactionType()
     {
         return $this->belongsTo(TransactionType::class, 'sls_trans_type_code', 'trans_type_code');
     }
 
-    function movements()
+    public function movements()
     {
         return $this->hasMany(MovementsSale::class, 'mvs_number', 'sls_number');
     }

@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\AccountsPayable;
 use App\Enum\Purchases\StatusPurchases;
+use App\Models\AccountsPayable;
 use App\Models\PurchaseOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,6 +20,7 @@ class AccountsPayableFactory extends Factory
     public function definition(): array
     {
         $total = fake()->randomFloat(4, 100, 10000);
+
         return [
             'acp_purchase_number' => function () {
                 return PurchaseOrder::factory()->create()->invoice_number;

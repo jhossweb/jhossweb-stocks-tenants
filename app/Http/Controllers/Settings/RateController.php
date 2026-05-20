@@ -14,7 +14,8 @@ class RateController extends Controller
      */
     public function index()
     {
-        $rates = Rate::orderBy("rate_date", "desc")->paginate(10);
+        $rates = Rate::orderBy('rate_date', 'desc')->paginate(10);
+
         return Inertia::render('settings/Rate/Index', [
             'rates' => $rates,
         ]);
@@ -72,7 +73,7 @@ class RateController extends Controller
     public function update(Request $request, Rate $rate)
     {
         $validated = $request->validate([
-            'rate_date' => 'required|date|unique:rates,rate_date,' . $rate->id,
+            'rate_date' => 'required|date|unique:rates,rate_date,'.$rate->id,
             'rate_usd' => 'required|numeric|min:0',
             'rate_cop' => 'required|numeric|min:0',
             'rate_eur' => 'required|numeric|min:0',

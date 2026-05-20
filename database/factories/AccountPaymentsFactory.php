@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\AccountPayments;
 use App\Enum\Tesoreria\TypePayment;
+use App\Models\AccountPayments;
 use App\Models\AccountsPayable;
 use App\Models\BankTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,9 +21,9 @@ class AccountPaymentsFactory extends Factory
     public function definition(): array
     {
         return [
-            "apy_bank_transaction_id" => BankTransaction::factory(),
-            "apy_account_payable_id" => AccountsPayable::factory(),
-            "apy_type" => fake()->randomElement(TypePayment::values()),
+            'apy_bank_transaction_id' => BankTransaction::factory(),
+            'apy_account_payable_id' => AccountsPayable::factory(),
+            'apy_type' => fake()->randomElement(TypePayment::values()),
         ];
     }
 }

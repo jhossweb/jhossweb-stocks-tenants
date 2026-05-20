@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\CostHistoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CostHistory extends Model
 {
-    /** @use HasFactory<\Database\Factories\CostHistoryFactory> */
+    /** @use HasFactory<CostHistoryFactory> */
     use HasFactory;
 
     protected $fillable = [

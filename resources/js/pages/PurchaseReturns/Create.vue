@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2, Undo2, Search } from 'lucide-vue-next';
-import Input from '@/components/ui/input/Input.vue';
+import { ref, watch, onMounted } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
+import Input from '@/components/ui/input/Input.vue';
 
 const props = defineProps<{
     suppliers: any[];
@@ -40,10 +40,12 @@ const isLoadingItems = ref(false);
 const fetchUnpaidInvoices = async (supplierId: string | number) => {
     if (!supplierId) {
         unpaidInvoices.value = [];
+
         return;
     }
     
     isLoadingInvoices.value = true;
+
     try {
         const response = await fetch(`/api/suppliers/${supplierId}/unpaid-invoices`);
         unpaidInvoices.value = await response.json();
@@ -55,14 +57,18 @@ const fetchUnpaidInvoices = async (supplierId: string | number) => {
 };
 
 const fetchInvoiceItems = async (invoiceId: string | number) => {
-    if (!invoiceId) return;
+    if (!invoiceId) {
+return;
+}
     
     isLoadingItems.value = true;
+
     try {
         const response = await fetch(`/api/purchase-orders/${invoiceId}/items`);
         const items = await response.json();
         
         const invoice = unpaidInvoices.value.find(i => i.id == invoiceId);
+
         if (invoice) {
             form.invoice_coin = invoice.invoice_coin;
             form.invoice_valorcam = Number(invoice.invoice_valorcam);
@@ -103,12 +109,20 @@ watch(selectedInvoiceId, (newVal) => {
 });
 
 const getBestRateForDate = (date: string) => {
-    if (!props.rates || props.rates.length === 0) return null;
+    if (!props.rates || props.rates.length === 0) {
+return null;
+}
+
     const exactRate = props.rates.find(r => r.rate_date === date);
-    if (exactRate) return exactRate;
+
+    if (exactRate) {
+return exactRate;
+}
+
     const pastRates = props.rates
         .filter(r => r.rate_date < date)
         .sort((a, b) => b.rate_date.localeCompare(a.rate_date));
+
     return pastRates.length > 0 ? pastRates[0] : props.rates[0];
 };
 
@@ -125,6 +139,7 @@ const updateExchangeRate = () => {
         }
     } else {
         const selectedRate = getBestRateForDate(form.invoice_date);
+
         if (selectedRate) {
             if (form.invoice_coin === 'USD') {
                 form.invoice_valorcam = 1;
@@ -159,15 +174,26 @@ const updateCostRef = (index: number) => {
 };
 
 const getProductIvaRate = (proCode: string) => {
-    if (!proCode) return 0;
+    if (!proCode) {
+return 0;
+}
+
     const product = props.products.find(p => p.pro_code === proCode);
+
     return product && product.pro_iva ? Number(product.pro_iva) / 100 : 0;
 };
 
 const getProductIvaLabel = (proCode: string) => {
-    if (!proCode) return '-';
+    if (!proCode) {
+return '-';
+}
+
     const product = props.products.find(p => p.pro_code === proCode);
-    if (!product || !product.pro_iva) return '-';
+
+    if (!product || !product.pro_iva) {
+return '-';
+}
+
     return product.pro_iva === '0' ? 'EX' : `${product.pro_iva}%`;
 };
 
@@ -199,6 +225,7 @@ const calculateTotals = () => {
 const getItemTotal = (item: any) => {
     const baseTotal = Number(item.mov_quantity) * Number(item.mov_unit_cost);
     const ivaRate = getProductIvaRate(item.mov_pro_code);
+
     return (baseTotal + (baseTotal * ivaRate)).toFixed(2);
 };
 
@@ -215,11 +242,13 @@ const removeItem = (index: number) => {
 
 const getSupplierName = (id: string | number) => {
     const s = props.suppliers.find(s => s.id == id);
+
     return s ? (s.supplier_name || s.name) : 'Seleccione proveedor';
 };
 
 const getProductName = (code: string) => {
     const p = props.products.find(p => p.pro_code === code);
+
     return p ? p.pro_name : 'Seleccione producto';
 };
 
@@ -238,12 +267,15 @@ const submit = () => {
     
     if (form.items.length === 0) {
         alert('Debe agregar al menos un producto válido');
+
         return;
     }
     
     const invalidItem = form.items.find((item: any) => item.mov_quantity > item.mov_quantity_max);
+
     if (invalidItem) {
         alert('La cantidad a devolver de un producto supera lo disponible en la factura.');
+
         return;
     }
 

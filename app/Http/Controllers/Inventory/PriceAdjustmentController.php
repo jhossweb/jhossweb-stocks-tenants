@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\PriceHistory;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class PriceAdjustmentController extends Controller
 {
@@ -28,7 +28,7 @@ class PriceAdjustmentController extends Controller
         });
 
         return Inertia::render('Inventory/AdjustPrices', [
-            'products' => $products
+            'products' => $products,
         ]);
     }
 
@@ -62,7 +62,8 @@ class PriceAdjustmentController extends Controller
             return redirect()->back()->with('success', 'Precios ajustados correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => 'Error al ajustar precios: ' . $e->getMessage()]);
+
+            return redirect()->back()->withErrors(['error' => 'Error al ajustar precios: '.$e->getMessage()]);
         }
     }
 }

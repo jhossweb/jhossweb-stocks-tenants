@@ -102,10 +102,9 @@ class MovPurchasesObserver
         //
     }
 
-
     protected function updateStock($proCode, $warehouseId, $amount)
     {
-        // Usamos updateOrInsert para asegurar que si no existe lo cree, 
+        // Usamos updateOrInsert para asegurar que si no existe lo cree,
         // y si existe, sume al valor actual.
 
         $currentStock = DB::table('stocks')

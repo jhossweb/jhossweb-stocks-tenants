@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Enum\Sales\StatusSales;
+use App\Enum\TypeCoin;
+use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\MovementsSale;
@@ -11,9 +14,6 @@ use App\Models\SaleOrder;
 use App\Models\Stock;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
-use App\Enum\TypeCoin;
-use App\Enum\TypeIva;
-use App\Enum\Sales\StatusSales;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -44,11 +44,13 @@ class SaleReturnController extends Controller
             ->filter(function ($product) {
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
+
                 return $latestPrice && $latestCost
                     && $latestPrice->price_usd > $latestCost->cost_pro_cost_ref;
             })
             ->map(function ($product) use ($stockByProduct) {
                 $latestPrice = $product->latestPrice();
+
                 return [
                     'pro_code' => $product->pro_code,
                     'pro_name' => $product->pro_name,
@@ -111,7 +113,7 @@ class SaleReturnController extends Controller
             ->where('sls_trans_type_code', 'facv')
             ->first();
 
-        if (!$originalSale) {
+        if (! $originalSale) {
             return back()->withErrors(['sls_reference' => 'La factura de venta referenciada no existe o no es válida.']);
         }
 
@@ -120,7 +122,7 @@ class SaleReturnController extends Controller
 
             $transactionType = TransactionType::where('trans_type_code', 'devv')->first();
 
-            $return = new SaleOrder();
+            $return = new SaleOrder;
             $return->sls_number = $validated['sls_number'];
             $return->sls_date = $validated['sls_date'];
             $return->sls_trans_type_code = $transactionType->trans_type_code;
@@ -152,7 +154,7 @@ class SaleReturnController extends Controller
                     throw new \Exception("La cantidad del producto {$item['mvs_pro_code']} excede la disponible para devolver. Disponible: {$availableQty}");
                 }
 
-                $movement = new MovementsSale();
+                $movement = new MovementsSale;
                 $movement->mvs_number = $return->sls_number;
                 $movement->mvs_trans_type_code = $return->sls_trans_type_code;
                 $movement->mvs_factor = $transactionType->trans_type_factor;
@@ -170,7 +172,8 @@ class SaleReturnController extends Controller
             return redirect()->route('sale-returns.index')->with('success', 'Devolución guardada exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Ocurrió un error al guardar la devolución: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Ocurrió un error al guardar la devolución: '.$e->getMessage()]);
         }
     }
 
@@ -193,11 +196,13 @@ class SaleReturnController extends Controller
             ->filter(function ($product) {
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
+
                 return $latestPrice && $latestCost
                     && $latestPrice->price_usd > $latestCost->cost_pro_cost_ref;
             })
             ->map(function ($product) use ($stockByProduct) {
                 $latestPrice = $product->latestPrice();
+
                 return [
                     'pro_code' => $product->pro_code,
                     'pro_name' => $product->pro_name,
@@ -239,7 +244,7 @@ class SaleReturnController extends Controller
         $return = SaleOrder::findOrFail($id);
 
         $validated = $request->validate([
-            'sls_number' => 'required|string|max:50|unique:sale_orders,sls_number,' . $id,
+            'sls_number' => 'required|string|max:50|unique:sale_orders,sls_number,'.$id,
             'sls_date' => 'required|date',
             'sls_customer_id' => 'required|exists:customers,id',
             'sls_valorcam' => 'required|numeric',
@@ -282,7 +287,7 @@ class SaleReturnController extends Controller
                 if (isset($item['id']) && in_array($item['id'], $existingIds)) {
                     $movement = MovementsSale::find($item['id']);
                 } else {
-                    $movement = new MovementsSale();
+                    $movement = new MovementsSale;
                     $movement->mvs_number = $return->sls_number;
                     $movement->mvs_trans_type_code = $return->sls_trans_type_code ?? $transactionType->trans_type_code;
                     $movement->mvs_factor = $transactionType->trans_type_factor;
@@ -300,7 +305,7 @@ class SaleReturnController extends Controller
             }
 
             $itemsToDelete = array_diff($existingIds, $newIds);
-            if (!empty($itemsToDelete)) {
+            if (! empty($itemsToDelete)) {
                 foreach ($itemsToDelete as $delId) {
                     if ($model = MovementsSale::find($delId)) {
                         $model->delete();
@@ -313,7 +318,8 @@ class SaleReturnController extends Controller
             return redirect()->route('sale-returns.index')->with('success', 'Devolución actualizada exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la devolución: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la devolución: '.$e->getMessage()]);
         }
     }
 
@@ -330,7 +336,8 @@ class SaleReturnController extends Controller
             return redirect()->route('sale-returns.index')->with('success', 'Devolución eliminada exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Ocurrió un error al eliminar la devolución: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Ocurrió un error al eliminar la devolución: '.$e->getMessage()]);
         }
     }
 
@@ -352,6 +359,7 @@ class SaleReturnController extends Controller
                         return true;
                     }
                 }
+
                 return false;
             })
             ->values()
@@ -375,7 +383,7 @@ class SaleReturnController extends Controller
             ->where('sls_trans_type_code', 'facv')
             ->first();
 
-        if (!$sale) {
+        if (! $sale) {
             return response()->json(['error' => 'Factura de venta no encontrada'], 404);
         }
 

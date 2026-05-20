@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { 
     ArrowLeft, 
@@ -15,6 +14,10 @@ import {
     CheckCircle2,
     AlertCircle
 } from 'lucide-vue-next';
+import { ref, watch, computed, onMounted } from 'vue';
+import SelectorModal from '@/components/SelectorModal.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input/Input.vue';
 import { Label } from '@/components/ui/label';
 import {
@@ -24,9 +27,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import SelectorModal from '@/components/SelectorModal.vue';
 
 import paymentRoutes from '@/routes/payments';
 
@@ -72,13 +72,18 @@ const fetchPendingInvoices = async (supplierId: string | number) => {
     if (!supplierId) {
         pendingInvoices.value = [];
         form.payments = [];
+
         return;
     }
 
     isLoadingInvoices.value = true;
+
     try {
         const response = await fetch(`/api/suppliers/${supplierId}/pending-invoices`);
-        if (!response.ok) throw new Error('Error al obtener facturas');
+
+        if (!response.ok) {
+throw new Error('Error al obtener facturas');
+}
         
         const data = await response.json();
         pendingInvoices.value = data;
@@ -105,6 +110,7 @@ const selectSupplier = (supplier: any) => {
 
 const getSupplierName = (id: string | number) => {
     const s = props.suppliers.find(s => s.id == id);
+
     return s ? s.supplier_name : 'Seleccione proveedor';
 };
 
@@ -112,6 +118,7 @@ const submit = () => {
     if (isEditMode.value) {
         if (form.payments.length === 0 || form.payments[0].amount <= 0 || form.payments[0].amount > form.payments[0].balance) {
             alert('Monto inválido');
+
             return;
         }
         
@@ -128,6 +135,7 @@ const submit = () => {
 
     if (totalToPay.value <= 0) {
         alert('Debe ingresar al menos un monto a pagar');
+
         return;
     }
     
@@ -141,12 +149,16 @@ const submit = () => {
 // --- LÓGICA DE TASAS ---
 
 const getBestRateForDate = (date: string) => {
-    if (!props.rates || props.rates.length === 0) return null;
+    if (!props.rates || props.rates.length === 0) {
+return null;
+}
 
     // 1. Intentar buscar la tasa de la fecha exacta
     const exactRate = props.rates.find(r => r.rate_date === date);
     
-    if (exactRate) return exactRate;
+    if (exactRate) {
+return exactRate;
+}
 
     // 2. Si no existe, buscar la más reciente anterior a esa fecha
     const pastRates = props.rates
@@ -171,6 +183,7 @@ const updateExchangeRate = () => {
         }
     } else {
         const selectedRate = getBestRateForDate(form.payment_date);
+
         if (selectedRate) {
             if (form.payment_currency === 'USD') {
                 form.payment_rate = 1;
@@ -222,12 +235,15 @@ const calculateConvertedBalance = (invoicePayment: any) => {
     const toCurrency = form.payment_currency;
     const rate = Number(form.payment_rate);
 
-    if (fromCurrency === toCurrency) return balance;
+    if (fromCurrency === toCurrency) {
+return balance;
+}
 
     // Fórmula del usuario: Doc COP, Pay USD -> Balance / Tasa (COP_Rate)
     if (fromCurrency === 'COP' && toCurrency === 'USD') {
         const currentRate = getBestRateForDate(form.payment_date);
         const copRate = currentRate ? Number(currentRate.rate_cop) : 1;
+
         return balance / copRate;
     }
 

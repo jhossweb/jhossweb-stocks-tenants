@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
+use App\Models\AccountPayments;
+use App\Models\AccountsPayable;
+use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\MovementsPurchase;
 use App\Models\Product;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\TransactionType;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use App\Models\BankAccount;
-use App\Models\BankTransaction;
-use App\Models\AccountsPayable;
-use App\Models\AccountPayments;
 use App\Models\Warehouse;
 use Illuminate\Database\Seeder;
 
@@ -102,7 +102,7 @@ class DatabaseSeeder extends Seeder
                     'btr_bank_account_id' => $bankAccounts->random()->id,
                     'btr_type' => 'outflow',
                     'btr_amount' => $order->invoice_total,
-                    'btr_description' => 'Pago de factura ' . $order->invoice_number,
+                    'btr_description' => 'Pago de factura '.$order->invoice_number,
                     'btr_valorcam' => $order->invoice_valorcam,
                 ]);
 

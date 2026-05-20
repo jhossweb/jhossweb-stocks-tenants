@@ -8,8 +8,8 @@ use App\Models\MovementsSale;
 use App\Models\PurchaseOrder;
 use App\Models\SaleOrder;
 use App\Observers\BankTransactionObserver;
-use App\Observers\Purchases\MovPurchasesObserver;
 use App\Observers\Purchases\CostHistoryObserver;
+use App\Observers\Purchases\MovPurchasesObserver;
 use App\Observers\Purchases\PurchaseOrderObserver;
 use App\Observers\Sales\MovSalesObserver;
 use App\Observers\Sales\SaleOrderObserver;
@@ -56,7 +56,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(
-            fn(): ?Password => app()->isProduction()
+            fn (): ?Password => app()->isProduction()
             ? Password::min(12)
                 ->mixedCase()
                 ->letters()

@@ -43,18 +43,19 @@ class StoreSaleRequest extends FormRequest
 
             foreach ($items as $index => $item) {
                 $product = Product::where('pro_code', $item['mvs_pro_code'])->first();
-                if (!$product) {
+                if (! $product) {
                     continue;
                 }
 
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
 
-                if (!$latestPrice) {
+                if (! $latestPrice) {
                     $validator->errors()->add(
                         "items.{$index}.mvs_unit_price_ref",
                         "El producto {$product->pro_name} no tiene un precio registrado."
                     );
+
                     continue;
                 }
 

@@ -1,25 +1,5 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { 
     PackageSearch, 
     PlusCircle, 
@@ -30,6 +10,18 @@ import {
     Tags,
     Box
 } from 'lucide-vue-next';
+import { ref } from 'vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -38,7 +30,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import productRoutes from '@/routes/products';
 
 defineOptions({
@@ -113,6 +113,7 @@ const openEditModal = (product: Product) => {
 
 const saveProduct = () => {
     console.log('Saving product, editing:', editingProduct.value);
+
     if (editingProduct.value) {
         form.put(productRoutes.update.url(editingProduct.value.id), {
             onSuccess: () => {
@@ -142,6 +143,7 @@ const getUndLabel = (und: string) => {
         'mts': 'Metros',
         'kg': 'Kilogramos'
     };
+
     return labels[und] || und;
 };
 </script>

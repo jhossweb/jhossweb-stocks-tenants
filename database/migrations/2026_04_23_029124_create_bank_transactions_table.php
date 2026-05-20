@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,16 +14,16 @@ return new class extends Migration {
         Schema::create('bank_transactions', function (Blueprint $table) {
             $table->id();
 
-            $table->enum("btr_type", ["inflow", "outflow"])->default("inflow");
-            $table->decimal("btr_amount", 15, 4);
-            $table->decimal("btr_balance", 15, 4);
-            $table->string("btr_reference", 50);
-            $table->string("btr_description", 150)->nullable();
-            $table->decimal("btr_valorcam", 15, 4)->default(0);
+            $table->enum('btr_type', ['inflow', 'outflow'])->default('inflow');
+            $table->decimal('btr_amount', 15, 4);
+            $table->decimal('btr_balance', 15, 4);
+            $table->string('btr_reference', 50);
+            $table->string('btr_description', 150)->nullable();
+            $table->decimal('btr_valorcam', 15, 4)->default(0);
 
-            $table->nullableMorphs("btr_transactionable");
+            $table->nullableMorphs('btr_transactionable');
 
-            $table->foreignId("btr_bank_account_id")->constrained("bank_accounts")->onDelete("cascade");
+            $table->foreignId('btr_bank_account_id')->constrained('bank_accounts')->onDelete('cascade');
 
             $table->timestamps();
         });

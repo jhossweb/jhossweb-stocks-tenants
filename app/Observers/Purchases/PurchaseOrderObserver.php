@@ -2,9 +2,9 @@
 
 namespace App\Observers\Purchases;
 
-use App\Models\PurchaseOrder;
-use App\Models\AccountsPayable;
 use App\Enum\Purchases\StatusPurchases;
+use App\Models\AccountsPayable;
+use App\Models\PurchaseOrder;
 
 class PurchaseOrderObserver
 {
@@ -35,7 +35,7 @@ class PurchaseOrderObserver
             $difference = $purchaseOrder->invoice_total - $purchaseOrder->getOriginal('invoice_total');
             $accountsPayable->acp_total = $purchaseOrder->invoice_total;
             $accountsPayable->acp_balance += $difference;
-            
+
             // Recalculate status based on balance
             if ($accountsPayable->acp_balance <= 0) {
                 $accountsPayable->acp_status = StatusPurchases::PAID->value;

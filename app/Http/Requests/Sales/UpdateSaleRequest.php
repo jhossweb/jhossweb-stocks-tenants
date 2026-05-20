@@ -45,24 +45,25 @@ class UpdateSaleRequest extends FormRequest
 
             foreach ($items as $index => $item) {
                 $product = Product::where('pro_code', $item['mvs_pro_code'])->first();
-                if (!$product) {
+                if (! $product) {
                     continue;
                 }
 
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
 
-                if (!$latestPrice) {
+                if (! $latestPrice) {
                     $validator->errors()->add(
                         "items.{$index}.mvs_unit_price_ref",
                         "El producto {$product->pro_name} no tiene un precio registrado."
                     );
+
                     continue;
                 }
 
-                $isExistingItem = isset($item['id']) && !empty($item['id']);
+                $isExistingItem = isset($item['id']) && ! empty($item['id']);
 
-                if (!$isExistingItem && (float) $item['mvs_unit_price_ref'] !== (float) $latestPrice->price_usd) {
+                if (! $isExistingItem && (float) $item['mvs_unit_price_ref'] !== (float) $latestPrice->price_usd) {
                     $validator->errors()->add(
                         "items.{$index}.mvs_unit_price_ref",
                         "El precio del producto {$product->pro_name} no es válido."

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2, Search } from 'lucide-vue-next';
-import Input from '@/components/ui/input/Input.vue';
+import { ref, watch, onMounted } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
+import Input from '@/components/ui/input/Input.vue';
 
 const props = defineProps<{
     customers: any[];
@@ -38,16 +38,19 @@ const selectedInvoiceNumber = ref('');
 
 const getCustomerName = (id: string | number) => {
     const c = props.customers.find(c => c.id == id);
+
     return c ? c.clt_name : 'Seleccione cliente';
 };
 
 const getProductName = (code: string) => {
     const p = props.products.find(p => p.pro_code === code);
+
     return p ? `${p.pro_name}` : 'Seleccione producto';
 };
 
 const getWarehouseName = (id: number) => {
     const w = props.warehouses.find(wh => wh.id == id);
+
     return w ? w.war_name || w.id : id;
 };
 
@@ -61,8 +64,12 @@ const selectCustomer = (customer: any) => {
 };
 
 const fetchUnpaidSales = async (customerId: number) => {
-    if (!customerId) return;
+    if (!customerId) {
+return;
+}
+
     loadingSales.value = true;
+
     try {
         const res = await fetch(`/api/customers/${customerId}/unpaid-sales`);
         unpaidSales.value = await res.json();
@@ -74,8 +81,12 @@ const fetchUnpaidSales = async (customerId: number) => {
 };
 
 const fetchSaleItems = async (saleNumber: string) => {
-    if (!saleNumber) return;
+    if (!saleNumber) {
+return;
+}
+
     loadingItems.value = true;
+
     try {
         const res = await fetch(`/api/sale-orders/by-number/${saleNumber}`);
         const sale = await res.json();
@@ -105,6 +116,7 @@ const fetchSaleItems = async (saleNumber: string) => {
 
 watch(selectedInvoiceNumber, (val) => {
     form.sls_reference = val;
+
     if (val) {
         fetchSaleItems(val);
     } else {
@@ -115,12 +127,17 @@ watch(selectedInvoiceNumber, (val) => {
 
 const getProductIvaRate = (proCode: string) => {
     const product = props.products.find(p => p.pro_code === proCode);
+
     return product && product.pro_iva ? Number(product.pro_iva) / 100 : 0;
 };
 
 const getProductIvaLabel = (proCode: string) => {
     const product = props.products.find(p => p.pro_code === proCode);
-    if (!product || !product.pro_iva) return '-';
+
+    if (!product || !product.pro_iva) {
+return '-';
+}
+
     return product.pro_iva === '0' ? 'EX' : `${product.pro_iva}%`;
 };
 
@@ -134,6 +151,7 @@ const calculateTotals = () => {
         subtotal += lineTotal;
         const ivaRate = getProductIvaRate(item.mvs_pro_code);
         sumIva += lineTotal * ivaRate;
+
         if (ivaRate === 0) {
             exento += lineTotal;
         }
@@ -148,6 +166,7 @@ const calculateTotals = () => {
 const getItemTotal = (item: any) => {
     const baseTotal = Number(item.mvs_quantity) * Number(item.mvs_unit_price);
     const ivaRate = getProductIvaRate(item.mvs_pro_code);
+
     return (baseTotal + (baseTotal * ivaRate)).toFixed(2);
 };
 

@@ -18,7 +18,7 @@ class WarehouseFactory extends Factory
     public function definition(): array
     {
         return [
-            "war_name" => fake()->name,
+            'war_name' => fake()->name,
         ];
     }
 }

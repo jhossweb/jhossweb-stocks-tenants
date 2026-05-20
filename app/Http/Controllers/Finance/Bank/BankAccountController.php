@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Finance\Bank;
 
-use App\Http\Controllers\Controller;
-use App\Models\BankAccount;
 use App\Enum\Tesoreria\TypeAccount;
 use App\Enum\TypeCoin;
+use App\Http\Controllers\Controller;
+use App\Models\BankAccount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -25,8 +25,8 @@ class BankAccountController extends Controller
         $validated = $request->validate([
             'bank_name' => 'required|string|max:150|unique:bank_accounts,bank_name',
             'bank_account_number' => 'required|string|max:20|unique:bank_accounts,bank_account_number',
-            'bank_type' => 'required|in:' . implode(',', TypeAccount::values()),
-            'bank_currency' => 'required|in:' . implode(',', TypeCoin::values()),
+            'bank_type' => 'required|in:'.implode(',', TypeAccount::values()),
+            'bank_currency' => 'required|in:'.implode(',', TypeCoin::values()),
             'bank_description' => 'nullable|string|max:150',
             'bank_status' => 'required|boolean',
         ]);
@@ -39,10 +39,10 @@ class BankAccountController extends Controller
     public function update(Request $request, BankAccount $bankAccount)
     {
         $validated = $request->validate([
-            'bank_name' => 'required|string|max:150|unique:bank_accounts,bank_name,' . $bankAccount->id,
-            'bank_account_number' => 'required|string|max:20|unique:bank_accounts,bank_account_number,' . $bankAccount->id,
-            'bank_type' => 'required|in:' . implode(',', TypeAccount::values()),
-            'bank_currency' => 'required|in:' . implode(',', TypeCoin::values()),
+            'bank_name' => 'required|string|max:150|unique:bank_accounts,bank_name,'.$bankAccount->id,
+            'bank_account_number' => 'required|string|max:20|unique:bank_accounts,bank_account_number,'.$bankAccount->id,
+            'bank_type' => 'required|in:'.implode(',', TypeAccount::values()),
+            'bank_currency' => 'required|in:'.implode(',', TypeCoin::values()),
             'bank_description' => 'nullable|string|max:150',
             'bank_status' => 'required|boolean',
         ]);

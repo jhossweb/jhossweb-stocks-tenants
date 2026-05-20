@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\Stock;
 use Carbon\Carbon;
+use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
+    /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -56,6 +55,7 @@ class Product extends Model
             ->latest('id')
             ->first();
     }
+
     /**
      * Get the price histories for the product.
      */
@@ -72,4 +72,3 @@ class Product extends Model
         return $this->priceHistories()->latest('price_date')->latest('id')->first();
     }
 }
-

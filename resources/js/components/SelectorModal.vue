@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { Search, Loader2, Check } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
+import { Button } from '@/components/ui/button';
 import { 
     Dialog, 
     DialogContent, 
@@ -9,8 +11,6 @@ import {
     DialogDescription 
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search, Loader2, Check } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -32,12 +32,16 @@ const isOpen = ref(false);
 const searchQuery = ref('');
 
 const filteredItems = computed(() => {
-    if (!searchQuery.value) return props.items;
+    if (!searchQuery.value) {
+return props.items;
+}
+
     const query = searchQuery.value.toLowerCase();
     
     return props.items.filter(item => {
         return props.searchFields.some(field => {
             const value = item[field];
+
             return value && String(value).toLowerCase().includes(query);
         });
     });
