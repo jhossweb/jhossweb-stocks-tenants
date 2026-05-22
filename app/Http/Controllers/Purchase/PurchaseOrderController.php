@@ -97,6 +97,12 @@ class PurchaseOrderController extends Controller
 
             // Guardar detalles
             foreach ($validated['items'] as $item) {
+                $product = Product::where('pro_code', $item['mov_pro_code'])->first();
+
+                if ($product && $product->pro_und === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
+                    throw new \RuntimeException("{$product->pro_name} se compra por unidades enteras.");
+                }
+
                 $movement = new MovementsPurchase;
                 $movement->mov_invoice_number = $purchase->invoice_number;
                 $movement->mov_invoice_trans_type_code = $purchase->invoice_trans_type_code;
@@ -195,6 +201,12 @@ class PurchaseOrderController extends Controller
             $newIds = [];
 
             foreach ($validated['items'] as $item) {
+                $product = Product::where('pro_code', $item['mov_pro_code'])->first();
+
+                if ($product && $product->pro_und === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
+                    throw new \RuntimeException("{$product->pro_name} se compra por unidades enteras.");
+                }
+
                 if (isset($item['id']) && in_array($item['id'], $existingIds)) {
                     $movement = MovementsPurchase::find($item['id']);
                 } else {

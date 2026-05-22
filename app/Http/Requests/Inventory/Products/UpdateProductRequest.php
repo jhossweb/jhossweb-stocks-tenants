@@ -26,19 +26,11 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pro_code' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('products', 'pro_code')->ignore($this->route('product')),
-            ],
-            'pro_name' => [
-                'required',
-                'string',
-                'max:200',
-                Rule::unique('products', 'pro_name')->ignore($this->route('product')),
-            ],
+            'pro_code' => ['required', 'string', 'max:50', Rule::unique('products', 'pro_code')->ignore($this->route('product'))],
+            'pro_name' => ['required', 'string', 'max:200', Rule::unique('products', 'pro_name')->ignore($this->route('product'))],
             'pro_und' => ['required', Rule::in(UndProduct::values())],
+            'pro_conversion_factor' => ['nullable', 'numeric', 'min:0.0001'],
+            'pro_cant_min' => ['nullable', 'numeric', 'min:0'],
             'pro_iva' => ['required', Rule::in(TypeIva::values())],
             'pro_cat_id' => ['required', 'exists:categories,id'],
             'pro_bra_id' => ['required', 'exists:brands,id'],

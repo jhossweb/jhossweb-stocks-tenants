@@ -66,6 +66,9 @@ interface Product {
     pro_code: string;
     pro_name: string;
     pro_und: string;
+    pro_conversion_factor?: number;
+    pro_cant_min?: number;
+    stocks_sum_stk_cant?: number;
     pro_iva: string;
     pro_cat_id: number;
     pro_bra_id: number;
@@ -88,6 +91,8 @@ const form = useForm({
     pro_code: '',
     pro_name: '',
     pro_und: '',
+    pro_conversion_factor: 1,
+    pro_cant_min: 0,
     pro_iva: '',
     pro_cat_id: '' as unknown as number,
     pro_bra_id: '' as unknown as number,
@@ -105,6 +110,8 @@ const openEditModal = (product: Product) => {
     form.pro_code = product.pro_code;
     form.pro_name = product.pro_name;
     form.pro_und = product.pro_und;
+    form.pro_conversion_factor = product.pro_conversion_factor ?? 1;
+    form.pro_cant_min = product.pro_cant_min ?? 0;
     form.pro_iva = product.pro_iva;
     form.pro_cat_id = product.pro_cat_id;
     form.pro_bra_id = product.pro_bra_id;
@@ -141,7 +148,8 @@ const getUndLabel = (und: string) => {
     const labels: Record<string, string> = {
         'und': 'Unidad',
         'mts': 'Metros',
-        'kg': 'Kilogramos'
+        'kg': 'Kilogramos',
+        'm2': 'm²'
     };
 
     return labels[und] || und;
@@ -208,6 +216,24 @@ const getUndLabel = (und: string) => {
                                 </SelectContent>
                             </Select>
                             <p v-if="form.errors.pro_und" class="text-xs text-red-500 mt-1">{{ form.errors.pro_und }}</p>
+                        </div>
+                    </div>
+
+                    <div v-if="form.pro_und === 'mts' || form.pro_und === 'kg'" class="grid grid-cols-4 items-center gap-4">
+                        <Label for="pro_conversion_factor" class="text-right">Factor Conv.</Label>
+                        <div class="col-span-3">
+                            <Input id="pro_conversion_factor" type="number" step="0.0001" min="0.0001" v-model="form.pro_conversion_factor" placeholder="Ej: 100 (1 = 100 {{ form.pro_und === 'mts' ? 'Mts' : 'Kg' }})" />
+                            <p class="text-[10px] text-zinc-500 mt-1">1 unidad de compra = N {{ form.pro_und === 'mts' ? 'metros' : 'kilos' }}. Default: 1</p>
+                            <p v-if="form.errors.pro_conversion_factor" class="text-xs text-red-500 mt-1">{{ form.errors.pro_conversion_factor }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 items-center gap-4">
+                        <Label for="pro_cant_min" class="text-right">Stock Mínimo</Label>
+                        <div class="col-span-3">
+                            <Input id="pro_cant_min" type="number" step="0.01" min="0" v-model="form.pro_cant_min" placeholder="Ej: 10" />
+                            <p class="text-[10px] text-zinc-500 mt-1">Alerta cuando el stock baje de esta cantidad. 0 = sin alerta.</p>
+                            <p v-if="form.errors.pro_cant_min" class="text-xs text-red-500 mt-1">{{ form.errors.pro_cant_min }}</p>
                         </div>
                     </div>
 
@@ -322,6 +348,18 @@ const getUndLabel = (und: string) => {
                         </Badge>
                         <Badge variant="outline" class="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">
                             IVA {{ product.pro_iva }}%
+                        </Badge>
+                        <Badge v-if="product.pro_conversion_factor && product.pro_conversion_factor > 1" variant="outline" class="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                            ×{{ product.pro_conversion_factor }}
+                        </Badge>
+                        <Badge v-if="product.stocks_sum_stk_cant !== undefined && product.stocks_sum_stk_cant !== null"
+                            :class="product.stocks_sum_stk_cant > 0 ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'"
+                            variant="outline">
+                            Stock: {{ product.stocks_sum_stk_cant }} {{ getUndLabel(product.pro_und) }}
+                        </Badge>
+                        <Badge v-if="product.pro_cant_min && product.pro_cant_min > 0 && (product.stocks_sum_stk_cant ?? 0) <= product.pro_cant_min"
+                            variant="outline" class="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">
+                            Stock Bajo!
                         </Badge>
                     </div>
 

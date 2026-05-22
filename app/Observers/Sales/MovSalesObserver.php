@@ -3,6 +3,7 @@
 namespace App\Observers\Sales;
 
 use App\Models\MovementsSale;
+use App\Models\Product;
 use DB;
 
 class MovSalesObserver
@@ -13,6 +14,7 @@ class MovSalesObserver
         if (in_array($transType, ['facv', 'devv'])) {
             $cantidadFinal = (float) $movement->mvs_quantity * (int) $movement->mvs_factor;
             $this->updateStock($movement->mvs_pro_code, $movement->mvs_war_id, $cantidadFinal);
+            $this->checkMinStock($movement->mvs_pro_code, $movement->mvs_war_id);
         }
     }
 
@@ -28,6 +30,7 @@ class MovSalesObserver
         $newTransType = strtolower((string) $movementsSale->mvs_trans_type_code);
         if (in_array($newTransType, ['facv', 'devv'])) {
             $this->updateStock($movementsSale->mvs_pro_code, $movementsSale->mvs_war_id, ($movementsSale->mvs_quantity * $movementsSale->mvs_factor));
+            $this->checkMinStock($movementsSale->mvs_pro_code, $movementsSale->mvs_war_id);
         }
     }
 
@@ -42,6 +45,27 @@ class MovSalesObserver
     public function restored(MovementsSale $movementsSale): void {}
 
     public function forceDeleted(MovementsSale $movementsSale): void {}
+
+    protected function checkMinStock(string $proCode, int $warehouseId): void
+    {
+        $stock = DB::table('stocks')
+            ->where('stk_pro_code', $proCode)
+            ->where('stk_war_id', $warehouseId)
+            ->first();
+
+        if (! $stock) {
+            return;
+        }
+
+        $product = Product::where('pro_code', $proCode)->first();
+        if (! $product || $product->pro_cant_min <= 0) {
+            return;
+        }
+
+        if ($stock->stk_cant <= $product->pro_cant_min) {
+            session()->flash('warning', "Stock bajo: {$product->pro_name} ({$stock->stk_cant} {$product->pro_und})");
+        }
+    }
 
     protected function updateStock($proCode, $warehouseId, $amount)
     {

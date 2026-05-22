@@ -147,6 +147,18 @@ onMounted(async () => {
     isInitializing.value = false;
 });
 
+const getProductUnd = (code: string) => {
+    const p = props.products.find(p => p.pro_code === code);
+    return p ? p.pro_und : '';
+};
+
+const getUndLabel = (und: string) => ({
+    'und': 'Und',
+    'mts': 'Mts',
+    'kg': 'Kg',
+    'm2': 'm²'
+}[und] || und);
+
 const getProductIvaRate = (proCode: string) => {
     const product = props.products.find(p => p.pro_code === proCode);
 
@@ -352,9 +364,16 @@ const submit = () => {
                                         {{ getProductIvaLabel(item.mvs_pro_code) }}
                                     </td>
                                     <td class="p-3">
-                                        <input type="number" v-model="item.mvs_quantity" @input="calculateTotals"
-                                            :max="item._available_qty"
-                                            class="w-full text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-indigo-600 text-zinc-300" />
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" v-model="item.mvs_quantity" @input="calculateTotals"
+                                                :max="item._available_qty"
+                                                :step="getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
+                                                :min="getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
+                                                class="w-20 text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-indigo-600 text-zinc-300" />
+                                            <span v-if="item.mvs_pro_code" class="text-[10px] font-bold uppercase text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                                                {{ getUndLabel(getProductUnd(item.mvs_pro_code)) }}
+                                            </span>
+                                        </div>
                                         <div class="text-[9px] text-zinc-500 text-center mt-0.5">Máx: {{ item._available_qty }}</div>
                                     </td>
                                     <td class="p-3">

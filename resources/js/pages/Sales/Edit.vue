@@ -176,6 +176,18 @@ const getProductName = (code: string) => {
     return p ? `${p.pro_name} - $${p.latest_price}` : 'Seleccione producto';
 };
 
+const getProductUnd = (code: string) => {
+    const p = props.products.find(p => p.pro_code === code);
+    return p ? p.pro_und : '';
+};
+
+const getUndLabel = (und: string) => ({
+    'und': 'Und',
+    'mts': 'Mts',
+    'kg': 'Kg',
+    'm2': 'm²'
+}[und] || und);
+
 const selectProduct = (index: number, product: any) => {
     form.items[index].mvs_pro_code = product.pro_code;
     form.items[index].mvs_pro_iva = Number(product.pro_iva) || 0;
@@ -332,6 +344,7 @@ const submit = () => {
                                             :displayFields="[
                                                 { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
                                                 { label: 'Nombre', key: 'pro_name' },
+                                                { label: 'Und', key: 'pro_und', class: 'font-mono text-xs text-center' },
                                                 { label: 'Precio $', key: 'latest_price', class: 'font-mono text-xs text-right' },
                                                 { label: 'Stock', key: 'total_stock', class: 'font-mono text-xs text-right' }
                                             ]"
@@ -353,7 +366,16 @@ const submit = () => {
                                         {{ getProductIvaLabel(item.mvs_pro_code) }}
                                     </td>
                                     <td class="p-3">
-                                        <input type="number" v-model="item.mvs_quantity" @input="calculateTotals" class="w-full text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-indigo-600 text-zinc-300" />
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" v-model="item.mvs_quantity"
+                                                :step="getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
+                                                :min="getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
+                                                @input="calculateTotals"
+                                                class="w-20 text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-indigo-600 text-zinc-300" />
+                                            <span v-if="item.mvs_pro_code" class="text-[10px] font-bold uppercase text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
+                                                {{ getUndLabel(getProductUnd(item.mvs_pro_code)) }}
+                                            </span>
+                                        </div>
                                         <p v-if="form.errors[`items.${index}.mvs_quantity`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mvs_quantity`] }}</p>
                                     </td>
                                     <td class="p-3">

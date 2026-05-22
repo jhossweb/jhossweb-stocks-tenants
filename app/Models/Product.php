@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enum\Inventary\UndProduct;
+use App\Enum\TypeIva;
 use Carbon\Carbon;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,10 +19,23 @@ class Product extends Model
         'pro_code',
         'pro_name',
         'pro_und',
+        'pro_conversion_factor',
+        'pro_cant_min',
         'pro_iva',
         'pro_cat_id',
         'pro_bra_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            // Laravel convertirá automáticamente el string de la BD a tu clase Enum
+            'pro_und' => UndProduct::class,
+
+            // Ya que tienes TypeIva, aprovecha de agregarlo también
+            'pro_iva' => TypeIva::class,
+        ];
+    }
 
     public function stocks(): HasMany
     {

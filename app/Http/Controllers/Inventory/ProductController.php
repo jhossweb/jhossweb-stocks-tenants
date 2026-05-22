@@ -19,7 +19,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with(['category', 'brand'])->latest()->get();
+        $products = Product::with(['category', 'brand'])
+            ->withSum('stocks', 'stk_cant')
+            ->latest()
+            ->get();
 
         return Inertia::render('Inventory/Products/Index', [
             'products' => $products,
@@ -27,7 +30,7 @@ class ProductController extends Controller
             'brands' => Brand::all(['id', 'bra_name']),
             'undOptions' => UndProduct::values(),
             'ivaOptions' => array_combine(TypeIva::values(), array_map(function ($case) {
-                return $case->name; // GN, RE, EX etc if needed
+                return $case->name;
             }, TypeIva::cases())),
             'rawIvaOptions' => TypeIva::values(),
         ]);

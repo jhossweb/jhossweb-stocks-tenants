@@ -73,6 +73,13 @@ class StoreSaleRequest extends FormRequest
                     );
                 }
 
+                if ($product->pro_und === 'und' && $item['mvs_quantity'] != (int) $item['mvs_quantity']) {
+                    $validator->errors()->add(
+                        "items.{$index}.mvs_quantity",
+                        "{$product->pro_name} se vende por unidades. Ingrese un número entero."
+                    );
+                }
+
                 $stock = Stock::where('stk_pro_code', $item['mvs_pro_code'])
                     ->where('stk_war_id', 1)
                     ->value('stk_cant') ?? 0;

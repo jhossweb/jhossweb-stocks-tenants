@@ -263,6 +263,23 @@ const getProductName = (code: string) => {
     return p ? p.pro_name : 'Seleccione producto';
 };
 
+const getProductUnd = (code: string) => {
+    const p = props.products.find(p => p.pro_code === code);
+    return p ? p.pro_und : '';
+};
+
+const getProductConversion = (code: string) => {
+    const p = props.products.find(p => p.pro_code === code);
+    return p ? (p.pro_conversion_factor ?? 1) : 1;
+};
+
+const getUndLabel = (und: string) => ({
+    'und': 'Und',
+    'mts': 'Mts',
+    'kg': 'Kg',
+    'm2': 'm²'
+}[und] || und);
+
 const selectSupplier = (supplier: any) => {
     form.invoice_supplier_id = supplier.id;
 };
@@ -520,7 +537,8 @@ onMounted(async () => {
                                             :searchFields="['pro_name', 'pro_code']"
                                             :displayFields="[
                                                 { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
-                                                { label: 'Nombre', key: 'pro_name' }
+                                                { label: 'Nombre', key: 'pro_name' },
+                                                { label: 'Und', key: 'pro_und', class: 'font-mono text-xs text-center' }
                                             ]"
                                             :triggerLabel="getProductName(item.mov_pro_code)"
                                             :selectedValue="item.mov_pro_code"
@@ -540,7 +558,20 @@ onMounted(async () => {
                                         {{ getProductIvaLabel(item.mov_pro_code) }}
                                     </td>
                                     <td class="p-3">
-                                        <input type="number" v-model="item.mov_quantity" :max="item.mov_quantity_max" min="0.01" step="0.01" @input="calculateTotals" class="w-full text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-orange-600 text-zinc-300" />
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" v-model="item.mov_quantity"
+                                                :max="item.mov_quantity_max"
+                                                :step="getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
+                                                :min="getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
+                                                @input="calculateTotals"
+                                                class="w-20 text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-orange-600 text-zinc-300" />
+                                            <span v-if="item.mov_pro_code" class="text-[10px] font-bold uppercase text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">
+                                                {{ getUndLabel(getProductUnd(item.mov_pro_code)) }}
+                                            </span>
+                                        </div>
+                                        <div v-if="item.mov_pro_code && (getProductUnd(item.mov_pro_code) === 'mts' || getProductUnd(item.mov_pro_code) === 'kg' || getProductUnd(item.mov_pro_code) === 'm2') && getProductConversion(item.mov_pro_code) > 1" class="text-[9px] text-amber-400 mt-0.5">
+                                            ×{{ getProductConversion(item.mov_pro_code) }} {{ getUndLabel(getProductUnd(item.mov_pro_code)) }}
+                                        </div>
                                         <p v-if="(form.errors as any)[`items.${index}.mov_quantity`]" class="text-[10px] text-red-500">{{ (form.errors as any)[`items.${index}.mov_quantity`] }}</p>
                                         <p v-if="Number(item.mov_quantity) > Number(item.mov_quantity_max)" class="text-[10px] text-red-500 mt-1">Disp. max: {{ item.mov_quantity_max }}</p>
                                     </td>

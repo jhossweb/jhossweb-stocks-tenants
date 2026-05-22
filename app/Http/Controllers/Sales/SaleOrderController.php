@@ -56,6 +56,8 @@ class SaleOrderController extends Controller
                     'pro_code' => $product->pro_code,
                     'pro_name' => $product->pro_name,
                     'pro_und' => $product->pro_und,
+                    'pro_conversion_factor' => $product->pro_conversion_factor ?? 1,
+                    'pro_cant_min' => $product->pro_cant_min ?? 0,
                     'pro_iva' => $product->pro_iva,
                     'pro_cat_id' => $product->pro_cat_id,
                     'pro_bra_id' => $product->pro_bra_id,
