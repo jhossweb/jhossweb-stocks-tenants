@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Inventory;
 
+use App\Enum\Inventary\ProType;
 use App\Enum\Inventary\UndProduct;
 use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
@@ -19,7 +20,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::with(['category', 'brand'])
+        $products = Product::with(['category', 'brand', 'componentes.category', 'componentes.brand'])
             ->withSum('stocks', 'stk_cant')
             ->latest()
             ->get();
@@ -33,6 +34,7 @@ class ProductController extends Controller
                 return $case->name;
             }, TypeIva::cases())),
             'rawIvaOptions' => TypeIva::values(),
+            'typeOptions' => ProType::values(),
         ]);
     }
 
@@ -41,7 +43,23 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request)
     {
-        Product::create($request->validated());
+        $data = $request->validated();
+        $components = $data['components'] ?? [];
+        unset($data['components']);
+
+        $product = Product::create($data);
+
+        if ($product->pro_type->value === ProType::COMPUESTO->value && !empty($components)) {
+            $syncData = [];
+            foreach ($components as $comp) {
+                $syncData[$comp['cp_comp_pro_code']] = [
+                    'cp_pro_und' => $comp['cp_pro_und'],
+                    'cp_quantity' => $comp['cp_quantity'],
+                ];
+            }
+            $product->componentes()->sync($syncData);
+            $product->guardarCostoCompuesto();
+        }
 
         return redirect()->back()->with('success', 'Producto creado exitosamente.');
     }
@@ -52,7 +70,26 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::findOrFail($id);
-        $product->update($request->validated());
+
+        $data = $request->validated();
+        $components = $data['components'] ?? [];
+        unset($data['components']);
+
+        $product->update($data);
+
+        if ($product->pro_type->value === ProType::COMPUESTO->value && !empty($components)) {
+            $syncData = [];
+            foreach ($components as $comp) {
+                $syncData[$comp['cp_comp_pro_code']] = [
+                    'cp_pro_und' => $comp['cp_pro_und'],
+                    'cp_quantity' => $comp['cp_quantity'],
+                ];
+            }
+            $product->componentes()->sync($syncData);
+            $product->guardarCostoCompuesto();
+        } else {
+            $product->componentes()->sync([]);
+        }
 
         return redirect()->back()->with('success', 'Producto actualizado exitosamente.');
     }

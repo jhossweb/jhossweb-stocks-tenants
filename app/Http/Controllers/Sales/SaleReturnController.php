@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Enum\Inventary\ProType;
 use App\Enum\Sales\StatusSales;
 use App\Enum\TypeCoin;
 use App\Enum\TypeIva;
@@ -39,11 +40,18 @@ class SaleReturnController extends Controller
             ->pluck('stk_cant', 'stk_pro_code');
 
         $products = Product::with(['category', 'brand'])
-            ->whereIn('pro_code', $stockByProduct->keys())
+            ->where(function ($query) use ($stockByProduct) {
+                $query->whereIn('pro_code', $stockByProduct->keys())
+                    ->orWhere('pro_type', ProType::COMPUESTO->value);
+            })
             ->get()
             ->filter(function ($product) {
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
+
+                if ($product->pro_type->value === ProType::COMPUESTO->value) {
+                    return $latestPrice && $latestCost;
+                }
 
                 return $latestPrice && $latestCost
                     && $latestPrice->price_usd > $latestCost->cost_pro_cost_ref;
@@ -60,6 +68,7 @@ class SaleReturnController extends Controller
                     'pro_iva' => $product->pro_iva,
                     'pro_cat_id' => $product->pro_cat_id,
                     'pro_bra_id' => $product->pro_bra_id,
+                    'pro_type' => $product->pro_type,
                     'category' => $product->category,
                     'brand' => $product->brand,
                     'latest_price' => $latestPrice->price_usd,
@@ -193,11 +202,18 @@ class SaleReturnController extends Controller
             ->pluck('stk_cant', 'stk_pro_code');
 
         $products = Product::with(['category', 'brand'])
-            ->whereIn('pro_code', $stockByProduct->keys())
+            ->where(function ($query) use ($stockByProduct) {
+                $query->whereIn('pro_code', $stockByProduct->keys())
+                    ->orWhere('pro_type', ProType::COMPUESTO->value);
+            })
             ->get()
             ->filter(function ($product) {
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
+
+                if ($product->pro_type->value === ProType::COMPUESTO->value) {
+                    return $latestPrice && $latestCost;
+                }
 
                 return $latestPrice && $latestCost
                     && $latestPrice->price_usd > $latestCost->cost_pro_cost_ref;
@@ -214,6 +230,7 @@ class SaleReturnController extends Controller
                     'pro_iva' => $product->pro_iva,
                     'pro_cat_id' => $product->pro_cat_id,
                     'pro_bra_id' => $product->pro_bra_id,
+                    'pro_type' => $product->pro_type,
                     'category' => $product->category,
                     'brand' => $product->brand,
                     'latest_price' => $latestPrice->price_usd,

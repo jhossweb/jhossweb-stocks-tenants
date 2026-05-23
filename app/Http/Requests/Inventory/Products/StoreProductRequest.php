@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Inventory\Products;
 
+use App\Enum\Inventary\ProType;
 use App\Enum\Inventary\UndProduct;
 use App\Enum\TypeIva;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -34,6 +35,11 @@ class StoreProductRequest extends FormRequest
             'pro_iva' => ['required', Rule::in(TypeIva::values())],
             'pro_cat_id' => ['required', 'exists:categories,id'],
             'pro_bra_id' => ['required', 'exists:brands,id'],
+            'pro_type' => ['required', Rule::in(ProType::values())],
+            'components' => ['nullable', 'array', 'required_if:pro_type,compuesto'],
+            'components.*.cp_comp_pro_code' => ['required', 'string', 'exists:products,pro_code', 'different:pro_code'],
+            'components.*.cp_pro_und' => ['required', Rule::in(UndProduct::values())],
+            'components.*.cp_quantity' => ['required', 'numeric', 'min:0.001'],
         ];
     }
 }

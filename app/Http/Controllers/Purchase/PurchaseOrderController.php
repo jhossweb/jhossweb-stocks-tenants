@@ -99,7 +99,7 @@ class PurchaseOrderController extends Controller
             foreach ($validated['items'] as $item) {
                 $product = Product::where('pro_code', $item['mov_pro_code'])->first();
 
-                if ($product && $product->pro_und === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
+                if ($product && $product->pro_und->value === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
                     throw new \RuntimeException("{$product->pro_name} se compra por unidades enteras.");
                 }
 
@@ -203,7 +203,7 @@ class PurchaseOrderController extends Controller
             foreach ($validated['items'] as $item) {
                 $product = Product::where('pro_code', $item['mov_pro_code'])->first();
 
-                if ($product && $product->pro_und === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
+                if ($product && $product->pro_und->value === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
                     throw new \RuntimeException("{$product->pro_name} se compra por unidades enteras.");
                 }
 

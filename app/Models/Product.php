@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enum\Inventary\ProType;
 use App\Enum\Inventary\UndProduct;
 use App\Enum\TypeIva;
 use Carbon\Carbon;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
@@ -24,16 +26,15 @@ class Product extends Model
         'pro_iva',
         'pro_cat_id',
         'pro_bra_id',
+        'pro_type',
     ];
 
     protected function casts(): array
     {
         return [
-            // Laravel convertirá automáticamente el string de la BD a tu clase Enum
             'pro_und' => UndProduct::class,
-
-            // Ya que tienes TypeIva, aprovecha de agregarlo también
             'pro_iva' => TypeIva::class,
+            'pro_type' => ProType::class,
         ];
     }
 
@@ -85,5 +86,54 @@ class Product extends Model
     public function latestPrice(): ?PriceHistory
     {
         return $this->priceHistories()->latest('price_date')->latest('id')->first();
+    }
+
+    public function componentes(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'components_productos',
+            'cp_pro_code',
+            'cp_comp_pro_code',
+            'pro_code',
+            'pro_code'
+        )->withPivot(['cp_pro_und', 'cp_quantity']);
+    }
+
+    public function productosPadre(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'components_productos',
+            'cp_comp_pro_code',
+            'cp_pro_code',
+            'pro_code',
+            'pro_code'
+        )->withPivot(['cp_pro_und', 'cp_quantity']);
+    }
+
+    public function calcularCostoCompuesto(): float
+    {
+        return $this->componentes->sum(function ($componente) {
+            $costoUnitario = $componente->latestCost()?->cost_pro_cost_ref ?? 0;
+            return $componente->pivot->cp_quantity * $costoUnitario;
+        });
+    }
+
+    public function guardarCostoCompuesto(): void
+    {
+        $costo = $this->calcularCostoCompuesto();
+
+        if ($costo > 0) {
+            $this->costHistories()->create([
+                'cost_pro_code' => $this->pro_code,
+                'cost_pro_cost' => $costo,
+                'cost_pro_cost_ref' => $costo,
+                'cost_valorcam' => 1,
+                'cost_currency' => 'USD',
+                'cost_date' => now()->format('Y-m-d'),
+                'cost_user_id' => auth()->id(),
+            ]);
+        }
     }
 }

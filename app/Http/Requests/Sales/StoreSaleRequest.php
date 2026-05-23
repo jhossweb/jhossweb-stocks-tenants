@@ -47,6 +47,7 @@ class StoreSaleRequest extends FormRequest
                     continue;
                 }
 
+                $esCompuesto = $product->pro_type?->value === 'compuesto';
                 $latestPrice = $product->latestPrice();
                 $latestCost = $product->latestCost();
 
@@ -66,29 +67,31 @@ class StoreSaleRequest extends FormRequest
                     );
                 }
 
-                if ($latestCost && (float) $latestPrice->price_usd <= (float) $latestCost->cost_pro_cost_ref) {
+                if (! $esCompuesto && $latestCost && (float) $latestPrice->price_usd <= (float) $latestCost->cost_pro_cost_ref) {
                     $validator->errors()->add(
                         "items.{$index}.mvs_unit_price_ref",
                         "El precio del producto {$product->pro_name} debe ser mayor al costo."
                     );
                 }
 
-                if ($product->pro_und === 'und' && $item['mvs_quantity'] != (int) $item['mvs_quantity']) {
+                if ($product->pro_und->value === 'und' && $item['mvs_quantity'] != (int) $item['mvs_quantity']) {
                     $validator->errors()->add(
                         "items.{$index}.mvs_quantity",
                         "{$product->pro_name} se vende por unidades. Ingrese un número entero."
                     );
                 }
 
-                $stock = Stock::where('stk_pro_code', $item['mvs_pro_code'])
-                    ->where('stk_war_id', 1)
-                    ->value('stk_cant') ?? 0;
+                if (! $esCompuesto) {
+                    $stock = Stock::where('stk_pro_code', $item['mvs_pro_code'])
+                        ->where('stk_war_id', 1)
+                        ->value('stk_cant') ?? 0;
 
-                if ((float) $item['mvs_quantity'] > (float) $stock) {
-                    $validator->errors()->add(
-                        "items.{$index}.mvs_quantity",
-                        "Stock insuficiente de {$product->pro_name}. Disponible: {$stock}"
-                    );
+                    if ((float) $item['mvs_quantity'] > (float) $stock) {
+                        $validator->errors()->add(
+                            "items.{$index}.mvs_quantity",
+                            "Stock insuficiente de {$product->pro_name}. Disponible: {$stock}"
+                        );
+                    }
                 }
             }
         });
