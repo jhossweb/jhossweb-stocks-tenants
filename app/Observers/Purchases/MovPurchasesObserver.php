@@ -3,16 +3,27 @@
 namespace App\Observers\Purchases;
 
 use App\Models\MovementsPurchase;
+use App\Models\Product;
 use DB;
 
 class MovPurchasesObserver
 {
+    protected function getConversionFactor(string $proCode): float
+    {
+        $product = Product::where('pro_code', $proCode)->first();
+        if ($product && in_array($product->pro_und->value, ['mts', 'kg', 'm2'])) {
+            return (float) ($product->pro_conversion_factor ?? 1);
+        }
+        return 1;
+    }
+
     public function created(MovementsPurchase $movement): void
     {
         $transType = strtolower((string) $movement->mov_invoice_trans_type_code);
 
         if (in_array($transType, ['fac', 'devc'])) {
-            $cantidadFinal = (float) $movement->mov_quantity * (int) $movement->mov_factor;
+            $factor = $this->getConversionFactor($movement->mov_pro_code);
+            $cantidadFinal = (float) $movement->mov_quantity * (int) $movement->mov_factor * $factor;
 
             $this->updateStock(
                 $movement->mov_pro_code,
@@ -29,9 +40,10 @@ class MovPurchasesObserver
         $oldWareId = $movementsPurchase->getOriginal('mov_war_id');
         $oldTransType = strtolower((string) $movementsPurchase->getOriginal('mov_invoice_trans_type_code'));
         $proCode = $movementsPurchase->mov_pro_code;
+        $conversion = $this->getConversionFactor($proCode);
 
         if (in_array($oldTransType, ['fac', 'devc'])) {
-            $this->updateStock($proCode, $oldWareId, -($oldCant * $oldFactor));
+            $this->updateStock($proCode, $oldWareId, -(($oldCant * $oldFactor) * $conversion));
         }
 
         $newTransType = strtolower((string) $movementsPurchase->mov_invoice_trans_type_code);
@@ -39,7 +51,7 @@ class MovPurchasesObserver
             $this->updateStock(
                 $proCode,
                 $movementsPurchase->mov_war_id,
-                $movementsPurchase->mov_quantity * $movementsPurchase->mov_factor
+                ($movementsPurchase->mov_quantity * $movementsPurchase->mov_factor) * $conversion
             );
         }
     }
@@ -49,10 +61,11 @@ class MovPurchasesObserver
         $transType = strtolower((string) $movementsPurchase->mov_invoice_trans_type_code);
 
         if (in_array($transType, ['fac', 'devc'])) {
+            $factor = $this->getConversionFactor($movementsPurchase->mov_pro_code);
             $this->updateStock(
                 $movementsPurchase->mov_pro_code,
                 $movementsPurchase->mov_war_id,
-                -((float) $movementsPurchase->mov_quantity * abs((int) $movementsPurchase->mov_factor))
+                -((float) $movementsPurchase->mov_quantity * abs((int) $movementsPurchase->mov_factor) * $factor)
             );
         }
     }

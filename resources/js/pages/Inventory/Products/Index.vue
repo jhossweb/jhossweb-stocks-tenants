@@ -219,11 +219,11 @@ const getUndLabel = (und: string) => {
                         </div>
                     </div>
 
-                    <div v-if="form.pro_und === 'mts' || form.pro_und === 'kg'" class="grid grid-cols-4 items-center gap-4">
+                    <div v-if="form.pro_und === 'mts' || form.pro_und === 'kg' || form.pro_und === 'm2'" class="grid grid-cols-4 items-center gap-4">
                         <Label for="pro_conversion_factor" class="text-right">Factor Conv.</Label>
                         <div class="col-span-3">
-                            <Input id="pro_conversion_factor" type="number" step="0.0001" min="0.0001" v-model="form.pro_conversion_factor" placeholder="Ej: 100 (1 = 100 {{ form.pro_und === 'mts' ? 'Mts' : 'Kg' }})" />
-                            <p class="text-[10px] text-zinc-500 mt-1">1 unidad de compra = N {{ form.pro_und === 'mts' ? 'metros' : 'kilos' }}. Default: 1</p>
+                            <Input id="pro_conversion_factor" type="number" step="0.0001" min="0.0001" v-model="form.pro_conversion_factor" placeholder="Ej: 100 (1 = 100 {{ form.pro_und === 'mts' ? 'Mts' : form.pro_und === 'm2' ? 'M2' : 'Kg' }})" />
+                            <p class="text-[10px] text-zinc-500 mt-1">1 unidad de compra = N {{ form.pro_und === 'mts' ? 'metros' : form.pro_und === 'm2' ? 'm²' : 'kilos' }}. Default: 1</p>
                             <p v-if="form.errors.pro_conversion_factor" class="text-xs text-red-500 mt-1">{{ form.errors.pro_conversion_factor }}</p>
                         </div>
                     </div>
