@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Purchase;
 
 use App\Enum\Purchases\StatusPurchases;
-use App\Enum\Tesoreria\TransactionMethod;
-use App\Enum\Tesoreria\TypePayment;
+use App\Enum\Finanzas\TransactionMethod;
+use App\Enum\Finanzas\TypePayment;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
 use App\Models\AccountPayments;

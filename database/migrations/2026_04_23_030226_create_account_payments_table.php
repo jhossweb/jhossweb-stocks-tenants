@@ -1,6 +1,6 @@
 <?php
 
-use App\Enum\Tesoreria\TypePayment;
+use App\Enum\Finanzas\TypePayment;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

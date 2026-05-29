@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enum\Tesoreria\TypePayment;
+use App\Enum\Finanzas\TypePayment;
 use App\Models\AccountPayments;
 use App\Models\AccountsPayable;
 use App\Models\BankTransaction;

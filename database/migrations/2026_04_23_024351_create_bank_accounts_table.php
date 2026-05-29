@@ -1,6 +1,6 @@
 <?php
 
-use App\Enum\Tesoreria\TypeAccount;
+use App\Enum\Finanzas\TypeAccount;
 use App\Enum\TypeCoin;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

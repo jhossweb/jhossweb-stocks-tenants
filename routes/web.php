@@ -7,11 +7,11 @@ use App\Http\Controllers\Purchase\AccountPaymentController;
 use App\Http\Controllers\Purchase\AccountsPayableController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\PurchaseReturnController;
-use App\Http\Controllers\Sales\AccountReceiptPaymentController;
-use App\Http\Controllers\Sales\AccountsReceivableController;
-use App\Http\Controllers\Sales\CustomerController;
-use App\Http\Controllers\Sales\SaleOrderController;
-use App\Http\Controllers\Sales\SaleReturnController;
+use App\Http\Controllers\Finance\Cobranza\ReceiptController;
+use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
+use App\Http\Controllers\Sales\Customer\CustomerController;
+use App\Http\Controllers\Sales\SaleOrder\SaleOrderController;
+use App\Http\Controllers\Sales\SaleReturn\SaleReturnController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -35,21 +35,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('payments/{payment}', [AccountPaymentController::class, 'destroy'])->name('payments.destroy');
 
     Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');
-    Route::get('receipts/create', [AccountReceiptPaymentController::class, 'create'])->name('receipts.create');
-    Route::post('receipts', [AccountReceiptPaymentController::class, 'store'])->name('receipts.store');
-    Route::get('receipts/{receipt}/edit', [AccountReceiptPaymentController::class, 'edit'])->name('receipts.edit');
-    Route::put('receipts/{receipt}', [AccountReceiptPaymentController::class, 'update'])->name('receipts.update');
-    Route::delete('receipts/{receipt}', [AccountReceiptPaymentController::class, 'destroy'])->name('receipts.destroy');
+    Route::get('receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
+    Route::post('receipts', [ReceiptController::class, 'store'])->name('receipts.store');
+    Route::get('receipts/{receipt}/edit', [ReceiptController::class, 'edit'])->name('receipts.edit');
+    Route::put('receipts/{receipt}', [ReceiptController::class, 'update'])->name('receipts.update');
+    Route::delete('receipts/{receipt}', [ReceiptController::class, 'destroy'])->name('receipts.destroy');
 
     Route::resource('products', ProductController::class)->except(['create', 'edit', 'show']);
 
     Route::get('inventory/adjust-prices', [PriceAdjustmentController::class, 'index'])->name('inventory.adjust-prices');
     Route::post('inventory/adjust-prices', [PriceAdjustmentController::class, 'store'])->name('inventory.adjust-prices.store');
 
-    // API Routes for Finance/Tesoreria
+    // API Routes for Finance
     Route::prefix('api')->group(function () {
         Route::get('suppliers/{supplier}/pending-invoices', [AccountPaymentController::class, 'getPendingInvoices']);
-        Route::get('customers/{customer}/pending-receivables', [AccountReceiptPaymentController::class, 'getPendingReceivables']);
+        Route::get('customers/{customer}/pending-receivables', [ReceiptController::class, 'getPendingReceivables']);
         Route::get('suppliers/{supplier}/unpaid-invoices', [PurchaseReturnController::class, 'getUnpaidInvoices']);
         Route::get('purchase-orders/{purchaseOrder}/items', [PurchaseReturnController::class, 'getPurchaseOrderItems']);
         Route::get('purchase-orders/by-number/{invoice_number}', [PurchaseReturnController::class, 'getPurchaseOrderByNumber']);

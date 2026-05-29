@@ -28,7 +28,7 @@ class AccountsReceivable extends Model
 
     public function payments()
     {
-        return $this->hasMany(AccountReceiptPayments::class, 'arp_account_receivable_id');
+        return $this->hasMany(Receipt::class, 'rec_account_receivable_id');
     }
 
     public function bankTransactions()
@@ -75,9 +75,9 @@ class AccountsReceivable extends Model
         }
 
         $this->payments()->create([
-            'arp_bank_transaction_id' => $bankTransactionId,
-            'arp_type' => $type,
-            'arp_amount' => $amount,
+            'rec_bank_transaction_id' => $bankTransactionId,
+            'rec_type' => $type,
+            'rec_amount' => $amount,
         ]);
     }
 }

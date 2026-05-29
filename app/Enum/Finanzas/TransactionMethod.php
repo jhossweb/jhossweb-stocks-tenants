@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enum\Tesoreria;
+namespace App\Enum\Finanzas;
 
 enum TransactionMethod: string
 {

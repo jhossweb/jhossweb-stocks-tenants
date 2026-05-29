@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Sales;
+namespace App\Http\Controllers\Sales\SaleReturn;
 
 use App\Enum\Inventary\ProType;
 use App\Enum\Sales\StatusSales;

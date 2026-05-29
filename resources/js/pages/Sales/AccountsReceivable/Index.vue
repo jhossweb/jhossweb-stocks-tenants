@@ -45,7 +45,7 @@ interface AccountsReceivable {
     };
     payments?: {
         id: number;
-        arp_amount: string;
+        rec_amount: string;
         created_at: string;
         bank_transaction?: {
             btr_reference: string;
@@ -261,7 +261,7 @@ const deletePayment = (paymentId: number) => {
                             <div class="flex justify-between items-start mb-2">
                                 <div>
                                     <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
-                                        ${{ parseFloat(payment.arp_amount).toFixed(2) }}
+                                        ${{ parseFloat(payment.rec_amount).toFixed(2) }}
                                     </h4>
                                     <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
                                         <Calendar class="h-4 w-4" />

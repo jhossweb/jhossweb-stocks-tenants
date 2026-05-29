@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Finance\Bank;
 
-use App\Enum\Tesoreria\TypeAccount;
+use App\Enum\Finanzas\TypeAccount;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;

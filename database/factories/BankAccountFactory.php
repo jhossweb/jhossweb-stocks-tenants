@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enum\Tesoreria\TypeAccount;
+use App\Enum\Finanzas\TypeAccount;
 use App\Enum\TypeCoin;
 use App\Models\BankAccount;
 use Illuminate\Database\Eloquent\Factories\Factory;

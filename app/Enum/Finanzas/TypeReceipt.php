@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Enum\Tesoreria;
+namespace App\Enum\Finanzas;
 
-enum TypePayment: string
+enum TypeReceipt: string
 {
-    case PAYMENT = 'PAYMENT';
+    case RECEIPT = 'RECEIPT';
     case RETURN_CREDIT = 'RETURN_CREDIT';
 
     public static function values(): array

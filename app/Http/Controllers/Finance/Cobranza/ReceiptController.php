@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Sales;
+namespace App\Http\Controllers\Finance\Cobranza;
 
 use App\Enum\Sales\StatusSales;
-use App\Enum\Tesoreria\TransactionMethod;
-use App\Enum\Tesoreria\TypePayment;
+use App\Enum\Finanzas\TransactionMethod;
+use App\Enum\Finanzas\TypeReceipt;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
-use App\Models\AccountReceiptPayments;
+use App\Models\Receipt;
 use App\Models\AccountsReceivable;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
-class AccountReceiptPaymentController extends Controller
+class ReceiptController extends Controller
 {
     public function create()
     {
@@ -98,7 +98,7 @@ class AccountReceiptPaymentController extends Controller
 
                 $acr->registerPayment(
                     $amountToRegister,
-                    TypePayment::PAYMENT->value,
+                    TypeReceipt::RECEIPT->value,
                     $bankTransaction->id,
                 );
             }
@@ -115,7 +115,7 @@ class AccountReceiptPaymentController extends Controller
 
     public function edit($id)
     {
-        $payment = AccountReceiptPayments::with([
+        $payment = Receipt::with([
             'accountsReceivable.saleOrder.customer',
             'bankTransaction.bankAccount',
         ])->findOrFail($id);
@@ -133,7 +133,7 @@ class AccountReceiptPaymentController extends Controller
 
     public function update(Request $request, $id)
     {
-        $payment = AccountReceiptPayments::with([
+        $payment = Receipt::with([
             'accountsReceivable.saleOrder',
             'bankTransaction',
         ])->findOrFail($id);
@@ -150,7 +150,7 @@ class AccountReceiptPaymentController extends Controller
         try {
             $acr = $payment->accountsReceivable;
 
-            $oldAmount = $payment->arp_amount;
+            $oldAmount = $payment->rec_amount;
             $acr->acr_balance += $oldAmount;
 
             $newAmount = $validated['amount'];
@@ -185,7 +185,7 @@ class AccountReceiptPaymentController extends Controller
                 $bankTx->save();
             }
 
-            $payment->arp_amount = $newAmount;
+            $payment->rec_amount = $newAmount;
             $payment->save();
 
             DB::commit();
@@ -200,12 +200,12 @@ class AccountReceiptPaymentController extends Controller
 
     public function destroy($id)
     {
-        $payment = AccountReceiptPayments::with([
+        $payment = Receipt::with([
             'accountsReceivable.saleOrder',
             'bankTransaction',
         ])->findOrFail($id);
 
-        $amount = $payment->arp_amount;
+        $amount = $payment->rec_amount;
 
         DB::beginTransaction();
         try {

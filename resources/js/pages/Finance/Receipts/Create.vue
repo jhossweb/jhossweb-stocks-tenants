@@ -204,7 +204,7 @@ onMounted(() => {
 
         const acr = props.payment.accounts_receivable;
         const currentBalance = Number(acr?.acr_balance || 0);
-        const originallyPaid = Number(props.payment.arp_amount || 0);
+        const originallyPaid = Number(props.payment.rec_amount || 0);
 
         form.payments = [{
             acr_id: acr?.id,
