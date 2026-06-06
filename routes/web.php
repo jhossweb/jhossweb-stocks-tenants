@@ -1,8 +1,16 @@
 <?php
 
+use App\Http\Controllers\Employees\EmployeeController;
+use App\Http\Controllers\Expense\ExpenseCategoryController;
+use App\Http\Controllers\Expense\ExpenseController;
 use App\Http\Controllers\Finance\Bank\BankAccountController;
 use App\Http\Controllers\Inventory\PriceAdjustmentController;
 use App\Http\Controllers\Inventory\ProductController;
+use App\Http\Controllers\Payroll\EmployeeDamageController;
+use App\Http\Controllers\Payroll\EmployeeLoanController;
+use App\Http\Controllers\Payroll\PayrollController;
+use App\Http\Controllers\Payroll\PayrollDeductionController;
+use App\Http\Controllers\Payroll\PayrollPeriodController;
 use App\Http\Controllers\Purchase\AccountPaymentController;
 use App\Http\Controllers\Purchase\AccountsPayableController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
@@ -15,47 +23,116 @@ use App\Http\Controllers\Sales\SaleReturn\SaleReturnController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
+// ===========================================================================
+// PÚBLICAS
+// ===========================================================================
 Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+// ===========================================================================
+// PROTEGIDAS (auth + verified)
+// ===========================================================================
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    // -----------------------------------------------------------------------
+    // DASHBOARD
+    // -----------------------------------------------------------------------
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+
+    // -----------------------------------------------------------------------
+    // COMPRAS
+    // -----------------------------------------------------------------------
     Route::resource('purchases', PurchaseOrderController::class);
     Route::resource('purchase-returns', PurchaseReturnController::class);
-    Route::resource('sales', SaleOrderController::class);
-    Route::resource('sale-returns', SaleReturnController::class);
-    Route::resource('customers', CustomerController::class);
+
+    // Cuentas por Pagar
     Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
-    Route::resource('bank-accounts', BankAccountController::class);
+
+    // Pagos a Proveedores
     Route::get('payments/create', [AccountPaymentController::class, 'create'])->name('payments.create');
     Route::post('payments', [AccountPaymentController::class, 'store'])->name('payments.store');
     Route::get('payments/{payment}/edit', [AccountPaymentController::class, 'edit'])->name('payments.edit');
     Route::put('payments/{payment}', [AccountPaymentController::class, 'update'])->name('payments.update');
     Route::delete('payments/{payment}', [AccountPaymentController::class, 'destroy'])->name('payments.destroy');
 
+    // -----------------------------------------------------------------------
+    // VENTAS
+    // -----------------------------------------------------------------------
+    Route::resource('sales', SaleOrderController::class);
+    Route::resource('sale-returns', SaleReturnController::class);
+    Route::resource('customers', CustomerController::class);
+
+    // Cuentas por Cobrar
     Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');
+
+    // Recibos / Cobranzas
     Route::get('receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
     Route::post('receipts', [ReceiptController::class, 'store'])->name('receipts.store');
     Route::get('receipts/{receipt}/edit', [ReceiptController::class, 'edit'])->name('receipts.edit');
     Route::put('receipts/{receipt}', [ReceiptController::class, 'update'])->name('receipts.update');
     Route::delete('receipts/{receipt}', [ReceiptController::class, 'destroy'])->name('receipts.destroy');
 
+    // -----------------------------------------------------------------------
+    // BANCOS
+    // -----------------------------------------------------------------------
+    Route::resource('bank-accounts', BankAccountController::class);
+
+    // -----------------------------------------------------------------------
+    // PRODUCTOS / INVENTARIO
+    // -----------------------------------------------------------------------
     Route::resource('products', ProductController::class)->except(['create', 'edit', 'show']);
 
-    Route::get('inventory/adjust-prices', [PriceAdjustmentController::class, 'index'])->name('inventory.adjust-prices');
-    Route::post('inventory/adjust-prices', [PriceAdjustmentController::class, 'store'])->name('inventory.adjust-prices.store');
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::get('adjust-prices', [PriceAdjustmentController::class, 'index'])->name('adjust-prices');
+        Route::post('adjust-prices', [PriceAdjustmentController::class, 'store'])->name('adjust-prices.store');
+    });
 
-    // API Routes for Finance
+    // -----------------------------------------------------------------------
+    // GASTOS
+    // -----------------------------------------------------------------------
+    Route::resource('expense-categories', ExpenseCategoryController::class);
+    Route::resource('expenses', ExpenseController::class);
+
+    // -----------------------------------------------------------------------
+    // EMPLEADOS
+    // -----------------------------------------------------------------------
+    Route::resource('employees', EmployeeController::class);
+
+    // -----------------------------------------------------------------------
+    // NÓMINA (PAYROLL)
+    // -----------------------------------------------------------------------
+    Route::resource('payroll-periods', PayrollPeriodController::class);
+    Route::post('payrolls/generate/{payrollPeriod}', [PayrollController::class, 'generate'])->name('payrolls.generate');
+    Route::post('payrolls/{payroll}/mark-as-paid', [PayrollController::class, 'markAsPaid'])->name('payrolls.mark-as-paid');
+    Route::resource('payrolls', PayrollController::class);
+    Route::post('payrolls/{payroll}/deductions', [PayrollDeductionController::class, 'store'])->name('payroll-deductions.store');
+    Route::delete('payroll-deductions/{payrollDeduction}', [PayrollDeductionController::class, 'destroy'])->name('payroll-deductions.destroy');
+    Route::resource('employee-loans', EmployeeLoanController::class);
+    Route::resource('employee-damages', EmployeeDamageController::class);
+
+    // -----------------------------------------------------------------------
+    // API (peticiones AJAX para selects y validaciones)
+    // -----------------------------------------------------------------------
     Route::prefix('api')->group(function () {
+
+        // Compras
         Route::get('suppliers/{supplier}/pending-invoices', [AccountPaymentController::class, 'getPendingInvoices']);
-        Route::get('customers/{customer}/pending-receivables', [ReceiptController::class, 'getPendingReceivables']);
         Route::get('suppliers/{supplier}/unpaid-invoices', [PurchaseReturnController::class, 'getUnpaidInvoices']);
         Route::get('purchase-orders/{purchaseOrder}/items', [PurchaseReturnController::class, 'getPurchaseOrderItems']);
         Route::get('purchase-orders/by-number/{invoice_number}', [PurchaseReturnController::class, 'getPurchaseOrderByNumber']);
+
+        // Ventas
+        Route::get('customers/{customer}/pending-receivables', [ReceiptController::class, 'getPendingReceivables']);
         Route::get('customers/{customer}/unpaid-sales', [SaleReturnController::class, 'getUnpaidSales']);
         Route::get('sale-orders/{saleOrder}/items', [SaleReturnController::class, 'getSaleOrderItems']);
         Route::get('sale-orders/by-number/{sls_number}', [SaleReturnController::class, 'getSaleOrderByNumber']);
+
+        // Nómina
+        Route::get('employees/active', [EmployeeController::class, 'getActiveEmployees']);
+        Route::get('employees/{employee}/loans', [EmployeeLoanController::class, 'getActiveLoans']);
+        Route::get('employees/{employee}/damages', [EmployeeDamageController::class, 'getActiveDamages']);
+        Route::get('payroll-periods/pending', [PayrollPeriodController::class, 'getPendingPeriods']);
     });
 });
 

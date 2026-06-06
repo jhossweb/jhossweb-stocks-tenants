@@ -16,6 +16,7 @@ use App\Models\Supplier;
 use App\Models\TransactionType;
 use App\Models\User;
 use App\Models\Warehouse;
+use Database\Seeders\ExpenseCategorySeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -83,6 +84,9 @@ class DatabaseSeeder extends Seeder
                 'mov_unit_cost_ref' => fake()->numberBetween(1, 100),
             ]);
         }
+
+        // Seed Expense Categories
+        $this->call(ExpenseCategorySeeder::class);
 
         // Seed Bank Accounts
         $bankAccounts = BankAccount::factory()->count(3)->create();

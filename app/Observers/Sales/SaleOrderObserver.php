@@ -10,7 +10,7 @@ class SaleOrderObserver
 {
     public function created(SaleOrder $saleOrder): void
     {
-        if ($saleOrder->sls_trans_type_code === 'facv') {
+        if ($saleOrder->sls_trans_type_code === 'FACV') {
             AccountsReceivable::create([
                 'acr_sls_number' => $saleOrder->sls_number,
                 'acr_total' => $saleOrder->sls_total,

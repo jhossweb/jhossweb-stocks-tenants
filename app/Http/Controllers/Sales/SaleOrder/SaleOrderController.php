@@ -25,7 +25,7 @@ class SaleOrderController extends Controller
     public function index()
     {
         $sales = SaleOrder::with(['customer', 'transactionType'])
-            ->where('sls_trans_type_code', 'facv')
+            ->where('sls_trans_type_code', 'FACV')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -108,7 +108,7 @@ class SaleOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $transactionType = TransactionType::where('trans_type_code', 'facv')->first();
+            $transactionType = TransactionType::where('trans_type_code', 'FACV')->first();
 
             $sale = new SaleOrder;
             $sale->sls_number = $validated['sls_number'];
@@ -144,7 +144,7 @@ class SaleOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->withErrors(['error' => 'Ocurrió un error al guardar la venta: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Ocurrió un error al guardar la venta: ' . $e->getMessage()]);
         }
     }
 
@@ -223,7 +223,7 @@ class SaleOrderController extends Controller
             }
 
             $itemsToDelete = array_diff($existingIds, $newIds);
-            if (! empty($itemsToDelete)) {
+            if (!empty($itemsToDelete)) {
                 foreach ($itemsToDelete as $delId) {
                     if ($model = MovementsSale::find($delId)) {
                         $model->delete();
@@ -237,7 +237,7 @@ class SaleOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la venta: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la venta: ' . $e->getMessage()]);
         }
     }
 }
