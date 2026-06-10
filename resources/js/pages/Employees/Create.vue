@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save, UserPlus, Loader2 } from 'lucide-vue-next';
-import Input from '@/components/ui/input/Input.vue';
 import InputError from '@/components/InputError.vue';
+import Input from '@/components/ui/input/Input.vue';
 
 defineOptions({
     layout: {

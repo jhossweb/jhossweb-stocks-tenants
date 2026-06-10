@@ -185,6 +185,7 @@ const getProductByCode = (code: string): Product | undefined => {
 
 const componentProducts = computed(() => {
     const currentCode = editingProduct.value?.pro_code;
+
     return props.products.filter(p =>
         p.pro_type === 'simple' && p.pro_code !== currentCode
     );
@@ -193,6 +194,7 @@ const componentProducts = computed(() => {
 const onSelectComponent = (index: number, proCode: string) => {
     form.components[index].cp_comp_pro_code = proCode;
     const product = getProductByCode(proCode);
+
     if (product) {
         form.components[index].cp_pro_und = product.pro_und;
     }
@@ -213,6 +215,7 @@ const removeComponent = (index: number) => {
 const getAvailableComponents = (index: number) => {
     const selectedCodes = form.components.map(c => c.cp_comp_pro_code);
     const currentCode = selectedCodes[index];
+
     return componentProducts.value.filter(p =>
         p.pro_code === currentCode || !selectedCodes.includes(p.pro_code)
     );

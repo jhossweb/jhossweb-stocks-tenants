@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\Payroll;
 
+use App\Enum\Finanzas\TransactionMethod;
 use App\Enum\Payroll\PayrollStatus;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payroll\PayPayrollRequest;
 use App\Http\Requests\Payroll\StorePayrollRequest;
 use App\Http\Requests\Payroll\UpdatePayrollRequest;
+use App\Models\BankAccount;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollPeriod;
+use App\Models\Rate;
 use Inertia\Inertia;
 
 class PayrollController extends Controller
@@ -23,6 +27,10 @@ class PayrollController extends Controller
         return Inertia::render('Payroll/Payrolls/Index', [
             'payrolls' => $payrolls,
             'statusOptions' => PayrollStatus::values(),
+            'bankAccounts' => BankAccount::active()->get(['id', 'bank_name', 'bank_currency', 'bank_balance']),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'currencies' => TypeCoin::values(),
+            'methods' => TransactionMethod::values(),
         ]);
     }
 
@@ -33,6 +41,8 @@ class PayrollController extends Controller
             'periods' => PayrollPeriod::pending()->get(['id', 'pp_start_date', 'pp_end_date']),
             'statusOptions' => PayrollStatus::values(),
             'coinOptions' => TypeCoin::values(),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'rates' => Rate::orderBy('rate_date', 'desc')->get(),
         ]);
     }
 
@@ -45,10 +55,14 @@ class PayrollController extends Controller
 
     public function show(Payroll $payroll)
     {
-        $payroll->load(['employee', 'period', 'deductions.deductible']);
+        $payroll->load(['employee', 'period', 'deductions.deductible', 'payments.bankAccount']);
 
         return Inertia::render('Payroll/Payrolls/Show', [
             'payroll' => $payroll,
+            'bankAccounts' => BankAccount::active()->get(['id', 'bank_name', 'bank_currency', 'bank_balance']),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'currencies' => TypeCoin::values(),
+            'methods' => TransactionMethod::values(),
         ]);
     }
 
@@ -61,8 +75,11 @@ class PayrollController extends Controller
         return Inertia::render('Payroll/Payrolls/Edit', [
             'payroll' => $payroll->load('employee', 'period', 'deductions.deductible'),
             'employees' => Employee::active()->get(['id', 'emp_name', 'emp_base_salary', 'emp_salary_coin']),
+            'periods' => PayrollPeriod::pending()->get(['id', 'pp_start_date', 'pp_end_date']),
             'statusOptions' => PayrollStatus::values(),
             'coinOptions' => TypeCoin::values(),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'rates' => Rate::orderBy('rate_date', 'desc')->get(),
         ]);
     }
 
@@ -91,6 +108,7 @@ class PayrollController extends Controller
     public function generate(PayrollPeriod $payrollPeriod)
     {
         $employees = Employee::active()->get();
+        $latestRate = Rate::orderBy('rate_date', 'desc')->first();
         $count = 0;
 
         foreach ($employees as $employee) {
@@ -99,12 +117,19 @@ class PayrollController extends Controller
                 ->exists();
 
             if (!$exists) {
+                $pay_valorcam = match ($employee->emp_salary_coin) {
+                    TypeCoin::USD => 1,
+                    TypeCoin::COP => $latestRate?->rate_cop ?? 1,
+                    TypeCoin::EUR => $latestRate?->rate_eur ?? 1,
+                    default => $latestRate?->rate_usd ?? 1,
+                };
+
                 Payroll::create([
                     'pay_employee_id' => $employee->id,
                     'pay_period_id' => $payrollPeriod->id,
                     'pay_base_salary' => $employee->emp_base_salary,
                     'pay_coin' => $employee->emp_salary_coin,
-                    'pay_valorcam' => 1,
+                    'pay_valorcam' => $pay_valorcam,
                     'pay_total_deductions' => 0,
                     'pay_net_salary' => $employee->emp_base_salary,
                     'pay_status' => PayrollStatus::PENDING,
@@ -117,10 +142,21 @@ class PayrollController extends Controller
             ->with('success', "Se generaron {$count} nóminas para el período seleccionado.");
     }
 
-    public function markAsPaid(Payroll $payroll)
+    public function markAsPaid(PayPayrollRequest $request, Payroll $payroll)
     {
-        $payroll->markAsPaid();
+        if ($payroll->isPaid()) {
+            return redirect()->back()->withErrors(['error' => 'La nómina ya está pagada.']);
+        }
 
-        return redirect()->back()->with('success', 'Nómina marcada como pagada.');
+        $payroll->registerPayment(
+            amountInBankCurrency: (float) $request->amount,
+            bankAccountId: (int) $request->bank_account_id,
+            reference: $request->reference,
+            description: $request->description,
+            paymentCurrency: $request->payment_currency,
+            paymentRate: (float) $request->payment_rate,
+        );
+
+        return redirect()->back()->with('success', 'Nómina pagada exitosamente.');
     }
 }

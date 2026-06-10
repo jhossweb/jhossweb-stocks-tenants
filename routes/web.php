@@ -10,6 +10,7 @@ use App\Http\Controllers\Payroll\EmployeeDamageController;
 use App\Http\Controllers\Payroll\EmployeeLoanController;
 use App\Http\Controllers\Payroll\PayrollController;
 use App\Http\Controllers\Payroll\PayrollDeductionController;
+use App\Http\Controllers\Payroll\PayrollPaymentController;
 use App\Http\Controllers\Payroll\PayrollPeriodController;
 use App\Http\Controllers\Purchase\AccountPaymentController;
 use App\Http\Controllers\Purchase\AccountsPayableController;
@@ -92,6 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // GASTOS
     // -----------------------------------------------------------------------
     Route::resource('expense-categories', ExpenseCategoryController::class);
+    Route::post('expenses/{expense}/pay', [ExpenseController::class, 'pay'])->name('expenses.pay');
     Route::resource('expenses', ExpenseController::class);
 
     // -----------------------------------------------------------------------
@@ -110,6 +112,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('payroll-deductions/{payrollDeduction}', [PayrollDeductionController::class, 'destroy'])->name('payroll-deductions.destroy');
     Route::resource('employee-loans', EmployeeLoanController::class);
     Route::resource('employee-damages', EmployeeDamageController::class);
+
+    // Pagos de Nómina (página completa, igual que pagos a proveedores)
+    Route::get('payroll-payments/create', [PayrollPaymentController::class, 'create'])->name('payroll-payments.create');
+    Route::post('payroll-payments', [PayrollPaymentController::class, 'store'])->name('payroll-payments.store');
 
     // -----------------------------------------------------------------------
     // API (peticiones AJAX para selects y validaciones)
@@ -132,6 +138,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('employees/active', [EmployeeController::class, 'getActiveEmployees']);
         Route::get('employees/{employee}/loans', [EmployeeLoanController::class, 'getActiveLoans']);
         Route::get('employees/{employee}/damages', [EmployeeDamageController::class, 'getActiveDamages']);
+        Route::get('employees/{employee}/pending-payrolls', [PayrollPaymentController::class, 'getPendingPayrolls']);
         Route::get('payroll-periods/pending', [PayrollPeriodController::class, 'getPendingPeriods']);
     });
 });

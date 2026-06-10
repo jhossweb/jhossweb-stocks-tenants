@@ -9,6 +9,7 @@ use App\Http\Requests\Payroll\StoreEmployeeDamageRequest;
 use App\Http\Requests\Payroll\UpdateEmployeeDamageRequest;
 use App\Models\Employee;
 use App\Models\EmployeeDamage;
+use App\Models\Rate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -33,6 +34,8 @@ class EmployeeDamageController extends Controller
             'employees' => Employee::active()->get(['id', 'emp_name', 'emp_document']),
             'statusOptions' => DamageStatus::values(),
             'coinOptions' => TypeCoin::values(),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'rates' => Rate::orderBy('rate_date', 'desc')->get(),
         ]);
     }
 
@@ -55,6 +58,8 @@ class EmployeeDamageController extends Controller
             'employees' => Employee::active()->get(['id', 'emp_name', 'emp_document']),
             'statusOptions' => DamageStatus::values(),
             'coinOptions' => TypeCoin::values(),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'rates' => Rate::orderBy('rate_date', 'desc')->get(),
         ]);
     }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, ShoppingCart, Undo2, FileText, ArrowRightLeft, BarChart3, Users, CreditCard, Building2, PackageSearch } from 'lucide-vue-next';
+import { BookOpen, FolderGit2, LayoutGrid, ShoppingCart, Undo2, FileText, ArrowRightLeft, BarChart3, Users, CreditCard, Building2, PackageSearch, CircleDollarSign, Wallet } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -137,6 +137,7 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Crear',
                 href: '#',
+                icon: FileText,
                 items: [
                     {
                         title: 'Bancos',
@@ -145,8 +146,24 @@ const mainNavItems: NavItem[] = [
                 ],
             },
             {
+                title: 'Gastos',
+                href: '#',
+                icon: CircleDollarSign,
+                items: [
+                    {
+                        title: 'Categorías',
+                        href: '/expense-categories',
+                    },
+                    {
+                        title: 'Gastos',
+                        href: '/expenses',
+                    },
+                ],
+            },
+            {
                 title: 'Transacciones',
                 href: '#',
+                icon: ArrowRightLeft,
                 items: [
                     {
                         title: 'Pagos',
@@ -156,11 +173,41 @@ const mainNavItems: NavItem[] = [
                         title: 'Cobranza',
                         href: '/receipts/create',
                     },
+                    {
+                        title: 'Pago Nómina',
+                        href: '/payrolls',
+                    },
                 ],
             },
         ],
     },
-    
+    {
+        title: 'Nómina',
+        href: '#',
+        icon: Wallet,
+        items: [
+            {
+                title: 'Períodos',
+                href: '/payroll-periods',
+            },
+            {
+                title: 'Nóminas',
+                href: '/payrolls',
+            },
+            {
+                title: 'Préstamos',
+                href: '/employee-loans',
+            },
+            {
+                title: 'Daños',
+                href: '/employee-damages',
+            },
+            {
+                title: 'Empleados',
+                href: '/employees',
+            },
+        ],
+    },
 ];
 
 const footerNavItems: NavItem[] = [

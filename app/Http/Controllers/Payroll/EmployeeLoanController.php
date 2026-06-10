@@ -9,6 +9,7 @@ use App\Http\Requests\Payroll\StoreEmployeeLoanRequest;
 use App\Http\Requests\Payroll\UpdateEmployeeLoanRequest;
 use App\Models\Employee;
 use App\Models\EmployeeLoan;
+use App\Models\Rate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -33,6 +34,8 @@ class EmployeeLoanController extends Controller
             'employees' => Employee::active()->get(['id', 'emp_name', 'emp_document']),
             'statusOptions' => LoanStatus::values(),
             'coinOptions' => TypeCoin::values(),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'rates' => Rate::orderBy('rate_date', 'desc')->get(),
         ]);
     }
 
@@ -55,6 +58,8 @@ class EmployeeLoanController extends Controller
             'employees' => Employee::active()->get(['id', 'emp_name', 'emp_document']),
             'statusOptions' => LoanStatus::values(),
             'coinOptions' => TypeCoin::values(),
+            'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
+            'rates' => Rate::orderBy('rate_date', 'desc')->get(),
         ]);
     }
 

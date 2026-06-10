@@ -19,6 +19,8 @@ class ExpenseFactory extends Factory
             'exp_category_id' => ExpenseCategory::factory(),
             'exp_description' => fake()->sentence(),
             'exp_amount' => fake()->randomFloat(2, 10000, 5000000),
+            'exp_paid_amount' => 0,
+            'exp_remaining_balance' => fake()->randomFloat(2, 10000, 5000000),
             'exp_date' => fake()->date(),
             'exp_status' => fake()->randomElement(ExpenseStatus::values()),
             'exp_coin' => TypeCoin::COP,

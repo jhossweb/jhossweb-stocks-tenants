@@ -149,6 +149,7 @@ onMounted(async () => {
 
 const getProductUnd = (code: string) => {
     const p = props.products.find(p => p.pro_code === code);
+
     return p ? p.pro_und : '';
 };
 
