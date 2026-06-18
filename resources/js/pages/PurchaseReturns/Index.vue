@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { PlusCircle, FileText, Undo2 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -84,7 +85,7 @@ const props = defineProps<{
                                 {{ item.supplier?.supplier_name ?? 'Desconocido' }}
                             </td>
                             <td class="px-6 py-4">
-                                {{ item.invoice_date }}
+                                {{ formatDate(item.invoice_date) }}
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 ${{ item.invoice_total }}

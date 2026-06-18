@@ -4,6 +4,7 @@ import { ArrowLeft, Save, DollarSign, Loader2, ChevronDown, ChevronUp, Banknote 
 import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { today, formatDate } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -50,7 +51,7 @@ const form = useForm({
     exp_category_id: props.expense.exp_category_id || '',
     exp_description: props.expense.exp_description || '',
     exp_amount: props.expense.exp_amount || '',
-    exp_date: props.expense.exp_date || new Date().toISOString().split('T')[0],
+    exp_date: props.expense.exp_date || today(),
     exp_status: props.expense.exp_status || 'pendiente',
     exp_coin: props.expense.exp_coin || 'USD',
     exp_valorcam: props.expense.exp_valorcam || 1,
@@ -199,7 +200,7 @@ const submit = () => {
                     </thead>
                     <tbody>
                         <tr v-for="pmt in expense.payments" :key="pmt.id" class="border-b dark:border-gray-800">
-                            <td class="px-4 py-2">{{ pmt.created_at }}</td>
+                            <td class="px-4 py-2">{{ formatDate(pmt.created_at) }}</td>
                             <td class="px-4 py-2 font-medium">{{ Number(pmt.btr_amount).toLocaleString() }}</td>
                             <td class="px-4 py-2">{{ pmt.btr_coin }}</td>
                             <td class="px-4 py-2">{{ pmt.btr_valorcam }}</td>

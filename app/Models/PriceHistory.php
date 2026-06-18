@@ -18,6 +18,13 @@ class PriceHistory extends Model
         'price_user_id',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'price_date' => 'date',
+        ];
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'price_pro_code', 'pro_code');

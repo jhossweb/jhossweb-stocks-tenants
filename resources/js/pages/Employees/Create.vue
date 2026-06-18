@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Save, UserPlus, Loader2 } from 'lucide-vue-next';
 import InputError from '@/components/InputError.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { today } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -26,7 +27,7 @@ const form = useForm({
     emp_email: '',
     emp_address: '',
     emp_position: '',
-    emp_hire_date: new Date().toISOString().split('T')[0],
+    emp_hire_date: today(),
     emp_base_salary: '',
     emp_salary_coin: 'USD',
     emp_status: 'activo',

@@ -4,6 +4,7 @@ import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2, Und
 import { ref, watch, onMounted } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { formatDate, today } from '@/composables/useDate';
 
 const props = defineProps<{
     suppliers: any[];
@@ -17,7 +18,7 @@ const props = defineProps<{
 
 const form = useForm({
     invoice_number: '',
-    invoice_date: new Date().toISOString().split('T')[0],
+    invoice_date: today(),
     invoice_supplier_id: '',
     invoice_valorcam: props.latest_rate ? Number(props.latest_rate.rate_usd) : 1,
     invoice_coin: 'USD',
@@ -127,9 +128,7 @@ return exactRate;
 };
 
 const updateExchangeRate = () => {
-    const today = new Date().toISOString().split('T')[0];
-
-    if (form.invoice_date === today && props.latest_rate) {
+    if (form.invoice_date === today() && props.latest_rate) {
         if (form.invoice_coin === 'USD') {
             form.invoice_valorcam = 1;
         } else {
@@ -381,7 +380,7 @@ onMounted(() => updateExchangeRate());
                             <select v-model="selectedInvoiceId" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-orange-600 focus:border-orange-600 sm:text-sm transition-colors">
                                 <option value="">Seleccione factura para devolución</option>
                                 <option v-for="inv in unpaidInvoices" :key="inv.id" :value="inv.id">
-                                    #{{ inv.invoice_number }} - {{ inv.invoice_date }} (${{ inv.invoice_total }})
+                                    #{{ inv.invoice_number }} - {{ formatDate(inv.invoice_date) }} (${{ inv.invoice_total }})
                                 </option>
                             </select>
                             <p v-if="unpaidInvoices.length === 0 && !isLoadingInvoices" class="text-[10px] text-zinc-500 mt-1">No hay facturas pendientes para este proveedor</p>

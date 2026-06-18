@@ -26,6 +26,13 @@ class PurchaseOrder extends Model
         'invoice_reference',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'invoice_date' => 'date',
+        ];
+    }
+
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'invoice_supplier_id', 'id');

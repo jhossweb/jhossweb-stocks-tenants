@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Undo2, PlusCircle } from 'lucide-vue-next';
+import { formatDate } from '@/composables/useDate';
 
 const props = defineProps<{
     returns: any;
@@ -50,7 +51,7 @@ const props = defineProps<{
                                 <td class="px-4 py-4 font-mono text-xs">{{ r.sls_number }}</td>
                                 <td class="px-4 py-4">{{ r.customer?.clt_name }}</td>
                                 <td class="px-4 py-4 font-mono text-xs text-zinc-400">{{ r.sls_reference }}</td>
-                                <td class="px-4 py-4 text-center">{{ r.sls_date }}</td>
+                                <td class="px-4 py-4 text-center">{{ formatDate(r.sls_date) }}</td>
                                 <td class="px-4 py-4 text-right font-mono">{{ r.sls_total }} {{ r.sls_coin }}</td>
                                 <td class="px-4 py-4 text-center">
                                     <span class="text-xs px-2 py-1 rounded-full"

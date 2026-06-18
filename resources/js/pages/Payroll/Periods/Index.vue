@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { PlusCircle, CalendarRange, FileText } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -89,13 +90,13 @@ defineProps<{
                             </tr>
                             <tr v-for="period in periods.data" :key="period.id" class="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
                                 <td class="px-6 py-4 font-medium text-zinc-100 whitespace-nowrap">
-                                    {{ period.pp_start_date }}
+                                    {{ formatDate(period.pp_start_date) }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ period.pp_end_date }}
+                                    {{ formatDate(period.pp_end_date) }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ period.pp_payment_date ?? '-' }}
+                                    {{ formatDate(period.pp_payment_date) }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" :class="{

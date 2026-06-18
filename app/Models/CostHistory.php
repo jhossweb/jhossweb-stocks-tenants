@@ -22,6 +22,13 @@ class CostHistory extends Model
         'cost_user_id',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'cost_date' => 'date',
+        ];
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'cost_pro_code', 'pro_code');

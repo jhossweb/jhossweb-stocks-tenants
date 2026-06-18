@@ -12,6 +12,7 @@ import BasePaymentPage from '@/components/payments/BasePaymentPage.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import { Badge as UIBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDate, today } from '@/composables/useDate';
 import Input from '@/components/ui/input/Input.vue';
 import { Label } from '@/components/ui/label';
 
@@ -29,7 +30,7 @@ const pendingPayrolls = ref<any[]>([]);
 const isLoadingPayrolls = ref(false);
 
 const form = useForm({
-    payment_date: new Date().toISOString().split('T')[0],
+    payment_date: today(),
     employee_id: '',
     bank_account_id: '',
     payment_currency: 'USD',
@@ -71,7 +72,7 @@ throw new Error('Error al obtener nóminas pendientes');
         
         form.payments = pendingPayrolls.value.map(p => ({
             pay_id: p.id,
-            period_name: p.period ? `${p.period.pp_start_date} - ${p.period.pp_end_date}` : `Período #${p.pay_period_id}`,
+            period_name: p.period ? `${formatDate(p.period.pp_start_date)} - ${formatDate(p.period.pp_end_date)}` : `Período #${p.pay_period_id}`,
             net_salary: Number(p.pay_net_salary),
             balance: Number(p.pay_net_salary),
             currency: p.pay_coin || 'USD',
@@ -143,9 +144,7 @@ return exactRate;
 };
 
 const updateExchangeRate = () => {
-    const today = new Date().toISOString().split('T')[0];
-    
-    if (form.payment_date === today && props.latestRate) {
+    if (form.payment_date === today() && props.latestRate) {
         if (form.payment_currency === 'USD') {
             form.payment_rate = 1;
         } else {

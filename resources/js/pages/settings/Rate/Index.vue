@@ -13,6 +13,7 @@ import {
 import { ref, computed, watch } from 'vue';
 import RateController from '@/actions/App/Http/Controllers/Settings/RateController';
 import DeleteUser from '@/components/DeleteUser.vue';
+import { formatDate, today } from '@/composables/useDate';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -92,21 +93,10 @@ const deleteRate = (id: number) => {
     }
 };
 
-// --- HELPERS ---
-const formatDate = (dateStr: string) => {
-    if (!dateStr) {
-return '-';
-}
-
-    const [year, month, day] = dateStr.split('-');
-
-    return `${day}/${month}/${year}`;
-};
-
 // Inicializamos el formulario con useForm de Inertia
 
 const form = useForm({
-    rate_date: new Date().toISOString().split('T')[0],
+    rate_date: today(),
     rate_usd: 1,
     rate_cop: 0,
     rate_eur: 0,

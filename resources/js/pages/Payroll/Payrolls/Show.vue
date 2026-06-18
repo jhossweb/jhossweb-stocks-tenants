@@ -5,6 +5,7 @@ import { ref, watch } from 'vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
+import { formatDate, today } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -91,7 +92,7 @@ return;
 
 const openPayModal = () => {
     payForm.payment_currency = originalCoin.value;
-    payForm.payment_date = new Date().toISOString().split('T')[0];
+    payForm.payment_date = today();
     payForm.payment_method = props.methods.length > 0 ? props.methods[0] : '';
     updateExchangeRate();
     showPayModal.value = true;
@@ -198,15 +199,15 @@ const formatType = (type: string): string => {
                     <div class="grid grid-cols-3 gap-4 text-sm">
                         <div>
                             <span class="text-gray-500 dark:text-gray-400">Inicio:</span>
-                            <p class="font-medium text-gray-900 dark:text-white">{{ payroll.period?.pp_start_date ?? 'N/A' }}</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ formatDate(payroll.period?.pp_start_date) }}</p>
                         </div>
                         <div>
                             <span class="text-gray-500 dark:text-gray-400">Fin:</span>
-                            <p class="font-medium text-gray-900 dark:text-white">{{ payroll.period?.pp_end_date ?? 'N/A' }}</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ formatDate(payroll.period?.pp_end_date) }}</p>
                         </div>
                         <div>
                             <span class="text-gray-500 dark:text-gray-400">Fecha Pago:</span>
-                            <p class="font-medium text-gray-900 dark:text-white">{{ payroll.period?.pp_payment_date ?? 'N/A' }}</p>
+                            <p class="font-medium text-gray-900 dark:text-white">{{ formatDate(payroll.period?.pp_payment_date) }}</p>
                         </div>
                     </div>
                 </div>
@@ -270,7 +271,7 @@ const formatType = (type: string): string => {
                             </thead>
                             <tbody>
                                 <tr v-for="pmt in payroll.payments" :key="pmt.id" class="border-b dark:border-gray-800">
-                                    <td class="px-4 py-3">{{ pmt.created_at }}</td>
+                                    <td class="px-4 py-3">{{ formatDate(pmt.created_at) }}</td>
                                     <td class="px-4 py-3 font-medium">{{ Number(pmt.btr_amount).toLocaleString() }}</td>
                                     <td class="px-4 py-3">{{ pmt.btr_coin }}</td>
                                     <td class="px-4 py-3">{{ pmt.btr_valorcam }}</td>
@@ -335,7 +336,7 @@ const formatType = (type: string): string => {
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-zinc-400">Período:</span>
-                    <span class="font-medium text-zinc-100">{{ payroll.period?.pp_start_date }} al {{ payroll.period?.pp_end_date }}</span>
+                    <span class="font-medium text-zinc-100">{{ formatDate(payroll.period?.pp_start_date) }} al {{ formatDate(payroll.period?.pp_end_date) }}</span>
                 </div>
             </div>
         </template>

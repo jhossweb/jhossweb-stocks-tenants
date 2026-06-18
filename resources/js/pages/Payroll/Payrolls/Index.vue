@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { PlusCircle, FileText, Wallet, CheckCircle2, Banknote, Loader2 } from 'lucide-vue-next';
+import { formatDate, today } from '@/composables/useDate';
 import { ref, watch } from 'vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
@@ -117,7 +118,7 @@ const openPayModal = (payroll: Payroll) => {
     payForm.reference = '';
     payForm.description = '';
     payForm.payment_currency = originalCoin.value;
-    payForm.payment_date = new Date().toISOString().split('T')[0];
+    payForm.payment_date = today();
     payForm.payment_method = props.methods.length > 0 ? props.methods[0] : '';
     updateExchangeRate();
     showPayModal.value = true;
@@ -212,7 +213,7 @@ return;
                                 {{ payroll.employee?.emp_name ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 text-xs">
-                                {{ payroll.period?.pp_start_date }} al {{ payroll.period?.pp_end_date }}
+                                {{ formatDate(payroll.period?.pp_start_date) }} al {{ formatDate(payroll.period?.pp_end_date) }}
                             </td>
                             <td class="px-6 py-4 font-semibold">
                                 {{ Number(payroll.pay_base_salary).toLocaleString() }}

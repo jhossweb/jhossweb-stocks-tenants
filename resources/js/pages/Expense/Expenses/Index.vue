@@ -5,6 +5,7 @@ import { ref, watch } from 'vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
+import { formatDate, today } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -133,7 +134,7 @@ const openPayModal = (expense: Expense) => {
     payForm.reference = '';
     payForm.description = '';
     payForm.payment_currency = originalCoin.value;
-    payForm.payment_date = new Date().toISOString().split('T')[0];
+    payForm.payment_date = today();
     payForm.payment_method = props.methods.length > 0 ? props.methods[0] : '';
     updateExchangeRate();
     showPayModal.value = true;
@@ -259,7 +260,7 @@ const togglePayments = (expenseId: number) => {
                                     {{ expense.exp_coin }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ expense.exp_date }}
+                                    {{ formatDate(expense.exp_date) }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="{
@@ -314,7 +315,7 @@ const togglePayments = (expenseId: number) => {
                                         </thead>
                                         <tbody>
                                             <tr v-for="pmt in expense.payments" :key="pmt.id" class="border-b dark:border-gray-700/50">
-                                                <td class="px-3 py-1.5">{{ pmt.created_at }}</td>
+                                                <td class="px-3 py-1.5">{{ formatDate(pmt.created_at) }}</td>
                                                 <td class="px-3 py-1.5 font-medium">{{ Number(pmt.btr_amount).toLocaleString() }}</td>
                                                 <td class="px-3 py-1.5">{{ pmt.btr_coin }}</td>
                                                 <td class="px-3 py-1.5">{{ pmt.btr_valorcam }}</td>

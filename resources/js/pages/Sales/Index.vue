@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { PlusCircle, FileText, ShoppingBag } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -82,7 +83,7 @@ const props = defineProps<{
                                 {{ sale.customer?.clt_name ?? 'Desconocido' }}
                             </td>
                             <td class="px-6 py-4">
-                                {{ sale.sls_date }}
+                                {{ formatDate(sale.sls_date) }}
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                                 ${{ sale.sls_total }}

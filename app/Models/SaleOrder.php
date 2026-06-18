@@ -26,6 +26,13 @@ class SaleOrder extends Model
         'sls_reference',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'sls_date' => 'date',
+        ];
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'sls_customer_id', 'id');

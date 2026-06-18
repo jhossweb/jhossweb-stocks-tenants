@@ -4,6 +4,7 @@ import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2, Sea
 import { ref, watch, onMounted } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { formatDate, today } from '@/composables/useDate';
 
 
 const props = defineProps<{
@@ -20,7 +21,7 @@ const props = defineProps<{
 
 const form = useForm({
     sls_number: props.saleReturn.sls_number || '',
-    sls_date: props.saleReturn.sls_date || new Date().toISOString().split('T')[0],
+    sls_date: props.saleReturn.sls_date || today(),
     sls_customer_id: props.saleReturn.sls_customer_id || '',
     sls_valorcam: props.saleReturn.sls_valorcam || (props.latest_rate ? Number(props.latest_rate.rate_usd) : 1),
     sls_coin: props.saleReturn.sls_coin || 'USD',
@@ -286,7 +287,7 @@ const submit = () => {
                             <select v-else v-model="selectedInvoiceNumber" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm">
                                 <option value="">Seleccione factura</option>
                                 <option v-for="s in unpaidSales" :key="s.id" :value="s.sls_number">
-                                    {{ s.sls_number }} - {{ s.sls_date }} ({{ s.sls_total }} {{ s.sls_coin }})
+                                    {{ s.sls_number }} - {{ formatDate(s.sls_date) }} ({{ s.sls_total }} {{ s.sls_coin }})
                                 </option>
                             </select>
                             <p v-if="form.errors.sls_reference" class="text-xs text-red-500 mt-1">{{ form.errors.sls_reference }}</p>

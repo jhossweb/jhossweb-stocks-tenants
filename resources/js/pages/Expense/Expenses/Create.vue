@@ -5,6 +5,7 @@ import { ref, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { today } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -37,7 +38,7 @@ const form = useForm({
     exp_category_id: '',
     exp_description: '',
     exp_amount: '',
-    exp_date: new Date().toISOString().split('T')[0],
+    exp_date: today(),
     exp_status: 'pendiente',
     exp_coin: 'USD',
     exp_valorcam: 1,

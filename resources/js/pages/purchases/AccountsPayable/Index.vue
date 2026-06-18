@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { FileText, CreditCard, Search, X, Eye, Pencil, Trash2, Calendar, Hash } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/composables/useDate';
 import {
     Dialog,
     DialogContent,
@@ -265,7 +266,7 @@ const deletePayment = (paymentId: number) => {
                                     </h4>
                                     <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
                                         <Calendar class="h-4 w-4" />
-                                        {{ new Date(payment.bank_transaction?.created_at || payment.created_at).toLocaleDateString() }}
+                                        {{ formatDate(payment.bank_transaction?.created_at ?? payment.created_at) }}
                                     </div>
                                     <div class="flex items-center gap-2 text-sm text-gray-500 mt-1" v-if="payment.bank_transaction?.btr_reference">
                                         <Hash class="h-4 w-4" />

@@ -12,6 +12,7 @@ import {
 import { computed, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input/Input.vue';
+import { formatDate } from '@/composables/useDate';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -190,7 +191,7 @@ const submit = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="period in periods" :key="period.id" :value="period.id.toString()">
-                                            {{ period.pp_start_date }} al {{ period.pp_end_date }}
+                                            {{ formatDate(period.pp_start_date) }} al {{ formatDate(period.pp_end_date) }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
