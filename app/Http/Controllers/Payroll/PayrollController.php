@@ -116,7 +116,7 @@ class PayrollController extends Controller
                 ->where('pay_period_id', $payrollPeriod->id)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 $pay_valorcam = match ($employee->emp_salary_coin) {
                     TypeCoin::USD => 1,
                     TypeCoin::COP => $latestRate?->rate_cop ?? 1,

@@ -179,6 +179,17 @@ const mainNavItems: NavItem[] = [
                     },
                 ],
             },
+            {
+                title: 'Análisis',
+                href: '#',
+                icon: BarChart3,
+                items: [
+                    {
+                        title: 'Movimientos Bancarios',
+                        href: '/bank-transaction-analysis',
+                    },
+                ],
+            },
         ],
     },
     {

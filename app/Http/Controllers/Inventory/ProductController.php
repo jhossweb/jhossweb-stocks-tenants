@@ -49,7 +49,7 @@ class ProductController extends Controller
 
         $product = Product::create($data);
 
-        if ($product->pro_type->value === ProType::COMPUESTO->value && !empty($components)) {
+        if ($product->pro_type->value === ProType::COMPUESTO->value && ! empty($components)) {
             $syncData = [];
             foreach ($components as $comp) {
                 $syncData[$comp['cp_comp_pro_code']] = [
@@ -77,7 +77,7 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        if ($product->pro_type->value === ProType::COMPUESTO->value && !empty($components)) {
+        if ($product->pro_type->value === ProType::COMPUESTO->value && ! empty($components)) {
             $syncData = [];
             foreach ($components as $comp) {
                 $syncData[$comp['cp_comp_pro_code']] = [

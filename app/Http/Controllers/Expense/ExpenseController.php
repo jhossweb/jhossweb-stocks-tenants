@@ -113,6 +113,8 @@ class ExpenseController extends Controller
             description: $request->description,
             paymentCurrency: $request->payment_currency,
             paymentRate: (float) $request->payment_rate,
+            paymentMethod: $request->payment_method,
+            paymentDate: $request->payment_date,
         );
 
         $message = $expense->isPaid()

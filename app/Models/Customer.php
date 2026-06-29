@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Customer extends Model
 {
@@ -23,5 +24,17 @@ class Customer extends Model
     public function sales()
     {
         return $this->hasMany(SaleOrder::class, 'sls_customer_id', 'id');
+    }
+
+    public function accountsReceivable(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            AccountsReceivable::class,
+            SaleOrder::class,
+            'sls_customer_id',
+            'acr_sale_order_id',
+            'id', // Clave local en la tabla customers
+            'id' // clave local en la tabla sale_orders
+        );
     }
 }

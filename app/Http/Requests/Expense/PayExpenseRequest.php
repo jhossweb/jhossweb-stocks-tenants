@@ -2,11 +2,8 @@
 
 namespace App\Http\Requests\Expense;
 
-use App\Models\BankAccount;
 use App\Models\Expense;
-use App\Models\Rate;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class PayExpenseRequest extends FormRequest
 {
@@ -25,13 +22,15 @@ class PayExpenseRequest extends FormRequest
                 'min:0.01',
                 function ($attribute, $value, $fail) {
                     $expense = $this->route('expense');
-                    if (!$expense || !$expense instanceof Expense) {
+                    if (! $expense || ! $expense instanceof Expense) {
                         $fail('El gasto no fue encontrado.');
+
                         return;
                     }
 
                     $rate = (float) ($this->payment_rate ?? 1);
-                    $amountInExpenseCurrency = $expense->convertToExpenseCurrency((float) $value, $rate);
+                    $paymentCoin = (string) ($this->payment_currency ?? $expense->exp_coin?->value ?? 'USD');
+                    $amountInExpenseCurrency = $expense->convertToExpenseCurrency((float) $value, $rate, $paymentCoin);
 
                     if ($amountInExpenseCurrency > $expense->exp_remaining_balance) {
                         $fail("El monto en moneda del gasto ({$amountInExpenseCurrency}) supera el saldo pendiente ({$expense->exp_remaining_balance}).");
@@ -42,6 +41,8 @@ class PayExpenseRequest extends FormRequest
             'description' => 'nullable|string|max:150',
             'payment_currency' => 'required|string|max:10',
             'payment_rate' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|string|max:30',
         ];
     }
 }

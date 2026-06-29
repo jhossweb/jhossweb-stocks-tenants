@@ -10,7 +10,6 @@ use App\Http\Requests\Payroll\UpdateEmployeeLoanRequest;
 use App\Models\Employee;
 use App\Models\EmployeeLoan;
 use App\Models\Rate;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class EmployeeLoanController extends Controller

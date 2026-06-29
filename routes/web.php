@@ -4,6 +4,9 @@ use App\Http\Controllers\Employees\EmployeeController;
 use App\Http\Controllers\Expense\ExpenseCategoryController;
 use App\Http\Controllers\Expense\ExpenseController;
 use App\Http\Controllers\Finance\Bank\BankAccountController;
+use App\Http\Controllers\Finance\Bank\BankTransactionAnalysisController;
+use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
+use App\Http\Controllers\Finance\Cobranza\ReceiptController;
 use App\Http\Controllers\Inventory\PriceAdjustmentController;
 use App\Http\Controllers\Inventory\ProductController;
 use App\Http\Controllers\Payroll\EmployeeDamageController;
@@ -16,8 +19,6 @@ use App\Http\Controllers\Purchase\AccountPaymentController;
 use App\Http\Controllers\Purchase\AccountsPayableController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\PurchaseReturnController;
-use App\Http\Controllers\Finance\Cobranza\ReceiptController;
-use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
 use App\Http\Controllers\Sales\Customer\CustomerController;
 use App\Http\Controllers\Sales\SaleOrder\SaleOrderController;
 use App\Http\Controllers\Sales\SaleReturn\SaleReturnController;
@@ -78,6 +79,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // BANCOS
     // -----------------------------------------------------------------------
     Route::resource('bank-accounts', BankAccountController::class);
+    Route::get('bank-transaction-analysis', [BankTransactionAnalysisController::class, 'index'])->name('bank-transaction-analysis.index');
 
     // -----------------------------------------------------------------------
     // PRODUCTOS / INVENTARIO

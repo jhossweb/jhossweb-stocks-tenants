@@ -30,7 +30,7 @@ class PayPayrollRequest extends FormRequest
         $validator->after(function ($validator) {
             $payroll = $this->route('payroll');
 
-            if (!$payroll) {
+            if (! $payroll) {
                 return;
             }
 

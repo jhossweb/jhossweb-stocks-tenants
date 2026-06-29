@@ -4,12 +4,10 @@ namespace App\Models;
 
 use App\Enum\Payroll\PayrollStatus;
 use App\Enum\TypeCoin;
-use App\Models\BankAccount;
-use App\Models\BankTransaction;
-use App\Models\Rate;
 use Database\Factories\PayrollFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Payroll extends Model
 {
@@ -93,34 +91,40 @@ class Payroll extends Model
         ?string $description = null,
         ?string $paymentCurrency = null,
         ?float $paymentRate = null,
+        ?string $paymentMethod = null,
+        ?string $paymentDate = null,
     ): BankTransaction {
-        $bankAccount = BankAccount::findOrFail($bankAccountId);
+        return DB::transaction(function () use ($amountInBankCurrency, $bankAccountId, $reference, $description, $paymentCurrency, $paymentRate, $paymentMethod, $paymentDate) {
+            $bankAccount = BankAccount::findOrFail($bankAccountId);
 
-        if ($paymentCurrency && $paymentRate !== null) {
-            $rate = $paymentRate;
-            $coin = $paymentCurrency;
-        } else {
-            $rate = $this->resolveRate($bankAccount);
-            $coin = $bankAccount->bank_currency;
-        }
+            if ($paymentCurrency && $paymentRate !== null) {
+                $rate = $paymentRate;
+                $coin = $paymentCurrency;
+            } else {
+                $rate = $this->resolveRate($bankAccount);
+                $coin = $bankAccount->bank_currency;
+            }
 
-        $bankTransaction = BankTransaction::create([
-            'btr_bank_account_id' => $bankAccountId,
-            'btr_type' => 'outflow',
-            'btr_amount' => $amountInBankCurrency,
-            'btr_balance' => 0,
-            'btr_reference' => $reference,
-            'btr_description' => $description ?: ('Pago de nómina: '.($this->employee?->emp_name ?? '')),
-            'btr_valorcam' => $rate,
-            'btr_coin' => $coin,
-        ]);
+            $bankTransaction = BankTransaction::create([
+                'btr_bank_account_id' => $bankAccountId,
+                'btr_type' => 'outflow',
+                'btr_amount' => $amountInBankCurrency,
+                'btr_balance' => 0,
+                'btr_reference' => $reference,
+                'btr_description' => $description ?: ('Pago de nómina: '.($this->employee?->emp_name ?? '')),
+                'btr_valorcam' => $rate,
+                'btr_coin' => $coin,
+                'btr_method' => $paymentMethod,
+                'btr_transaction_date' => $paymentDate,
+            ]);
 
-        $bankTransaction->btr_transactionable()->associate($this);
-        $bankTransaction->save();
+            $bankTransaction->btr_transactionable()->associate($this);
+            $bankTransaction->save();
 
-        $this->markAsPaid($bankTransaction->id);
+            $this->markAsPaid($bankTransaction->id);
 
-        return $bankTransaction;
+            return $bankTransaction;
+        });
     }
 
     public function resolveRate(BankAccount $bankAccount): float

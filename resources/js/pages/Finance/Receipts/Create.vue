@@ -49,7 +49,7 @@ const form = useForm({
     payment_date: props.payment?.bank_transaction?.created_at ? props.payment.bank_transaction.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
     customer_id: props.payment?.accounts_receivable?.sale_order?.sls_customer_id?.toString() || props.payment?.accounts_receivable?.sale_order?.customer?.id?.toString() || '',
     bank_account_id: props.payment?.bank_transaction?.btr_bank_account_id?.toString() || '',
-    payment_currency: 'USD',
+    payment_currency: props.payment?.bank_transaction?.btr_coin || 'USD',
     payment_rate: props.payment?.bank_transaction?.btr_valorcam ? Number(props.payment.bank_transaction.btr_valorcam) : (props.latestRate ? Number(props.latestRate.rate_usd) : 1),
     payment_method: props.payment?.bank_transaction?.btr_type || 'TRANSFERENCIA',
     payment_reference: props.payment?.bank_transaction?.btr_reference || '',

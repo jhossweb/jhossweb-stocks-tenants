@@ -11,7 +11,9 @@ class MovSalesObserver
     public function created(MovementsSale $movement): void
     {
         $transType = strtolower((string) $movement->mvs_trans_type_code);
-        if (!in_array($transType, ['facv', 'devv'])) return;
+        if (! in_array($transType, ['facv', 'devv'])) {
+            return;
+        }
 
         $cantidadFinal = (float) $movement->mvs_quantity * (int) $movement->mvs_factor;
         $product = Product::where('pro_code', $movement->mvs_pro_code)->first();
@@ -67,7 +69,9 @@ class MovSalesObserver
     public function deleted(MovementsSale $movementsSale): void
     {
         $transType = strtolower((string) $movementsSale->mvs_trans_type_code);
-        if (!in_array($transType, ['facv', 'devv'])) return;
+        if (! in_array($transType, ['facv', 'devv'])) {
+            return;
+        }
 
         $cantidadFinal = -((float) $movementsSale->mvs_quantity * (int) $movementsSale->mvs_factor);
         $product = Product::where('pro_code', $movementsSale->mvs_pro_code)->first();

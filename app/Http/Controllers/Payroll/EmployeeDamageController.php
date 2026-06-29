@@ -10,7 +10,6 @@ use App\Http\Requests\Payroll\UpdateEmployeeDamageRequest;
 use App\Models\Employee;
 use App\Models\EmployeeDamage;
 use App\Models\Rate;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class EmployeeDamageController extends Controller

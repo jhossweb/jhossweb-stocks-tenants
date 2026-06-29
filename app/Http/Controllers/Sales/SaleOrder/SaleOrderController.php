@@ -144,7 +144,7 @@ class SaleOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->withErrors(['error' => 'Ocurrió un error al guardar la venta: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Ocurrió un error al guardar la venta: '.$e->getMessage()]);
         }
     }
 
@@ -223,7 +223,7 @@ class SaleOrderController extends Controller
             }
 
             $itemsToDelete = array_diff($existingIds, $newIds);
-            if (!empty($itemsToDelete)) {
+            if (! empty($itemsToDelete)) {
                 foreach ($itemsToDelete as $delId) {
                     if ($model = MovementsSale::find($delId)) {
                         $model->delete();
@@ -237,7 +237,7 @@ class SaleOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la venta: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la venta: '.$e->getMessage()]);
         }
     }
 }

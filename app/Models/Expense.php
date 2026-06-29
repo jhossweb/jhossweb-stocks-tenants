@@ -4,12 +4,10 @@ namespace App\Models;
 
 use App\Enum\Expense\ExpenseStatus;
 use App\Enum\TypeCoin;
-use App\Models\BankAccount;
-use App\Models\BankTransaction;
-use App\Models\Rate;
 use Database\Factories\ExpenseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Expense extends Model
 {
@@ -59,6 +57,18 @@ class Expense extends Model
         return $this->morphMany(BankTransaction::class, 'btr_transactionable');
     }
 
+    public static function resolveRateForCoin(string $coin): float
+    {
+        $latestRate = Rate::orderBy('rate_date', 'desc')->first();
+
+        return match ($coin) {
+            'USD' => 1,
+            'COP' => (float) ($latestRate?->rate_cop ?? 1),
+            'EUR' => (float) ($latestRate?->rate_eur ?? 1),
+            default => (float) ($latestRate?->rate_usd ?? 1),
+        };
+    }
+
     public function registerPayment(
         float $amountInBankCurrency,
         int $bankAccountId,
@@ -66,44 +76,50 @@ class Expense extends Model
         ?string $description = null,
         ?string $paymentCurrency = null,
         ?float $paymentRate = null,
+        ?string $paymentMethod = null,
+        ?string $paymentDate = null,
     ): BankTransaction {
-        $bankAccount = BankAccount::findOrFail($bankAccountId);
+        return DB::transaction(function () use ($amountInBankCurrency, $bankAccountId, $reference, $description, $paymentCurrency, $paymentRate, $paymentMethod, $paymentDate) {
+            $bankAccount = BankAccount::findOrFail($bankAccountId);
 
-        if ($paymentCurrency && $paymentRate !== null) {
-            $rate = $paymentRate;
-            $coin = $paymentCurrency;
-        } else {
-            $rate = $this->resolveRate($bankAccount);
-            $coin = $bankAccount->bank_currency;
-        }
+            if ($paymentCurrency && $paymentRate !== null) {
+                $rate = $paymentRate;
+                $coin = $paymentCurrency;
+            } else {
+                $rate = $this->resolveRate($bankAccount);
+                $coin = $bankAccount->bank_currency;
+            }
 
-        $amountInExpenseCurrency = $this->convertToExpenseCurrency($amountInBankCurrency, $rate);
+            $amountInExpenseCurrency = $this->convertToExpenseCurrency($amountInBankCurrency, $rate, $coin);
 
-        $bankTransaction = BankTransaction::create([
-            'btr_bank_account_id' => $bankAccountId,
-            'btr_type' => 'outflow',
-            'btr_amount' => $amountInBankCurrency,
-            'btr_balance' => 0,
-            'btr_reference' => $reference,
-            'btr_description' => $description ?: ('Pago de gasto: '.$this->exp_description),
-            'btr_valorcam' => $rate,
-            'btr_coin' => $coin,
-        ]);
+            $bankTransaction = BankTransaction::create([
+                'btr_bank_account_id' => $bankAccountId,
+                'btr_type' => 'outflow',
+                'btr_amount' => $amountInBankCurrency,
+                'btr_balance' => 0,
+                'btr_reference' => $reference,
+                'btr_description' => $description ?: ('Pago de gasto: '.$this->exp_description),
+                'btr_valorcam' => $rate,
+                'btr_coin' => $coin,
+                'btr_method' => $paymentMethod,
+                'btr_transaction_date' => $paymentDate,
+            ]);
 
-        $bankTransaction->btr_transactionable()->associate($this);
-        $bankTransaction->save();
+            $bankTransaction->btr_transactionable()->associate($this);
+            $bankTransaction->save();
 
-        $this->exp_paid_amount += $amountInExpenseCurrency;
-        $this->exp_remaining_balance = max(0, $this->exp_amount - $this->exp_paid_amount);
+            $this->exp_paid_amount += $amountInExpenseCurrency;
+            $this->exp_remaining_balance = max(0, $this->exp_amount - $this->exp_paid_amount);
 
-        if ($this->exp_remaining_balance <= 0) {
-            $this->markAsPaid($bankTransaction->id);
-        } else {
-            $this->exp_bank_transaction_id = $bankTransaction->id;
-            $this->save();
-        }
+            if ($this->exp_remaining_balance <= 0) {
+                $this->markAsPaid($bankTransaction->id);
+            } else {
+                $this->exp_bank_transaction_id = $bankTransaction->id;
+                $this->save();
+            }
 
-        return $bankTransaction;
+            return $bankTransaction;
+        });
     }
 
     public function resolveRate(BankAccount $bankAccount): float
@@ -112,19 +128,21 @@ class Expense extends Model
             return 1;
         }
 
-        $latestRate = Rate::orderBy('rate_date', 'desc')->first();
-
-        return match ($this->exp_coin) {
-            TypeCoin::USD => (float) ($latestRate?->rate_usd ?? 1),
-            TypeCoin::COP => (float) ($latestRate?->rate_cop ?? 1),
-            TypeCoin::EUR => (float) ($latestRate?->rate_eur ?? 1),
-            default => (float) ($latestRate?->rate_usd ?? 1),
-        };
+        return static::resolveRateForCoin($this->exp_coin->value);
     }
 
-    public function convertToExpenseCurrency(float $amountInBankCurrency, float $rate): float
+    public function convertToExpenseCurrency(float $amountInPaymentCurrency, float $paymentRate, string $paymentCoin): float
     {
-        return $amountInBankCurrency / $rate;
+        $expenseCoin = $this->exp_coin->value;
+
+        if ($expenseCoin === $paymentCoin) {
+            return $amountInPaymentCurrency;
+        }
+
+        $amountInUSD = $amountInPaymentCurrency / $paymentRate;
+        $expenseRate = static::resolveRateForCoin($expenseCoin);
+
+        return $amountInUSD * $expenseRate;
     }
 
     public function markAsPaid(?int $bankTransactionId = null): void

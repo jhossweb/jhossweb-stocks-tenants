@@ -116,6 +116,7 @@ class Product extends Model
     {
         return $this->componentes->sum(function ($componente) {
             $costoUnitario = $componente->latestCost()?->cost_pro_cost_ref ?? 0;
+
             return $componente->pivot->cp_quantity * $costoUnitario;
         });
     }

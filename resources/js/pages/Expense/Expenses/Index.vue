@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { PlusCircle, DollarSign, FileText, Filter, ChevronDown, ChevronUp, Banknote, Loader2 } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
 import { formatDate, today } from '@/composables/useDate';
+import { usePayment } from '@/composables/usePayment';
 
 defineOptions({
     layout: {
@@ -89,64 +90,51 @@ const payForm = useForm({
     payment_method: '',
 });
 
+const { resolveRate } = usePayment();
+
 const originalBalance = ref(0);
 const originalCoin = ref('USD');
 
-const updateExchangeRate = () => {
-    const coin = payForm.payment_currency || originalCoin.value;
-    const rate = resolveRate(coin, props.latestRate);
-    payForm.payment_rate = String(rate);
-};
+const filteredBankAccounts = computed(() =>
+    props.bankAccounts.filter(ba => ba.bank_currency === payForm.payment_currency)
+);
 
-const resolveRate = (coin: string, latestRate: any): number => {
-    if (!latestRate) {
-return 1;
-}
-
-    switch (coin) {
-        case 'USD': return 1;
-        case 'COP': return Number(latestRate.rate_cop) || 1;
-        case 'EUR': return Number(latestRate.rate_eur) || 1;
-        default: return Number(latestRate.rate_usd) || 1;
-    }
-};
-
-const recalculateAmount = (newCurrency: string) => {
-    if (newCurrency === originalCoin.value) {
-        payForm.amount = String(originalBalance.value);
-
-        return;
-    }
-
-    const rateOfOriginal = resolveRate(originalCoin.value, props.latestRate);
-    const rateOfPayment = Number(payForm.payment_rate) || 1;
-    const amountInUSD = originalBalance.value / rateOfOriginal;
-
-    payForm.amount = String(amountInUSD * rateOfPayment);
+const resetBankAccount = () => {
+    const firstMatch = filteredBankAccounts.value[0];
+    payForm.bank_account_id = firstMatch ? String(firstMatch.id) : '';
 };
 
 const openPayModal = (expense: Expense) => {
     payingExpense.value = expense;
     originalBalance.value = Number(expense.exp_remaining_balance) || 0;
     originalCoin.value = expense.exp_coin || 'USD';
-    payForm.bank_account_id = props.bankAccounts.length > 0 ? String(props.bankAccounts[0].id) : '';
-    payForm.amount = String(originalBalance.value);
     payForm.reference = '';
     payForm.description = '';
     payForm.payment_currency = originalCoin.value;
+    payForm.amount = String(originalBalance.value);
     payForm.payment_date = today();
     payForm.payment_method = props.methods.length > 0 ? props.methods[0] : '';
-    updateExchangeRate();
+    payForm.payment_rate = resolveRate(payForm.payment_currency, props.latestRate);
+    resetBankAccount();
     showPayModal.value = true;
 };
 
-watch(() => payForm.payment_currency, (newCurrency) => {
-    if (!newCurrency) {
-return;
-}
+watch(() => payForm.payment_currency, (newCurrency, oldCurrency) => {
+    if (!newCurrency) return;
 
-    updateExchangeRate();
-    recalculateAmount(newCurrency);
+    const currentAmount = Number(payForm.amount) || 0;
+
+    if (oldCurrency && currentAmount > 0) {
+        const rateOld = resolveRate(oldCurrency, props.latestRate);
+        const rateNew = resolveRate(newCurrency, props.latestRate);
+        if (rateOld > 0 && rateNew > 0) {
+            const amountInBaseUSD = currentAmount / rateOld;
+            payForm.amount = String(amountInBaseUSD * rateNew);
+        }
+    }
+
+    payForm.payment_rate = resolveRate(newCurrency, props.latestRate);
+    resetBankAccount();
 });
 
 const closePayModal = () => {
@@ -278,7 +266,7 @@ const togglePayments = (expenseId: number) => {
                                             </Button>
                                         </Link>
                                         <Button
-                                            v-if="expense.exp_status === 'pendiente'"
+                                            v-if="expense.exp_status === 'pendiente' && Number(expense.exp_remaining_balance) > 0"
                                             variant="outline"
                                             size="sm"
                                             @click="openPayModal(expense)"
@@ -361,7 +349,7 @@ const togglePayments = (expenseId: number) => {
         </template>
 
         <PaymentForm
-            :bank-accounts="bankAccounts"
+            :bank-accounts="filteredBankAccounts"
             :latest-rate="latestRate"
             :currency="payingExpense?.exp_coin ?? 'USD'"
             :remaining-balance="Number(payingExpense?.exp_remaining_balance ?? 0)"

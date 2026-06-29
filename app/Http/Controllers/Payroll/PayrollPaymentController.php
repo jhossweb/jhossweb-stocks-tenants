@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Payroll;
 
 use App\Enum\Finanzas\TransactionMethod;
-use App\Enum\Finanzas\TypePayment;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
-use App\Models\BankTransaction;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\Rate;
@@ -71,7 +69,9 @@ class PayrollPaymentController extends Controller
                     $paymentData['amount'],
                     $validated['bank_account_id'],
                     $validated['payment_reference'],
-                    $validated['payment_description'] ?: ('Pago de nómina - '.$validated['payment_method']),
+                    $validated['payment_description'] ?: 'Pago de nómina',
+                    paymentMethod: $validated['payment_method'],
+                    paymentDate: $validated['payment_date'],
                 );
 
                 $bankTransaction = $payroll->payments()->latest()->first();

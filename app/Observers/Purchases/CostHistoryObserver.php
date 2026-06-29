@@ -30,6 +30,7 @@ class CostHistoryObserver
         if ($product && in_array($product->pro_und->value, ['mts', 'kg', 'm2'])) {
             return (float) ($product->pro_conversion_factor ?? 1);
         }
+
         return 1;
     }
 

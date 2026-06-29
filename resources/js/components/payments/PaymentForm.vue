@@ -48,6 +48,26 @@ const selectedBankAccount = computed(() => {
     return props.bankAccounts.find(ba => ba.id == props.form.bank_account_id)
 })
 
+const maxAmount = computed(() => {
+    const balance = props.remainingBalance
+    if (!balance) {
+        return 0
+    }
+
+    const fromCurrency = props.currency
+    const toCurrency = props.form.payment_currency
+
+    if (!toCurrency || fromCurrency === toCurrency) {
+        return balance
+    }
+
+    const fromRate = resolveRate(fromCurrency, props.latestRate)
+    const toRate = Number(props.form.payment_rate) || 1
+    const amountInUSD = balance / fromRate
+
+    return amountInUSD * toRate
+})
+
 const updateExchangeRate = () => {
     const coin = props.form.payment_currency || props.currency
     props.form.payment_rate = resolveRate(coin, props.latestRate)
@@ -160,7 +180,7 @@ watch(() => props.form.payment_currency, () => updateExchangeRate())
                 <span class="text-zinc-500">Saldo pendiente: <strong class="text-zinc-300">{{ Number(remainingBalance).toLocaleString() }} {{ currency }}</strong></span>
                 <button
                     type="button"
-                    @click="form.amount = remainingBalance"
+                    @click="form.amount = maxAmount"
                     class="text-indigo-500 hover:text-indigo-400 font-black text-[10px] uppercase tracking-wider"
                 >
                     Máximo

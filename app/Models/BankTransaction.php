@@ -21,12 +21,15 @@ class BankTransaction extends Model
         'btr_description',
         'btr_valorcam',
         'btr_coin',
+        'btr_method',
+        'btr_transaction_date',
     ];
 
     protected function casts(): array
     {
         return [
             'btr_coin' => TypeCoin::class,
+            'btr_transaction_date' => 'date',
         ];
     }
 

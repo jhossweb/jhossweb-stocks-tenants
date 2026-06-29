@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Purchase;
 
-use App\Enum\Purchases\StatusPurchases;
 use App\Enum\Finanzas\TransactionMethod;
 use App\Enum\Finanzas\TypePayment;
+use App\Enum\Purchases\StatusPurchases;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
 use App\Models\AccountPayments;
@@ -97,9 +97,12 @@ class AccountPaymentController extends Controller
                     'btr_type' => 'outflow',
                     'btr_amount' => $amountToRegister,
                     'btr_reference' => $validated['payment_reference'],
-                    'btr_description' => $validated['payment_description'] ?: ('Pago a proveedor - '.$validated['payment_method']),
+                    'btr_description' => $validated['payment_description'] ?: 'Pago a proveedor',
                     'btr_valorcam' => $validated['payment_rate'],
                     'btr_balance' => 0,
+                    'btr_method' => $validated['payment_method'],
+                    'btr_transaction_date' => $validated['payment_date'],
+                    'btr_coin' => $validated['payment_currency'],
                 ]);
 
                 $bankTransaction->btr_transactionable()->associate($acp);
@@ -147,6 +150,7 @@ class AccountPaymentController extends Controller
         $validated = $request->validate([
             'payment_date' => 'required|date',
             'bank_account_id' => 'required|exists:bank_accounts,id',
+            'payment_currency' => 'required|string',
             'payment_reference' => 'required|string|max:50',
             'payment_description' => 'nullable|string|max:150',
             'amount' => 'required|numeric|min:0.01',
@@ -188,12 +192,12 @@ class AccountPaymentController extends Controller
             $bankTx = $payment->bankTransaction;
             if ($bankTx) {
                 $bankTx->btr_bank_account_id = $validated['bank_account_id'];
-                // We use created_at to store the payment date visually
-                $bankTx->created_at = $validated['payment_date'];
+                $bankTx->btr_transaction_date = $validated['payment_date'];
                 $bankTx->btr_reference = $validated['payment_reference'];
                 $bankTx->btr_description = $validated['payment_description'];
 
                 // Adjust tx total
+                $bankTx->btr_coin = $validated['payment_currency'];
                 $bankTx->btr_amount = ($bankTx->btr_amount - $oldAmount) + $newAmount;
                 $bankTx->save();
             }

@@ -16,7 +16,6 @@ use App\Models\Supplier;
 use App\Models\TransactionType;
 use App\Models\User;
 use App\Models\Warehouse;
-use Database\Seeders\ExpenseCategorySeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
