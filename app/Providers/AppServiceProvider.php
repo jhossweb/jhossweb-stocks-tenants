@@ -4,11 +4,13 @@ namespace App\Providers;
 
 use App\Models\BankTransaction;
 use App\Models\MovementsPurchase;
+use App\Models\MovementInventory;
 use App\Models\MovementsSale;
 use App\Models\PurchaseOrder;
 use App\Models\SaleOrder;
 use App\Observers\BankTransactionObserver;
 use App\Observers\Purchases\CostHistoryObserver;
+use App\Observers\Inventory\MovInventoryObserver;
 use App\Observers\Purchases\MovPurchasesObserver;
 use App\Observers\Purchases\PurchaseOrderObserver;
 use App\Observers\Sales\MovSalesObserver;
@@ -42,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
 
         MovementsSale::observe(MovSalesObserver::class);
         SaleOrder::observe(SaleOrderObserver::class);
+
+        MovementInventory::observe(MovInventoryObserver::class);
     }
 
     /**

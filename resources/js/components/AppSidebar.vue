@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, ShoppingCart, Undo2, FileText, ArrowRightLeft, BarChart3, Users, CreditCard, Building2, PackageSearch, CircleDollarSign, Wallet } from 'lucide-vue-next';
+import { BookOpen, ClipboardList, FolderGit2, LayoutGrid, ShoppingCart, Undo2, FileText, ArrowRightLeft, BarChart3, Users, CreditCard, Building2, PackageSearch, CircleDollarSign, Wallet } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -36,6 +36,17 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Productos',
                         href: '/products',
+                    },
+                ],
+            },
+            {
+                title: 'Transacciones',
+                href: '#',
+                icon: ArrowRightLeft,
+                items: [
+                    {
+                        title: 'Ajuste de Inventario',
+                        href: '/inventory/adjustments',
                     },
                 ],
             },

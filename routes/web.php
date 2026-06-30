@@ -7,6 +7,7 @@ use App\Http\Controllers\Finance\Bank\BankAccountController;
 use App\Http\Controllers\Finance\Bank\BankTransactionAnalysisController;
 use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
 use App\Http\Controllers\Finance\Cobranza\ReceiptController;
+use App\Http\Controllers\Inventory\InventoryAdjustmentController;
 use App\Http\Controllers\Inventory\PriceAdjustmentController;
 use App\Http\Controllers\Inventory\ProductController;
 use App\Http\Controllers\Payroll\EmployeeDamageController;
@@ -89,6 +90,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('adjust-prices', [PriceAdjustmentController::class, 'index'])->name('adjust-prices');
         Route::post('adjust-prices', [PriceAdjustmentController::class, 'store'])->name('adjust-prices.store');
+
+        Route::get('adjustments', [InventoryAdjustmentController::class, 'index'])->name('adjustments.index');
+        Route::get('adjustments/create', [InventoryAdjustmentController::class, 'create'])->name('adjustments.create');
+        Route::post('adjustments', [InventoryAdjustmentController::class, 'store'])->name('adjustments.store');
+        Route::get('adjustments/{adjustment}/edit', [InventoryAdjustmentController::class, 'edit'])->name('adjustments.edit');
+        Route::put('adjustments/{adjustment}', [InventoryAdjustmentController::class, 'update'])->name('adjustments.update');
+        Route::delete('adjustments/{adjustment}', [InventoryAdjustmentController::class, 'destroy'])->name('adjustments.destroy');
     });
 
     // -----------------------------------------------------------------------

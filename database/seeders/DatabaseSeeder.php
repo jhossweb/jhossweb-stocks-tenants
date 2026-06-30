@@ -9,6 +9,7 @@ use App\Models\BankTransaction;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\MovementsPurchase;
+use App\Models\AdjustmentReason;
 use App\Models\Product;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\PurchaseOrder;
@@ -68,6 +69,32 @@ class DatabaseSeeder extends Seeder
                 'trans_type_factor' => '1',
             ]
         );
+
+        TransactionType::create(
+            [
+                'trans_type_code' => 'INV',
+                'trans_type_description' => 'AJUSTE INVENTARIO',
+                'trans_type_factor' => '-1',
+            ]
+        );
+
+        AdjustmentReason::create([
+            'adjr_code' => 'MERMA',
+            'adjr_name' => 'Merma',
+            'adjr_description' => 'Pérdida de producto por merma',
+        ]);
+
+        AdjustmentReason::create([
+            'adjr_code' => 'DETERIORO',
+            'adjr_name' => 'Deterioro',
+            'adjr_description' => 'Producto dañado o en mal estado',
+        ]);
+
+        AdjustmentReason::create([
+            'adjr_code' => 'VENCIDO',
+            'adjr_name' => 'Vencido',
+            'adjr_description' => 'Producto vencido',
+        ]);
 
         $purchaseOrders = PurchaseOrder::factory()->count(10)->create();
         foreach ($purchaseOrders as $purchaseOrder) {
