@@ -8,7 +8,6 @@ use App\Models\AdjustmentReason;
 use App\Models\Inventory;
 use App\Models\MovementInventory;
 use App\Models\Product;
-use App\Models\Stock;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;

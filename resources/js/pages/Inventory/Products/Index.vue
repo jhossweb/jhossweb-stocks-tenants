@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { 
     PackageSearch, 
     PlusCircle, 
@@ -12,7 +12,10 @@ import {
     AlertCircle,
     Layers,
     Plus,
-    X
+    X,
+    ScrollText,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
@@ -89,7 +92,16 @@ interface Product {
 }
 
 const props = defineProps<{
-    products: Product[];
+    products: {
+        data: Product[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        from: number;
+        to: number;
+    };
+    allProducts: Product[];
     categories: Category[];
     brands: Brand[];
     undOptions: string[];
@@ -180,13 +192,13 @@ const getTypeLabel = (type: string) => {
 };
 
 const getProductByCode = (code: string): Product | undefined => {
-    return props.products.find(p => p.pro_code === code);
+    return props.allProducts.find(p => p.pro_code === code);
 };
 
 const componentProducts = computed(() => {
     const currentCode = editingProduct.value?.pro_code;
 
-    return props.products.filter(p =>
+    return props.allProducts.filter(p =>
         p.pro_type === 'simple' && p.pro_code !== currentCode
     );
 });
@@ -219,6 +231,10 @@ const getAvailableComponents = (index: number) => {
     return componentProducts.value.filter(p =>
         p.pro_code === currentCode || !selectedCodes.includes(p.pro_code)
     );
+};
+
+const goToPage = (page: number) => {
+    router.get('/products', { page }, { preserveState: true, preserveScroll: true });
 };
 </script>
 
@@ -436,13 +452,13 @@ const getAvailableComponents = (index: number) => {
         </Dialog>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-if="products.length === 0" class="col-span-full py-20 bg-white dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl flex flex-col items-center justify-center text-gray-500">
+            <div v-if="products.data.length === 0" class="col-span-full py-20 bg-white dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl flex flex-col items-center justify-center text-gray-500">
                 <Package class="h-16 w-16 mb-4 opacity-20" />
                 <p class="text-lg font-medium">No hay productos registrados</p>
                 <p class="text-sm">Comienza añadiendo un nuevo producto a tu catálogo.</p>
             </div>
             
-            <div v-for="product in products" :key="product.id" 
+            <div v-for="product in products.data" :key="product.id" 
                 class="group relative bg-white dark:bg-gray-900 border border-sidebar-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
             >
                 <div class="absolute top-0 right-0 -m-4 h-24 w-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
@@ -452,25 +468,32 @@ const getAvailableComponents = (index: number) => {
                         <Box class="h-6 w-6 text-primary" />
                     </div>
                     
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button variant="ghost" size="icon" class="h-8 w-8 rounded-full">
-                                <MoreHorizontal class="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="w-[160px]">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem @select.prevent="openEditModal(product)">
-                                <Pencil class="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem @select.prevent="deleteProduct(product.id)" class="text-red-600 focus:text-red-600">
-                                <Trash2 class="mr-2 h-4 w-4" />
-                                Eliminar
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div class="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-full" as-child>
+                            <Link :href="'/kardex/' + product.pro_code" title="Ver Kardex">
+                                <ScrollText class="h-4 w-4" />
+                            </Link>
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger as-child>
+                                <Button variant="ghost" size="icon" class="h-8 w-8 rounded-full">
+                                    <MoreHorizontal class="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" class="w-[160px]">
+                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem @select.prevent="openEditModal(product)">
+                                    <Pencil class="mr-2 h-4 w-4" />
+                                    Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem @select.prevent="deleteProduct(product.id)" class="text-red-600 focus:text-red-600">
+                                    <Trash2 class="mr-2 h-4 w-4" />
+                                    Eliminar
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
                 
                 <div class="space-y-4">
@@ -527,6 +550,59 @@ const getAvailableComponents = (index: number) => {
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div v-if="products.last_page > 1" class="flex items-center justify-between px-1">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Mostrando {{ products.from }}-{{ products.to }} de {{ products.total }} productos
+            </p>
+            <div class="flex items-center gap-1">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    class="h-8 w-8"
+                    :disabled="products.current_page <= 1"
+                    @click="goToPage(products.current_page - 1)"
+                >
+                    <ChevronLeft class="h-4 w-4" />
+                </Button>
+                <template v-for="page in products.last_page" :key="page">
+                    <Button
+                        v-if="
+                            page === 1 ||
+                            page === products.last_page ||
+                            Math.abs(page - products.current_page) <= 1
+                        "
+                        variant="ghost"
+                        size="icon"
+                        class="h-8 w-8 text-sm font-mono"
+                        :class="{
+                            'bg-primary text-primary-foreground hover:bg-primary/90': page === products.current_page,
+                            'hidden sm:inline-flex': page !== 1 && page !== products.last_page && Math.abs(page - products.current_page) === 1
+                        }"
+                        @click="goToPage(page)"
+                    >
+                        {{ page }}
+                    </Button>
+                    <span
+                        v-else-if="
+                            page === products.current_page - 2 ||
+                            page === products.current_page + 2
+                        "
+                        class="px-1 text-gray-400 select-none"
+                    >...</span>
+                </template>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    class="h-8 w-8"
+                    :disabled="products.current_page >= products.last_page"
+                    @click="goToPage(products.current_page + 1)"
+                >
+                    <ChevronRight class="h-4 w-4" />
+                </Button>
             </div>
         </div>
     </div>

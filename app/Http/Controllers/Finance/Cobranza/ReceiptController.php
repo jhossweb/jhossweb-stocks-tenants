@@ -31,7 +31,6 @@ class ReceiptController extends Controller
         ]);
     }
 
-
     public function getPendingReceivables(Customer $customer)
     {
         $pending = AccountsReceivable::with('saleOrder')
@@ -72,10 +71,9 @@ class ReceiptController extends Controller
             'payments.*.amount' => 'required|numeric|min:0',
         ]);
 
-
         DB::beginTransaction();
         try {
-            $activePayments = array_filter($validated['payments'], fn($p) => $p['amount'] > 0);
+            $activePayments = array_filter($validated['payments'], fn ($p) => $p['amount'] > 0);
 
             if (empty($activePayments)) {
                 return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a cobrar.']);
@@ -126,7 +124,7 @@ class ReceiptController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->back()->withErrors(['error' => 'Error al procesar el cobro: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al procesar el cobro: '.$e->getMessage()]);
         }
     }
 
@@ -173,7 +171,7 @@ class ReceiptController extends Controller
 
             $newAmount = $validated['amount'];
             if ($newAmount > $acr->acr_balance) {
-                throw new \Exception('El monto no puede ser mayor a la deuda pendiente de la factura ($' . number_format($acr->acr_balance, 2) . ').');
+                throw new \Exception('El monto no puede ser mayor a la deuda pendiente de la factura ($'.number_format($acr->acr_balance, 2).').');
             }
 
             $acr->acr_balance -= $newAmount;
@@ -213,7 +211,7 @@ class ReceiptController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->back()->withErrors(['error' => 'Error al actualizar el cobro: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al actualizar el cobro: '.$e->getMessage()]);
         }
     }
 
@@ -261,7 +259,7 @@ class ReceiptController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return redirect()->back()->withErrors(['error' => 'Error al eliminar el cobro: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Error al eliminar el cobro: '.$e->getMessage()]);
         }
     }
 }

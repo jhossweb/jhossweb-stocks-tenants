@@ -8,6 +8,7 @@ use App\Http\Controllers\Finance\Bank\BankTransactionAnalysisController;
 use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
 use App\Http\Controllers\Finance\Cobranza\ReceiptController;
 use App\Http\Controllers\Inventory\InventoryAdjustmentController;
+use App\Http\Controllers\Inventory\KardexController;
 use App\Http\Controllers\Inventory\PriceAdjustmentController;
 use App\Http\Controllers\Inventory\ProductController;
 use App\Http\Controllers\Payroll\EmployeeDamageController;
@@ -87,6 +88,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
     Route::resource('products', ProductController::class)->except(['create', 'edit', 'show']);
 
+    // Kardex por producto
+    Route::prefix('kardex')->name('kardex.')->group(function () {
+        Route::get('{proCode}', [KardexController::class, 'index'])->name('index');
+    });
+
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('adjust-prices', [PriceAdjustmentController::class, 'index'])->name('adjust-prices');
         Route::post('adjust-prices', [PriceAdjustmentController::class, 'store'])->name('adjust-prices.store');
@@ -143,6 +149,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('customers/{customer}/unpaid-sales', [SaleReturnController::class, 'getUnpaidSales']);
         Route::get('sale-orders/{saleOrder}/items', [SaleReturnController::class, 'getSaleOrderItems']);
         Route::get('sale-orders/by-number/{sls_number}', [SaleReturnController::class, 'getSaleOrderByNumber']);
+
+        // Kardex
+        Route::get('kardex/{proCode}/years', [KardexController::class, 'getYears']);
+        Route::get('kardex/{proCode}/months', [KardexController::class, 'getMonths']);
+        Route::get('kardex/{proCode}/movements', [KardexController::class, 'getMovements']);
+        Route::get('kardex/{proCode}/pdf', [KardexController::class, 'exportPdf']);
 
         // Nómina
         Route::get('employees/active', [EmployeeController::class, 'getActiveEmployees']);

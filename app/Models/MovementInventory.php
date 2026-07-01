@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class MovementInventory extends Model
 {
-
     protected $table = 'movements_inventories';
 
     protected $fillable = [

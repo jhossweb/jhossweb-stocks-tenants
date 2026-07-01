@@ -4,12 +4,12 @@ namespace Database\Seeders;
 
 use App\Models\AccountPayments;
 use App\Models\AccountsPayable;
+use App\Models\AdjustmentReason;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\MovementsPurchase;
-use App\Models\AdjustmentReason;
 use App\Models\Product;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\PurchaseOrder;

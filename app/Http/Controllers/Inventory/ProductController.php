@@ -23,10 +23,15 @@ class ProductController extends Controller
         $products = Product::with(['category', 'brand', 'componentes.category', 'componentes.brand'])
             ->withSum('stocks', 'stk_cant')
             ->latest()
+            ->paginate(24);
+
+        $allProducts = Product::select('pro_code', 'pro_name', 'pro_und', 'pro_type')
+            ->latest()
             ->get();
 
         return Inertia::render('Inventory/Products/Index', [
             'products' => $products,
+            'allProducts' => $allProducts,
             'categories' => Category::all(['id', 'cat_name']),
             'brands' => Brand::all(['id', 'bra_name']),
             'undOptions' => UndProduct::values(),
