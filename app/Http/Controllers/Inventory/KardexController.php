@@ -113,7 +113,10 @@ class KardexController extends Controller
 
         $startDate = sprintf('%04d-%02d-01', $year, $month);
 
-        $initialBalance = $this->calculateInitialBalance($proCode, $warId, $startDate);
+        $product = Product::where('pro_code', $proCode)->firstOrFail();
+        $conversionFactor = $this->getConversionFactor($product);
+
+        $initialBalance = $this->calculateInitialBalance($proCode, $warId, $startDate, $conversionFactor);
 
         $movements = DB::select("
             SELECT fecha, documento, tipo_transaccion, factor, cantidad, contraparte,
@@ -188,6 +191,16 @@ class KardexController extends Controller
             $proCode, $warId, $startDate, $this->nextMonth($startDate),
             $proCode, $warId, $startDate, $this->nextMonth($startDate),
         ]);
+
+        if ($conversionFactor > 1) {
+            foreach ($movements as $mov) {
+                if ($mov->origen === 'compra') {
+                    $mov->cantidad = (float) $mov->cantidad * $conversionFactor;
+                    $mov->entrada = (float) $mov->entrada * $conversionFactor;
+                    $mov->salida = (float) $mov->salida * $conversionFactor;
+                }
+            }
+        }
 
         $runningBalance = $initialBalance;
         $items = array_map(function ($mov) use (&$runningBalance) {
@@ -231,7 +244,9 @@ class KardexController extends Controller
 
         $startDate = sprintf('%04d-%02d-01', $year, $month);
 
-        $initialBalance = $this->calculateInitialBalance($proCode, $warId, $startDate);
+        $conversionFactor = $this->getConversionFactor($product);
+
+        $initialBalance = $this->calculateInitialBalance($proCode, $warId, $startDate, $conversionFactor);
 
         $movements = DB::select("
             SELECT fecha, documento, tipo_transaccion, factor, cantidad, contraparte,
@@ -307,6 +322,16 @@ class KardexController extends Controller
             $proCode, $warId, $startDate, $this->nextMonth($startDate),
         ]);
 
+        if ($conversionFactor > 1) {
+            foreach ($movements as $mov) {
+                if ($mov->origen === 'compra') {
+                    $mov->cantidad = (float) $mov->cantidad * $conversionFactor;
+                    $mov->entrada = (float) $mov->entrada * $conversionFactor;
+                    $mov->salida = (float) $mov->salida * $conversionFactor;
+                }
+            }
+        }
+
         $runningBalance = $initialBalance;
         $items = array_map(function ($mov) use (&$runningBalance) {
             $m = (array) $mov;
@@ -348,11 +373,11 @@ class KardexController extends Controller
         return $pdf->download($filename);
     }
 
-    private function calculateInitialBalance($proCode, $warId, string $startDate): float
+    private function calculateInitialBalance($proCode, $warId, string $startDate, float $conversionFactor = 1): float
     {
         $result = DB::select('
             SELECT COALESCE(SUM(cantidad * factor), 0) as saldo FROM (
-                SELECT mp.mov_quantity as cantidad, mp.mov_factor as factor
+                SELECT (mp.mov_quantity * ?) as cantidad, mp.mov_factor as factor
                 FROM movements_purchases mp
                 JOIN purchase_orders po ON mp.mov_invoice_number = po.invoice_number
                 WHERE mp.mov_pro_code = ? AND mp.mov_war_id = ?
@@ -371,12 +396,22 @@ class KardexController extends Controller
                   AND i.inv_date < ?
             ) AS balance
         ', [
+            $conversionFactor,
             $proCode, $warId, $startDate,
             $proCode, $warId, $startDate,
             $proCode, $warId, $startDate,
         ]);
 
         return (float) ($result[0]->saldo ?? 0);
+    }
+
+    private function getConversionFactor(Product $product): float
+    {
+        if (in_array($product->pro_und->value, ['mts', 'kg', 'm2'])) {
+            return (float) ($product->pro_conversion_factor ?? 1);
+        }
+
+        return 1;
     }
 
     private function nextMonth(string $date): string
