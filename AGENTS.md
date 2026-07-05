@@ -87,6 +87,45 @@ El proyecto comenzó con lógica temporal en controladores para validar concepto
 
 ---
 
+## Arquitectura de Modelos
+
+### Rol del Modelo
+
+Los modelos Eloquent son el corazón del dominio. No son meras representaciones de tablas — deben encapsular la lógica de negocio que opera sobre sus propios datos.
+
+### Qué va en el Modelo (✅)
+
+| Tipo | Ejemplo |
+|------|---------|
+| **Relationships** | `belongsTo()`, `hasMany()`, `morphMany()` |
+| **Scopes** | `scopePending()`, `scopeActive()` |
+| **Casts** | Enums (`#[Cast('status', StatusEnum::class)]`), `decimal`, `date` |
+| **Accessors/Mutators** | `getFullNameAttribute()`, `setPasswordAttribute()` |
+| **Lógica interna** | `isPaid()`, `reduceBalance()`, `calcularCostoCompuesto()` — métodos que operan **solo sobre sus propios atributos y relaciones** |
+| **Eventos internos** | `$dispatchesEvents` para lógica derivada leve |
+
+### Qué NO va en el Modelo (🚫)
+
+| Tipo | Destino |
+|------|---------|
+| **Validación de requests** | `Form Request` |
+| **Orquestación cross-entity** (toca 2+ modelos distintos) | `Service` |
+| **Queries complejas agregadas** (SQL raw, UNION, reportes) | `Repository` o `Report` |
+| **Operación atómica reutilizable** | `Action Class` |
+| **Efectos secundarios post persistencia** | `Observer` |
+
+### Reglas de Modelos
+
+- Usa **scopes** para filtros reutilizables (no queries inline en controllers).
+- Usa **casts** de enums (`\App\Enums\...`) para campos con valores fijos. No strings sueltos.
+- Usa **`$fillable`** (o atributo `#[Fillable]` en PHP 8+) — nunca `$guarded` vacío.
+- Los modelos pueden tener métodos de negocio **siempre que operen sobre sus propios datos**. Si necesitas inyectar dependencias externas (ej: otro modelo, un repositorio), es señal de que debe ser un Service.
+- No inyectes otros modelos como dependencias en métodos del modelo. Usa relaciones y queries, no dependencias externas.
+- Las **relaciones** deben estar tipadas con el tipo de retorno (`BelongsTo`, `HasMany`, etc.).
+- **Eventos de modelo** (`creating`, `created`, `updating`, etc.) para lógica simple previa/post guardado. Para lógica derivada que toca otras entidades, prefiere Observers.
+
+---
+
 ## Arquitectura Frontend (Vue 3 + TypeScript)
 
 ### Capas
@@ -336,7 +375,7 @@ resources/js/wayfinder/**
 6. **AJAX:** Endpoints bajo `/api/*` en web.php para selects y validaciones (ej. `/api/suppliers/{supplier}/pending-invoices`).
 7. **Observers:** Úsarlos para lógica derivada post crear/actualizar (ej. actualizar stock, costo promedio, saldos).
 8. **Al refactorizar controladores existentes:** Mover validación → Form Request, lógica de negocio → Service o Action, queries → Repository, efectos secundarios → Observer. Un archivo a la vez, sin refactors masivos.
-9. **Modelos:** Aprovechar scopes, relaciones, casts. No modelos anémicos.
+9. **Modelos:** Sigue la sección *Arquitectura de Modelos*. Modelos ricos (con scopes, relaciones, casts, lógica interna) — las capas superiores se apoyan en ellos.
 10. **shadcn-vue:** Para añadir nuevos componentes UI, usa el CLI `shadcn-vue add <componente>`. No los crees manualmente.
 11. **Caching estratégico:** Usa `Cache::remember()` / `Cache::tags()` para datos consultados frecuentemente que cambian con poca frecuencia:
     - Listados maestros (productos, categorías, marcas, clientes, proveedores).
