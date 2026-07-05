@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers\Sales\Customer;
 
+use App\DTOs\Sales\Customer\CustomerDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\Customer\StoreCustomerRequest;
+use App\Http\Requests\Sales\Customer\UpdateCustomerRequest;
 use App\Models\Customer;
-use Illuminate\Http\Request;
+use App\Services\Sales\Customer\CustomerService;
 use Inertia\Inertia;
 
 class CustomerController extends Controller
 {
+    public function __construct(
+        private readonly CustomerService $customerService,
+    ) {}
+
     public function index()
     {
-        $customers = Customer::orderBy('clt_name')
-            ->paginate(10);
-
         return Inertia::render('Customers/Index', [
-            'customers' => $customers,
+            'customers' => $this->customerService->list(),
         ]);
     }
 
@@ -24,17 +28,9 @@ class CustomerController extends Controller
         return Inertia::render('Customers/Create');
     }
 
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
-        $validated = $request->validate([
-            'clt_name' => 'required|string|max:100|unique:customers,clt_name',
-            'clt_address' => 'required|string|max:255',
-            'clt_phone' => 'required|string|max:20|unique:customers,clt_phone',
-            'clt_email' => 'required|email|max:100|unique:customers,clt_email',
-            'clt_website' => 'nullable|string|max:100',
-        ]);
-
-        Customer::create($validated);
+        $this->customerService->create(CustomerDTO::fromArray($request->validated()));
 
         return redirect()->route('customers.index')->with('success', 'Cliente creado exitosamente.');
     }
@@ -51,24 +47,16 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function update(Request $request, Customer $customer)
+    public function update(UpdateCustomerRequest $request, Customer $customer)
     {
-        $validated = $request->validate([
-            'clt_name' => 'required|string|max:100|unique:customers,clt_name,'.$customer->id,
-            'clt_address' => 'required|string|max:255',
-            'clt_phone' => 'required|string|max:20|unique:customers,clt_phone,'.$customer->id,
-            'clt_email' => 'required|email|max:100|unique:customers,clt_email,'.$customer->id,
-            'clt_website' => 'nullable|string|max:100',
-        ]);
-
-        $customer->update($validated);
+        $this->customerService->update($customer, CustomerDTO::fromArray($request->validated()));
 
         return redirect()->route('customers.index')->with('success', 'Cliente actualizado exitosamente.');
     }
 
     public function destroy(Customer $customer)
     {
-        $customer->delete();
+        $this->customerService->delete($customer);
 
         return redirect()->route('customers.index')->with('success', 'Cliente eliminado exitosamente.');
     }

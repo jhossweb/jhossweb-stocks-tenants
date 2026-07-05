@@ -2,19 +2,25 @@
 
 namespace App\Http\Controllers\Payroll;
 
+use App\DTOs\Payroll\PayrollPaymentDTO;
 use App\Enum\Finanzas\TransactionMethod;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payroll\StorePayrollPaymentRequest;
 use App\Models\BankAccount;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\Rate;
+use App\Services\Payroll\PayrollPaymentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PayrollPaymentController extends Controller
 {
+    public function __construct(
+        private readonly PayrollPaymentService $payrollPaymentService,
+    ) {}
+
     public function create(Request $request)
     {
         return Inertia::render('Payroll/PayrollPayments/Create', [
@@ -38,59 +44,16 @@ class PayrollPaymentController extends Controller
         return response()->json($pending);
     }
 
-    public function store(Request $request)
+    public function store(StorePayrollPaymentRequest $request)
     {
-        $validated = $request->validate([
-            'payment_date' => 'required|date',
-            'employee_id' => 'required|exists:employees,id',
-            'bank_account_id' => 'required|exists:bank_accounts,id',
-            'payment_currency' => 'required|string',
-            'payment_rate' => 'required|numeric',
-            'payment_method' => 'required|string',
-            'payment_reference' => 'required|string|max:50',
-            'payment_description' => 'nullable|string|max:150',
-            'payments' => 'required|array',
-            'payments.*.pay_id' => 'required|exists:payrolls,id',
-            'payments.*.amount' => 'required|numeric|min:0',
-        ]);
+        $result = $this->payrollPaymentService->pay(
+            PayrollPaymentDTO::fromArray($request->validated()),
+        );
 
-        DB::beginTransaction();
-        try {
-            $activePayments = array_filter($validated['payments'], fn ($p) => $p['amount'] > 0);
-
-            if (empty($activePayments)) {
-                return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a pagar.']);
-            }
-
-            foreach ($activePayments as $paymentData) {
-                $payroll = Payroll::with('employee')->findOrFail($paymentData['pay_id']);
-
-                $payroll->registerPayment(
-                    $paymentData['amount'],
-                    $validated['bank_account_id'],
-                    $validated['payment_reference'],
-                    $validated['payment_description'] ?: 'Pago de nómina',
-                    paymentMethod: $validated['payment_method'],
-                    paymentDate: $validated['payment_date'],
-                );
-
-                $bankTransaction = $payroll->payments()->latest()->first();
-                if ($bankTransaction) {
-                    $bankTransaction->update([
-                        'btr_type' => 'outflow',
-                        'btr_valorcam' => $validated['payment_rate'],
-                        'btr_coin' => $validated['payment_currency'],
-                    ]);
-                }
-            }
-
-            DB::commit();
-
-            return redirect()->route('payrolls.index')->with('success', 'Pago de nómina registrado exitosamente.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()->withErrors(['error' => 'Error al procesar el pago: '.$e->getMessage()]);
+        if (! $result['success']) {
+            return redirect()->back()->withErrors(['error' => $result['message']]);
         }
+
+        return redirect()->route('payrolls.index')->with('success', 'Pago de nómina registrado exitosamente.');
     }
 }

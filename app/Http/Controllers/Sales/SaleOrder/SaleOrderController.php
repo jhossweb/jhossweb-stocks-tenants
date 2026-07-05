@@ -185,7 +185,7 @@ class SaleOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $transactionType = TransactionType::where('trans_type_code', 'facv')->first();
+            $transactionType = TransactionType::where('trans_type_code', 'FACV')->first();
 
             $sale->sls_number = $validated['sls_number'];
             $sale->sls_date = $validated['sls_date'];

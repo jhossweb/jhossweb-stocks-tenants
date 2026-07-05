@@ -36,6 +36,7 @@ const originalItems = ref<any[]>([]);
 const loadingSales = ref(false);
 const loadingItems = ref(false);
 const selectedInvoiceNumber = ref('');
+const salesError = ref('');
 
 const getCustomerName = (id: string | number) => {
     const c = props.customers.find(c => c.id == id);
@@ -70,12 +71,21 @@ return;
 }
 
     loadingSales.value = true;
+    salesError.value = '';
 
     try {
         const res = await fetch(`/api/customers/${customerId}/unpaid-sales`);
+
+        if (! res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Error del servidor' }));
+
+            throw new Error(err.error || `HTTP ${res.status}`);
+        }
+
         unpaidSales.value = await res.json();
-    } catch (e) {
+    } catch {
         unpaidSales.value = [];
+        salesError.value = 'Error al cargar facturas pendientes.';
     } finally {
         loadingSales.value = false;
     }
@@ -107,7 +117,7 @@ return;
         }));
 
         calculateTotals();
-    } catch (e) {
+    } catch {
         originalItems.value = [];
         form.items = [];
     } finally {
@@ -262,6 +272,7 @@ const submit = () => {
                             <div v-if="loadingSales" class="text-zinc-500 text-sm flex items-center gap-2">
                                 <Loader2 class="w-4 h-4 animate-spin" /> Cargando...
                             </div>
+                            <p v-else-if="salesError" class="text-xs text-red-500">{{ salesError }}</p>
                             <select v-else v-model="selectedInvoiceNumber" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm">
                                 <option value="">Seleccione factura</option>
                                 <option v-for="s in unpaidSales" :key="s.id" :value="s.sls_number">
