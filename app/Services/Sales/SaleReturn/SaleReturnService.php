@@ -3,6 +3,7 @@
 namespace App\Services\Sales\SaleReturn;
 
 use App\DTOs\Sales\SaleReturn\SaleReturnDTO;
+use App\Enum\Finanzas\TypeReceipt;
 use App\Enum\Sales\StatusSales;
 use App\Models\MovementsSale;
 use App\Models\SaleOrder;
@@ -36,6 +37,8 @@ class SaleReturnService
             $this->validateAvailableQty($dto->slsReference, $item);
             $this->createMovement($return, $transactionType, $item);
         }
+
+        $this->applyCreditToAccountsReceivable($originalSale, $return);
 
         return $return;
     }
@@ -82,13 +85,87 @@ class SaleReturnService
             MovementsSale::whereIn('id', $itemsToDelete)->delete();
         }
 
+        $this->reapplyCredit($return);
+
         return $return;
     }
 
     public function destroy(SaleOrder $return): void
     {
+        $this->reverseCredit($return);
+
         $return->movements()->delete();
         $return->delete();
+    }
+
+    private function applyCreditToAccountsReceivable(SaleOrder $originalSale, SaleOrder $return): void
+    {
+        $ar = $originalSale->accountsReceivable;
+
+        if (! $ar || ! in_array($ar->acr_status, [StatusSales::PENDING->value, StatusSales::PARTIAL->value])) {
+            return;
+        }
+
+        $amountToApply = min((float) $return->sls_total, (float) $ar->acr_balance);
+
+        if ($amountToApply <= 0) {
+            return;
+        }
+
+        $ar->registerPayment($amountToApply, TypeReceipt::RETURN_CREDIT->value);
+
+        $return->sls_status = $ar->acr_status;
+        $return->save();
+    }
+
+    private function reverseCredit(SaleOrder $return): void
+    {
+        if (! $return->sls_reference) {
+            return;
+        }
+
+        $originalSale = SaleOrder::where('sls_number', $return->sls_reference)->first();
+
+        if (! $originalSale) {
+            return;
+        }
+
+        $ar = $originalSale->accountsReceivable;
+
+        if (! $ar) {
+            return;
+        }
+
+        $receipt = $ar->payments()
+            ->where('rec_type', TypeReceipt::RETURN_CREDIT->value)
+            ->first();
+
+        if (! $receipt) {
+            return;
+        }
+
+        $ar->reversePayment($receipt);
+        $receipt->delete();
+
+        $return->sls_status = StatusSales::PENDING->value;
+        $return->save();
+    }
+
+    private function reapplyCredit(SaleOrder $return): void
+    {
+        $this->reverseCredit($return);
+
+        if (! $return->sls_reference) {
+            return;
+        }
+
+        $originalSale = SaleOrder::where('sls_number', $return->sls_reference)->first();
+
+        if (! $originalSale) {
+            return;
+        }
+
+        $this->applyCreditToAccountsReceivable($originalSale, $return);
     }
 
     /**

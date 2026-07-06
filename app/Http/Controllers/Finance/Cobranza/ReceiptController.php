@@ -153,6 +153,10 @@ class ReceiptController extends Controller
             'bankTransaction',
         ])->findOrFail($id);
 
+        if ($payment->rec_type === TypeReceipt::RETURN_CREDIT->value) {
+            return redirect()->back()->withErrors(['error' => 'No puede editar un crédito por devolución. Elimínelo y cree uno nuevo.']);
+        }
+
         $validated = $request->validate([
             'payment_date' => 'required|date',
             'bank_account_id' => 'required|exists:bank_accounts,id',

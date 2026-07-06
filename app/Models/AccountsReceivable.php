@@ -80,4 +80,25 @@ class AccountsReceivable extends Model
             'rec_amount' => $amount,
         ]);
     }
+
+    public function reversePayment(Receipt $receipt): void
+    {
+        $this->acr_balance += $receipt->rec_amount;
+
+        if ($this->acr_balance >= $this->acr_total) {
+            $this->acr_status = StatusSales::PENDING->value;
+        } elseif ($this->acr_balance > 0) {
+            $this->acr_status = StatusSales::PARTIAL->value;
+        } else {
+            $this->acr_status = StatusSales::PAID->value;
+            $this->acr_balance = 0;
+        }
+
+        $this->save();
+
+        if ($this->saleOrder) {
+            $this->saleOrder->sls_status = $this->acr_status;
+            $this->saleOrder->save();
+        }
+    }
 }

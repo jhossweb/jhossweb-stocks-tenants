@@ -3,9 +3,13 @@
 use App\DTOs\Sales\SaleReturn\SaleReturnDTO;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\MovementsSale;
+use App\Models\Product;
 use App\Models\SaleOrder;
+use App\Models\Stock;
 use App\Models\TransactionType;
+use App\Models\Warehouse;
 use App\Services\Sales\SaleReturn\SaleReturnService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -19,15 +23,16 @@ beforeEach(function () {
 });
 
 test('store creates sale order and movements', function () {
-    $customer = \App\Models\Customer::factory()->create();
+    $customer = Customer::factory()->create();
 
     $originalSale = SaleOrder::factory()->facv()->create([
         'sls_customer_id' => $customer->id,
+        'sls_total' => 116.00,
     ]);
 
-    $product = \App\Models\Product::factory()->create();
-    \App\Models\Warehouse::factory()->create(['id' => 1]);
-    $stock = new \App\Models\Stock;
+    $product = Product::factory()->create();
+    Warehouse::factory()->create(['id' => 1]);
+    $stock = new Stock;
     $stock->stk_pro_code = $product->pro_code;
     $stock->stk_war_id = 1;
     $stock->stk_cant = 100;
@@ -74,13 +79,13 @@ test('store creates sale order and movements', function () {
     expect($result)->toBeInstanceOf(SaleOrder::class);
     expect($result->sls_number)->toBe('DEV-001');
     expect($result->sls_trans_type_code)->toBe('DEVV');
-    expect($result->sls_status)->toBe('pending');
+    expect($result->sls_status)->toBe('paid');
 
     expect(MovementsSale::where('mvs_number', 'DEV-001')->count())->toBe(1);
 });
 
 test('store throws exception when original sale does not exist', function () {
-    $customer = \App\Models\Customer::factory()->create();
+    $customer = Customer::factory()->create();
 
     $dto = SaleReturnDTO::fromArray([
         'sls_number' => 'DEV-002',
@@ -99,18 +104,18 @@ test('store throws exception when original sale does not exist', function () {
     $service = app(SaleReturnService::class);
 
     expect(fn () => $service->store($dto))
-        ->toThrow(\RuntimeException::class, 'no existe');
+        ->toThrow(RuntimeException::class, 'no existe');
 });
 
 test('store throws exception when quantity exceeds available', function () {
-    $customer = \App\Models\Customer::factory()->create();
+    $customer = Customer::factory()->create();
 
     $originalSale = SaleOrder::factory()->facv()->create([
         'sls_customer_id' => $customer->id,
     ]);
 
-    $product = \App\Models\Product::factory()->create();
-    \App\Models\Warehouse::factory()->create(['id' => 1]);
+    $product = Product::factory()->create();
+    Warehouse::factory()->create(['id' => 1]);
 
     $originalSale->movements()->create([
         'mvs_number' => $originalSale->sls_number,
@@ -150,13 +155,13 @@ test('store throws exception when quantity exceeds available', function () {
     $service = app(SaleReturnService::class);
 
     expect(fn () => $service->store($dto))
-        ->toThrow(\RuntimeException::class, 'excede la disponible');
+        ->toThrow(RuntimeException::class, 'excede la disponible');
 });
 
 test('destroy removes sale order and movements', function () {
-    $customer = \App\Models\Customer::factory()->create();
-    $warehouse = \App\Models\Warehouse::factory()->create(['id' => 1]);
-    $product = \App\Models\Product::factory()->create();
+    $customer = Customer::factory()->create();
+    $warehouse = Warehouse::factory()->create(['id' => 1]);
+    $product = Product::factory()->create();
 
     $saleReturn = SaleOrder::factory()->devv()->create([
         'sls_customer_id' => $customer->id,
