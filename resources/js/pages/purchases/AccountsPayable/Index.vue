@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { FileText, CreditCard, Search, X, Eye, Pencil, Trash2, Calendar, Hash } from 'lucide-vue-next';
+import { FileText, CreditCard, Search, X, Eye, Pencil, Trash2, Calendar, Hash, Undo2 } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
-import { formatDate } from '@/composables/useDate';
 import {
     Dialog,
     DialogContent,
@@ -19,6 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { formatDate } from '@/composables/useDate';
 import accountsPayableRoutes from '@/routes/accounts-payable';
 import paymentRoutes from '@/routes/payments';
 
@@ -47,6 +47,8 @@ interface AccountsPayable {
     payments?: {
         id: number;
         apy_amount: string;
+        apy_type: string;
+        apy_invoice_reference: string | null;
         created_at: string;
         bank_transaction?: {
             btr_reference: string;
@@ -258,15 +260,27 @@ const deletePayment = (paymentId: number) => {
                     </div>
                     
                     <div v-else class="space-y-4">
-                        <div v-for="payment in selectedAccount.payments" :key="payment.id" class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                        <div v-for="payment in selectedAccount.payments" :key="payment.id" class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700" :class="{ 'border-orange-300 dark:border-orange-700': payment.apy_type === 'RETURN_CREDIT' }">
                             <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
-                                        ${{ parseFloat(payment.apy_amount).toFixed(2) }}
-                                    </h4>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
+                                            ${{ parseFloat(payment.apy_amount).toFixed(2) }}
+                                        </h4>
+                                        <span v-if="payment.apy_type === 'RETURN_CREDIT'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+                                            Crédito por devolución
+                                        </span>
+                                        <span v-else class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                                            Pago
+                                        </span>
+                                    </div>
                                     <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
                                         <Calendar class="h-4 w-4" />
                                         {{ formatDate(payment.bank_transaction?.created_at ?? payment.created_at) }}
+                                    </div>
+                                    <div class="flex items-center gap-2 text-sm text-gray-500 mt-1" v-if="payment.apy_invoice_reference">
+                                        <Undo2 class="h-4 w-4" />
+                                        Dev: #{{ payment.apy_invoice_reference }}
                                     </div>
                                     <div class="flex items-center gap-2 text-sm text-gray-500 mt-1" v-if="payment.bank_transaction?.btr_reference">
                                         <Hash class="h-4 w-4" />
@@ -277,7 +291,7 @@ const deletePayment = (paymentId: number) => {
                                     </div>
                                 </div>
                                 
-                                <div class="flex space-x-2">
+                                <div class="flex space-x-2" v-if="payment.apy_type !== 'RETURN_CREDIT'">
                                     <Button @click="editPayment(payment.id)" variant="outline" size="sm" class="h-8 shadow-sm">
                                         <Pencil class="h-3.5 w-3.5 mr-1" /> Editar
                                     </Button>

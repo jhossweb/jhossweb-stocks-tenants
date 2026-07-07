@@ -59,13 +59,12 @@ class AccountsPayable extends Model
     /**
      * Register a payment for this account
      */
-    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null): void
+    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?string $invoiceReference = null): void
     {
         $this->acp_balance -= $amount;
 
         if ($this->acp_balance <= 0) {
             $this->acp_status = StatusPurchases::PAID->value;
-            $this->acp_balance = 0;
         } else {
             $this->acp_status = StatusPurchases::PARTIAL->value;
         }
@@ -82,7 +81,31 @@ class AccountsPayable extends Model
             'apy_bank_transaction_id' => $bankTransactionId,
             'apy_type' => $type,
             'apy_amount' => $amount,
+            'apy_invoice_reference' => $invoiceReference,
         ]);
+    }
+
+    /**
+     * Reverse a payment/credit and restore the account balance
+     */
+    public function reversePayment(AccountPayments $payment): void
+    {
+        $this->acp_balance += $payment->apy_amount;
+
+        $this->acp_status = match (true) {
+            $this->acp_balance <= 0 => StatusPurchases::PAID->value,
+            $this->acp_balance < $this->acp_total => StatusPurchases::PARTIAL->value,
+            default => StatusPurchases::PENDING->value,
+        };
+
+        $this->save();
+
+        if ($this->purchaseOrder) {
+            $this->purchaseOrder->invoice_status = $this->acp_status;
+            $this->purchaseOrder->save();
+        }
+
+        $payment->delete();
     }
 
     public function payments()
