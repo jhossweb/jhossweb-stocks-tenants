@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Expense;
 
+use App\Models\BankAccount;
 use App\Models\Expense;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -15,7 +16,20 @@ class PayExpenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bank_account_id' => ['required', 'exists:bank_accounts,id'],
+            'bank_account_id' => [
+                'required',
+                'exists:bank_accounts,id',
+                function ($attribute, $value, $fail) {
+                    $account = BankAccount::find($value);
+                    if (! $account) {
+                        return;
+                    }
+                    $amount = (float) ($this->amount ?? 0);
+                    if ($account->bank_balance < $amount) {
+                        $fail("Saldo insuficiente en {$account->bank_name}. Saldo disponible: ".number_format((float) $account->bank_balance, 2).' '.$account->bank_currency);
+                    }
+                },
+            ],
             'amount' => [
                 'required',
                 'numeric',

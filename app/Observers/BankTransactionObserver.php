@@ -8,6 +8,23 @@ use App\Models\BankTransaction;
 class BankTransactionObserver
 {
     /**
+     * Handle the BankTransaction "creating" event.
+     */
+    public function creating(BankTransaction $bankTransaction): void
+    {
+        if ($bankTransaction->btr_type === 'outflow') {
+            $account = $bankTransaction->bankAccount;
+            if (! $account || $account->bank_balance < $bankTransaction->btr_amount) {
+                throw new \RuntimeException(
+                    'Saldo insuficiente en la cuenta bancaria. '
+                    .'Saldo actual: '.number_format((float) ($account?->bank_balance ?? 0), 2)
+                    .', requiere: '.number_format((float) $bankTransaction->btr_amount, 2)
+                );
+            }
+        }
+    }
+
+    /**
      * Handle the BankTransaction "created" event.
      */
     public function created(BankTransaction $bankTransaction): void

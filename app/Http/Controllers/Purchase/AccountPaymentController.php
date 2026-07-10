@@ -68,6 +68,15 @@ class AccountPaymentController extends Controller
             'payments.*.amount' => 'required|numeric|min:0',
         ]);
 
+        $bankAccount = BankAccount::findOrFail($validated['bank_account_id']);
+        $totalPayment = (float) array_sum(array_column($validated['payments'], 'amount'));
+
+        if ($bankAccount->bank_balance < $totalPayment) {
+            return redirect()->back()->withErrors([
+                'bank_account_id' => 'Saldo insuficiente. Saldo disponible en '.$bankAccount->bank_name.': '.number_format((float) $bankAccount->bank_balance, 2).' '.$bankAccount->bank_currency,
+            ]);
+        }
+
         DB::beginTransaction();
         try {
             $activePayments = array_filter($validated['payments'], fn ($p) => $p['amount'] > 0);
@@ -155,6 +164,21 @@ class AccountPaymentController extends Controller
             'payment_description' => 'nullable|string|max:150',
             'amount' => 'required|numeric|min:0.01',
         ]);
+
+        $bankAccount = BankAccount::findOrFail($validated['bank_account_id']);
+        $oldBankTx = $payment->bankTransaction;
+        $effectiveBalance = (float) $bankAccount->bank_balance;
+        $newAmount = (float) $validated['amount'];
+
+        if ($oldBankTx && (int) $oldBankTx->btr_bank_account_id === (int) $validated['bank_account_id']) {
+            $effectiveBalance += (float) $oldBankTx->btr_amount;
+        }
+
+        if ($effectiveBalance < $newAmount) {
+            return redirect()->back()->withErrors([
+                'amount' => 'Saldo insuficiente en '.$bankAccount->bank_name.'. Saldo efectivo disponible: '.number_format($effectiveBalance, 2).' '.$bankAccount->bank_currency,
+            ]);
+        }
 
         DB::beginTransaction();
         try {

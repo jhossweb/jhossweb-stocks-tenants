@@ -12,7 +12,8 @@ import {
     Calendar,
     DollarSign,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
+    Repeat
 } from 'lucide-vue-next';
 import { ref, watch, computed, onMounted } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
@@ -28,6 +29,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 
+import { useCurrencyConversion } from '@/composables/useCurrencyConversion';
 import receiptRoutes from '@/routes/receipts';
 
 const props = defineProps<{
@@ -41,6 +43,8 @@ const props = defineProps<{
 }>();
 
 const isEditMode = computed(() => !!props.payment);
+
+const { convertCurrency } = useCurrencyConversion();
 
 const pendingReceivables = ref<any[]>([]);
 const isLoadingInvoices = ref(false);
@@ -63,6 +67,16 @@ const totalToPay = computed(() => {
 
 const totalInPaymentCurrency = computed(() => {
     return totalToPay.value;
+});
+
+const originalTotal = computed(() => {
+    return form.payments.reduce((acc, p) => acc + Number(p.balance), 0);
+});
+
+const originalCurrency = computed(() => {
+    const currencies = [...new Set(form.payments.map(p => p.currency))];
+
+    return currencies.length === 1 ? currencies[0] : undefined;
 });
 
 const fetchPendingReceivables = async (customerId: string | number) => {
@@ -192,7 +206,15 @@ const updateExchangeRate = () => {
     }
 };
 
-watch(() => [form.payment_currency, form.payment_date], () => {
+watch(() => [form.payment_currency, form.payment_date], ([newCurrency, newDate], [oldCurrency, oldDate]) => {
+    if (newCurrency !== oldCurrency) {
+        const isInFiltered = filteredBankAccounts.value.some(ba => ba.id == form.bank_account_id)
+
+        if (!isInFiltered) {
+            form.bank_account_id = '';
+        }
+    }
+
     updateExchangeRate();
 });
 
@@ -218,32 +240,23 @@ onMounted(() => {
     }
 });
 
+const filteredBankAccounts = computed(() =>
+    props.bankAccounts.filter(ba => ba.bank_currency === form.payment_currency)
+);
+
 const selectedBankAccount = computed(() => {
-    return props.bankAccounts.find(ba => ba.id == form.bank_account_id);
+    return filteredBankAccounts.value.find(ba => ba.id == form.bank_account_id);
 });
 
 const calculateConvertedBalance = (invoicePayment: any) => {
-    const balance = invoicePayment.balance;
-    const fromCurrency = invoicePayment.currency;
-    const toCurrency = form.payment_currency;
-    const rate = Number(form.payment_rate);
+    const currentRate = getBestRateForDate(form.payment_date) || props.latestRate || {};
 
-    if (fromCurrency === toCurrency) {
-return balance;
-}
-
-    if (fromCurrency === 'COP' && toCurrency === 'USD') {
-        const currentRate = getBestRateForDate(form.payment_date);
-        const copRate = currentRate ? Number(currentRate.rate_cop) : 1;
-
-        return balance / copRate;
-    }
-
-    if (fromCurrency === 'USD' && (toCurrency === 'COP' || toCurrency === 'BS' || toCurrency === 'VES')) {
-        return balance * rate;
-    }
-
-    return balance;
+    return convertCurrency(
+        invoicePayment.balance,
+        invoicePayment.currency,
+        form.payment_currency,
+        currentRate,
+    );
 };
 
 </script>
@@ -389,6 +402,23 @@ return balance;
                                 <div class="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Tasa Aplicada</div>
                                 <div class="text-sm font-mono font-bold">{{ Number(form.payment_rate).toFixed(4) }}</div>
                             </div>
+
+                            <!-- Conversion Notice -->
+                            <div
+                                v-if="originalTotal > 0 && originalCurrency && originalCurrency !== form.payment_currency"
+                                class="pt-4 border-t border-white/10 space-y-2"
+                            >
+                                <div class="flex items-center gap-2 text-[10px] font-bold text-indigo-100 uppercase tracking-wider">
+                                    <Repeat class="w-3.5 h-3.5" /> Conversión de Moneda
+                                </div>
+                                <div class="flex items-baseline justify-between">
+                                    <span class="text-indigo-200 text-sm">Total a pagar</span>
+                                    <span class="font-black text-white text-lg">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
+                                </div>
+                                <div class="text-xs text-indigo-300/70 text-right">
+                                    (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -443,9 +473,18 @@ return balance;
                                             </div>
                                         </td>
                                         <td class="px-6 py-5">
-                                            <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
-                                                <span class="text-[10px] text-zinc-600">{{ form.payment_currency }}</span>
-                                                {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                            <div class="flex flex-col gap-1">
+                                                <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
+                                                    <span class="text-[10px] text-zinc-600">{{ invoice.currency }}</span>
+                                                    {{ Number(invoice.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                                </div>
+                                                <div
+                                                    v-if="invoice.currency !== form.payment_currency"
+                                                    class="flex items-center gap-1 font-mono text-[11px] text-indigo-400 font-bold"
+                                                >
+                                                    <span class="text-[10px] text-indigo-600">≈ {{ form.payment_currency }}</span>
+                                                    {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-5">
@@ -491,7 +530,7 @@ return balance;
                                             <SelectValue placeholder="Seleccione cuenta bancaria" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="ba in bankAccounts" :key="ba.id" :value="ba.id.toString()">
+                                            <SelectItem v-for="ba in filteredBankAccounts" :key="ba.id" :value="ba.id.toString()">
                                                 <div class="flex flex-col items-start py-0.5">
                                                     <span class="font-bold text-zinc-200">{{ ba.bank_name }}</span>
                                                     <span class="text-[10px] font-mono text-zinc-500">{{ ba.bank_account_number }} ({{ ba.bank_currency }})</span>

@@ -41,6 +41,7 @@ interface Rate {
     rate_usd: string | number;
     rate_cop: string | number;
     rate_eur: string | number;
+    rate_cop_bs: string | number;
     created_at: string;
 }
 
@@ -100,6 +101,7 @@ const form = useForm({
     rate_usd: 1,
     rate_cop: 0,
     rate_eur: 0,
+    rate_cop_bs: 0,
 });
 
 // Cuando el modal se abre para editar, cargamos los datos en el form
@@ -109,6 +111,7 @@ watch(() => currentRate.value, (newRate: Rate | null) => {
         form.rate_usd = Number(newRate.rate_usd);
         form.rate_cop = Number(newRate.rate_cop);
         form.rate_eur = Number(newRate.rate_eur);
+        form.rate_cop_bs = Number(newRate.rate_cop_bs) || 0;
     } else {
         form.reset();
     }
@@ -152,6 +155,7 @@ const submit = () => {
                             <th class="px-6 py-4 text-right text-indigo-400">USD ($)</th>
                             <th class="px-6 py-4 text-right">COP ($)</th>
                             <th class="px-6 py-4 text-right">EUR (€)</th>
+                            <th class="px-6 py-4 text-right text-amber-400">COP/BS</th>
                             <th class="px-6 py-4 text-center w-24">Acciones</th>
                         </tr>
                     </thead>
@@ -171,6 +175,9 @@ const submit = () => {
                             </td>
                             <td class="px-6 py-4 text-right font-mono text-zinc-300">
                                 {{ Number(rate.rate_eur).toFixed(4) }}
+                            </td>
+                            <td class="px-6 py-4 text-right font-mono text-amber-400">
+                                {{ Number(rate.rate_cop_bs).toFixed(4) }}
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2">
@@ -192,7 +199,7 @@ const submit = () => {
                             </td>
                         </tr>
                         <tr v-if="rates.data.length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center text-zinc-500 italic">
+                            <td colspan="6" class="px-6 py-12 text-center text-zinc-500 italic">
                                 No se han registrado tasas aún.
                             </td>
                         </tr>
@@ -278,6 +285,20 @@ const submit = () => {
                                     required
                                 />
                                 <InputError :message="form.errors.rate_eur" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="rate_cop_bs" class="text-zinc-400">Tasa COP/BS</Label>
+                                <Input 
+                                    id="rate_cop_bs" 
+                                    type="number" 
+                                    step="0.0001" 
+                                    v-model="form.rate_cop_bs" 
+                                    class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 font-mono text-amber-400"
+                                    placeholder="0.0000"
+                                />
+                                <p class="text-[10px] text-zinc-600">Cuántos COP por 1 BS. Si está en 0 se usará tasa cruzada vía USD.</p>
+                                <InputError :message="form.errors.rate_cop_bs" />
                             </div>
                         </div>
                     </div>

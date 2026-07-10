@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertCircle, Calendar, DollarSign, Building2, Landmark } from 'lucide-vue-next'
+import { AlertCircle, Calendar, DollarSign, Building2, Landmark, Repeat } from 'lucide-vue-next'
 import { watch, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import Input from '@/components/ui/input/Input.vue'
@@ -44,8 +44,20 @@ defineEmits<{
 
 const { resolveRate } = usePayment()
 
+const filteredBankAccounts = computed(() =>
+    props.bankAccounts.filter(ba => ba.bank_currency === props.form.payment_currency)
+)
+
 const selectedBankAccount = computed(() => {
-    return props.bankAccounts.find(ba => ba.id == props.form.bank_account_id)
+    return filteredBankAccounts.value.find(ba => ba.id == props.form.bank_account_id)
+})
+
+watch(() => props.form.payment_currency, () => {
+    const isInFiltered = filteredBankAccounts.value.some(ba => ba.id == props.form.bank_account_id)
+
+    if (!isInFiltered) {
+        props.form.bank_account_id = ''
+    }
 })
 
 const maxAmount = computed(() => {
@@ -142,6 +154,23 @@ watch(() => props.form.payment_currency, () => updateExchangeRate())
             <span v-if="errors.payment_rate" class="text-xs text-red-500 font-bold block mt-1">{{ errors.payment_rate }}</span>
         </div>
 
+        <!-- Conversion Notice -->
+        <div
+            v-if="showRate && currency !== form.payment_currency"
+            class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-3"
+        >
+            <div class="flex items-center gap-2 text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                <Repeat class="w-4 h-4" /> Conversión de Moneda
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-zinc-300 font-semibold">Total a pagar</span>
+                <span class="text-amber-400 font-black text-lg">{{ maxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
+            </div>
+            <div class="text-xs text-zinc-500 text-right">
+                (equivalente a {{ Number(remainingBalance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ currency }})
+            </div>
+        </div>
+
         <!-- Bank Account -->
         <div class="space-y-2">
             <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Banco y Cuenta</Label>
@@ -150,7 +179,7 @@ watch(() => props.form.payment_currency, () => updateExchangeRate())
                     <SelectValue placeholder="Seleccione cuenta bancaria" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem v-for="ba in bankAccounts" :key="ba.id" :value="ba.id.toString()">
+                    <SelectItem v-for="ba in filteredBankAccounts" :key="ba.id" :value="ba.id.toString()">
                         <div class="flex flex-col items-start py-0.5">
                             <span class="font-bold text-zinc-200">{{ ba.bank_name }}</span>
                             <span class="text-[10px] font-mono text-zinc-500">{{ ba.bank_currency }}</span>

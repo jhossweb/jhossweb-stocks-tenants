@@ -12,9 +12,10 @@ import BasePaymentPage from '@/components/payments/BasePaymentPage.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import { Badge as UIBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatDate, today } from '@/composables/useDate';
 import Input from '@/components/ui/input/Input.vue';
 import { Label } from '@/components/ui/label';
+import { useCurrencyConversion } from '@/composables/useCurrencyConversion';
+import { formatDate, today } from '@/composables/useDate';
 
 const props = defineProps<{
     employees: any[];
@@ -25,6 +26,8 @@ const props = defineProps<{
     methods: string[];
     employeeId?: string;
 }>();
+
+const { convertCurrency } = useCurrencyConversion();
 
 const pendingPayrolls = ref<any[]>([]);
 const isLoadingPayrolls = ref(false);
@@ -48,6 +51,16 @@ const totalToPay = computed(() => {
 
 const totalInPaymentCurrency = computed(() => {
     return totalToPay.value;
+});
+
+const originalTotal = computed(() => {
+    return form.payments.reduce((acc, p) => acc + Number(p.balance), 0);
+});
+
+const originalCurrency = computed(() => {
+    const currencies = [...new Set(form.payments.map(p => p.currency))];
+
+    return currencies.length === 1 ? currencies[0] : undefined;
 });
 
 const fetchPendingPayrolls = async (employeeId: string | number) => {
@@ -190,27 +203,14 @@ const selectedBankAccount = computed(() => {
 });
 
 const calculateConvertedBalance = (payment: any) => {
-    const balance = payment.balance;
-    const fromCurrency = payment.currency;
-    const toCurrency = form.payment_currency;
-    const rate = Number(form.payment_rate);
+    const currentRate = getBestRateForDate(form.payment_date) || props.latestRate || {};
 
-    if (fromCurrency === toCurrency) {
-return balance;
-}
-
-    if (fromCurrency === 'COP' && toCurrency === 'USD') {
-        const currentRate = getBestRateForDate(form.payment_date);
-        const copRate = currentRate ? Number(currentRate.rate_cop) : 1;
-
-        return balance / copRate;
-    }
-
-    if (fromCurrency === 'USD' && (toCurrency === 'COP' || toCurrency === 'BS' || toCurrency === 'VES')) {
-        return balance * rate;
-    }
-
-    return balance;
+    return convertCurrency(
+        payment.balance,
+        payment.currency,
+        form.payment_currency,
+        currentRate,
+    );
 };
 
 </script>
@@ -233,6 +233,8 @@ return balance;
         total-label="Total a Liquidar"
         :total-amount="totalInPaymentCurrency"
         :total-currency="form.payment_currency"
+        :original-total="originalTotal"
+        :original-currency="originalCurrency"
         @submit="submit"
     >
         <template #entity-selector>
@@ -302,9 +304,18 @@ return balance;
                                     </div>
                                 </td>
                                 <td class="px-6 py-5">
-                                    <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
-                                        <span class="text-[10px] text-zinc-600">{{ form.payment_currency }}</span>
-                                        {{ calculateConvertedBalance(payrollItem).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                    <div class="flex flex-col gap-1">
+                                        <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
+                                            <span class="text-[10px] text-zinc-600">{{ payrollItem.currency }}</span>
+                                            {{ Number(payrollItem.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                        </div>
+                                        <div
+                                            v-if="payrollItem.currency !== form.payment_currency"
+                                            class="flex items-center gap-1 font-mono text-[11px] text-amber-400 font-bold"
+                                        >
+                                            <span class="text-[10px] text-amber-600">≈ {{ form.payment_currency }}</span>
+                                            {{ calculateConvertedBalance(payrollItem).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-5">

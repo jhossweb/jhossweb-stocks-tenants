@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Payroll;
 
 use App\Enum\TypeCoin;
+use App\Models\BankAccount;
 use App\Models\Rate;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -16,7 +17,20 @@ class PayPayrollRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bank_account_id' => 'required|exists:bank_accounts,id',
+            'bank_account_id' => [
+                'required',
+                'exists:bank_accounts,id',
+                function ($attribute, $value, $fail) {
+                    $account = BankAccount::find($value);
+                    if (! $account) {
+                        return;
+                    }
+                    $amount = (float) ($this->amount ?? 0);
+                    if ($account->bank_balance < $amount) {
+                        $fail("Saldo insuficiente en {$account->bank_name}. Saldo disponible: ".number_format((float) $account->bank_balance, 2).' '.$account->bank_currency);
+                    }
+                },
+            ],
             'amount' => 'required|numeric|min:0.01',
             'reference' => 'required|string|max:50',
             'description' => 'nullable|string|max:150',

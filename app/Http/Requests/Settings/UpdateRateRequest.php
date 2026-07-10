@@ -22,6 +22,7 @@ class UpdateRateRequest extends FormRequest
             'rate_usd' => ['required', 'numeric', 'min:0'],
             'rate_cop' => ['required', 'numeric', 'min:0'],
             'rate_eur' => ['required', 'numeric', 'min:0'],
+            'rate_cop_bs' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

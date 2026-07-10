@@ -16,6 +16,7 @@ class Rate extends Model
         'rate_usd',
         'rate_cop',
         'rate_eur',
+        'rate_cop_bs',
     ];
 
     /**

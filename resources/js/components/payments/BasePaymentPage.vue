@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3'
-import { ArrowLeft, Save, Loader2, Building2, Landmark, Calendar, DollarSign, AlertCircle, CheckCircle2, Calculator } from 'lucide-vue-next'
+import { ArrowLeft, Save, Loader2, Building2, Landmark, Calendar, DollarSign, AlertCircle, CheckCircle2, Calculator, Repeat } from 'lucide-vue-next'
 import { computed, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import Input from '@/components/ui/input/Input.vue'
@@ -38,6 +38,8 @@ const props = defineProps<{
     totalLabel: string
     totalAmount: number
     totalCurrency: string
+    originalTotal?: number
+    originalCurrency?: string
 }>()
 
 const emit = defineEmits<{
@@ -46,8 +48,34 @@ const emit = defineEmits<{
 
 const { resolveRate } = usePayment()
 
+const filteredBankAccounts = computed(() =>
+    props.bankAccounts.filter(ba => ba.bank_currency === props.form.payment_currency)
+)
+
 const selectedBankAccount = computed(() => {
-    return props.bankAccounts.find(ba => ba.id == props.form.bank_account_id)
+    return filteredBankAccounts.value.find(ba => ba.id == props.form.bank_account_id)
+})
+
+const isInsufficientFunds = computed(() => {
+    const account = selectedBankAccount.value
+
+    if (!account) {
+        return false
+    }
+
+    const amount = Number(props.form.amount || 0)
+
+    return amount > 0 && Number(account.bank_balance) < amount
+})
+
+watch(() => props.form.payment_currency, () => {
+    const isInFiltered = filteredBankAccounts.value.some(ba => ba.id == props.form.bank_account_id)
+
+    if (!isInFiltered) {
+        props.form.bank_account_id = ''
+    }
+
+    updateExchangeRate()
 })
 
 const updateExchangeRate = () => {
@@ -87,13 +115,14 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
 
                 <Button
                     @click="emit('submit')"
-                    :disabled="processing"
+                    :disabled="processing || isInsufficientFunds"
                     size="lg"
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-all relative z-10"
+                    :class="isInsufficientFunds ? 'bg-red-600/50 text-red-300 cursor-not-allowed h-12 px-8 rounded-xl' : 'bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-all relative z-10'"
                 >
                     <Loader2 v-if="processing" class="w-4 h-4 mr-2 animate-spin" />
-                    <Save v-else class="w-4 h-4 mr-2" />
-                    {{ submitLabel }}
+                    <Save v-else-if="!isInsufficientFunds" class="w-4 h-4 mr-2" />
+                    <AlertCircle v-else class="w-4 h-4 mr-2" />
+                    {{ isInsufficientFunds ? 'Fondos Insuficientes' : submitLabel }}
                 </Button>
             </div>
 
@@ -180,6 +209,23 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
                                 <div class="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Tasa Aplicada</div>
                                 <div class="text-sm font-mono font-bold">{{ Number(form.payment_rate || 1).toFixed(4) }}</div>
                             </div>
+
+                            <!-- Conversion Notice -->
+                            <div
+                                v-if="originalTotal !== undefined && originalCurrency && originalCurrency !== form.payment_currency"
+                                class="pt-4 border-t border-white/10 space-y-2"
+                            >
+                                <div class="flex items-center gap-2 text-[10px] font-bold text-indigo-100 uppercase tracking-wider">
+                                    <Repeat class="w-3.5 h-3.5" /> Conversión de Moneda
+                                </div>
+                                <div class="flex items-baseline justify-between">
+                                    <span class="text-indigo-200 text-sm">Total a pagar</span>
+                                    <span class="font-black text-white text-lg">{{ totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
+                                </div>
+                                <div class="text-xs text-indigo-300/70 text-right">
+                                    (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -205,7 +251,7 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
                                             <SelectValue placeholder="Seleccione cuenta bancaria" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="ba in bankAccounts" :key="ba.id" :value="ba.id.toString()">
+                                            <SelectItem v-for="ba in filteredBankAccounts" :key="ba.id" :value="ba.id.toString()">
                                                 <div class="flex flex-col items-start py-0.5">
                                                     <span class="font-bold text-zinc-200">{{ ba.bank_name }}</span>
                                                     <span class="text-[10px] font-mono text-zinc-500">{{ ba.bank_account_number || ba.bank_currency }} ({{ ba.bank_currency }})</span>

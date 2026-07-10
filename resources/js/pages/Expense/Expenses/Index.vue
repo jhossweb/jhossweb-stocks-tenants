@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { PlusCircle, DollarSign, FileText, Filter, ChevronDown, ChevronUp, Banknote, Loader2 } from 'lucide-vue-next';
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
@@ -95,15 +95,6 @@ const { resolveRate } = usePayment();
 const originalBalance = ref(0);
 const originalCoin = ref('USD');
 
-const filteredBankAccounts = computed(() =>
-    props.bankAccounts.filter(ba => ba.bank_currency === payForm.payment_currency)
-);
-
-const resetBankAccount = () => {
-    const firstMatch = filteredBankAccounts.value[0];
-    payForm.bank_account_id = firstMatch ? String(firstMatch.id) : '';
-};
-
 const openPayModal = (expense: Expense) => {
     payingExpense.value = expense;
     originalBalance.value = Number(expense.exp_remaining_balance) || 0;
@@ -111,11 +102,11 @@ const openPayModal = (expense: Expense) => {
     payForm.reference = '';
     payForm.description = '';
     payForm.payment_currency = originalCoin.value;
+    payForm.bank_account_id = '';
     payForm.amount = String(originalBalance.value);
     payForm.payment_date = today();
     payForm.payment_method = props.methods.length > 0 ? props.methods[0] : '';
     payForm.payment_rate = resolveRate(payForm.payment_currency, props.latestRate);
-    resetBankAccount();
     showPayModal.value = true;
 };
 
@@ -134,7 +125,6 @@ watch(() => payForm.payment_currency, (newCurrency, oldCurrency) => {
     }
 
     payForm.payment_rate = resolveRate(newCurrency, props.latestRate);
-    resetBankAccount();
 });
 
 const closePayModal = () => {
@@ -349,7 +339,7 @@ const togglePayments = (expenseId: number) => {
         </template>
 
         <PaymentForm
-            :bank-accounts="filteredBankAccounts"
+            :bank-accounts="bankAccounts"
             :latest-rate="latestRate"
             :currency="payingExpense?.exp_coin ?? 'USD'"
             :remaining-balance="Number(payingExpense?.exp_remaining_balance ?? 0)"
