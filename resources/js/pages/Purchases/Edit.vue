@@ -61,95 +61,33 @@ return exactRate;
 
     return pastRates.length > 0 ? pastRates[0] : props.rates[0]; 
 };
-/*
 const updateExchangeRate = () => {
-    const selectedRate = getBestRateForDate(form.invoice_date);
-    
-    if (selectedRate) {
-        if (form.invoice_coin === 'USD') {
-            form.invoice_valorcam = 1;
-        } else if (form.invoice_coin === 'COP') {
-            form.invoice_valorcam = Number(selectedRate.rate_cop);
-        } else if (form.invoice_coin === 'VES' || form.invoice_coin === 'BS') {
-            form.invoice_valorcam = Number(selectedRate.rate_usd);
-        } else if (form.invoice_coin === 'EUR') {
-            form.invoice_valorcam = Number(selectedRate.rate_eur);
-        }
-    }
-    
-    // Recalcular el Costo Ref ($) para todos los items basado en la nueva tasa
-    form.items.forEach((_, i) => updateCostRef(i));
-};
-*/
-const updateExchangeRate = () => {
-    // Si la fecha es la de hoy, podrías forzar que use la latest_rate
     const today = new Date().toISOString().split('T')[0];
-    
+
     if (form.invoice_date === today && props.latest_rate) {
-        if (form.invoice_coin === 'USD') {
-            form.invoice_valorcam = 1;
-        } else {
-            // Ajusta según la moneda seleccionada usando los datos de la última tasa
-            form.invoice_valorcam = form.invoice_coin === 'COP' 
-                ? Number(props.latest_rate.rate_cop) 
-                : Number(props.latest_rate.rate_usd);
+        if (form.invoice_coin === 'USD' || form.invoice_coin === 'BS' || form.invoice_coin === 'VES') {
+            form.invoice_valorcam = Number(props.latest_rate.rate_usd);
+        } else if (form.invoice_coin === 'COP') {
+            form.invoice_valorcam = Number(props.latest_rate.rate_cop);
+        } else if (form.invoice_coin === 'EUR') {
+            form.invoice_valorcam = Number(props.latest_rate.rate_eur);
         }
     } else {
-        // Si es una fecha pasada, buscar en el histórico (tu lógica actual)
         const selectedRate = getBestRateForDate(form.invoice_date);
 
         if (selectedRate) {
-            if (form.invoice_coin === 'USD') {
-                form.invoice_valorcam = 1;
+            if (form.invoice_coin === 'USD' || form.invoice_coin === 'BS' || form.invoice_coin === 'VES') {
+                form.invoice_valorcam = Number(selectedRate.rate_usd);
             } else if (form.invoice_coin === 'COP') {
                 form.invoice_valorcam = Number(selectedRate.rate_cop);
-                alert(selectedRate.rate_cop)
-            } else if (form.invoice_coin === 'VES' || form.invoice_coin === 'BS') {
-                form.invoice_valorcam = Number(selectedRate.rate_usd);
-                alert(selectedRate.rate_usd)
             } else if (form.invoice_coin === 'EUR') {
-            form.invoice_valorcam = Number(selectedRate.rate_eur);
-            alert(selectedRate.rate_eur)
-        }
+                form.invoice_valorcam = Number(selectedRate.rate_eur);
+            }
         }
     }
 
-    // Forzamos el recalculo de costos ref para todos los items
     form.items.forEach((_, i) => updateCostRef(i));
 };
-
-
-/*
-const updateCostRef = (index: number) => {
-    const item = form.items[index];
-    const tasaActualInput = Number(form.invoice_valorcam) || 1;
-    
-    // Obtenemos la tasa USD del sistema para la triangulación (si fuera necesario comparar)
-    const selectedRate = getBestRateForDate(form.invoice_date);
-    const tasaUsdSistema = Number(selectedRate?.rate_usd) || 1;
-
-    let totalEnUsd = 0;
-
-    if (form.invoice_coin === 'USD') {
-        // Si la factura ya está en dólares, el costo ref es el mismo costo unitario
-        totalEnUsd = Number(item.mov_unit_cost);
-    } else if (form.invoice_coin === 'BS' || form.invoice_coin === 'VES') {
-        // Dividimos el costo en Bolívares entre la tasa del input (USD/VES)
-        // Ejemplo: 1000 BS / 36.50 tasa = 27.39 USD
-        totalEnUsd = Number(item.mov_unit_cost) / tasaActualInput;
-    } else if (form.invoice_coin === 'COP') {
-        // Para COP, normalmente se triangula: (COP / Tasa COP) / Tasa USD
-        // Pero si tu tasaActualInput ya representa cuántos COP es 1 USD, sería directo.
-        // Siguiendo tu lógica anterior de triangulación:
-        totalEnUsd = (Number(item.mov_unit_cost) / tasaActualInput) / tasaUsdSistema;
-    }
-
-    // Guardamos con 4 decimales para mayor precisión en inventarios
-    item.cost_ref = Number(totalEnUsd.toFixed(4));
-    
-    calculateTotals();
-};
-*/
 
 
 const updateCostRef = (index: number) => {

@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { PlusCircle, Trash2, ArrowLeft, Save, Loader2, AlertTriangle, ClipboardList } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -11,7 +12,6 @@ import {
     DialogDescription,
     DialogFooter,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 defineOptions({
@@ -47,29 +47,44 @@ const showConfirmModal = ref(false);
 const selectedWarehouseId = ref<number>(0);
 
 const filteredProducts = computed(() => {
-    if (!selectedWarehouseId.value) return [];
+    if (!selectedWarehouseId.value) {
+return [];
+}
+
     const warId = Number(selectedWarehouseId.value);
+
     return props.products.filter(p => {
         const stock = Array.isArray(p.stocks) ? p.stocks.find((s: any) => s.war_id === warId) : null;
+
         return stock && stock.cant > 0;
     });
 });
 
 const getStockForProduct = (proCode: string) => {
-    if (!selectedWarehouseId.value) return 0;
+    if (!selectedWarehouseId.value) {
+return 0;
+}
+
     const product = props.products.find(p => p.pro_code === proCode);
-    if (!product) return 0;
+
+    if (!product) {
+return 0;
+}
+
     const stock = Array.isArray(product.stocks) ? product.stocks.find((s: any) => s.war_id === Number(selectedWarehouseId.value)) : null;
+
     return stock ? stock.cant : 0;
 };
 
 const getProductName = (code: string) => {
     const p = props.products.find(p => p.pro_code === code);
+
     return p ? p.pro_name : 'Seleccione producto';
 };
 
 const getProductUnd = (code: string) => {
     const p = props.products.find(p => p.pro_code === code);
+
     return p ? p.pro_und : '';
 };
 
@@ -82,6 +97,7 @@ const getUndLabel = (und: string) => ({
 
 const getReasonName = (id: number | string) => {
     const r = props.reasons.find(r => r.id == id);
+
     return r ? r.adjr_name : 'Seleccione';
 };
 
@@ -118,6 +134,7 @@ const openConfirmModal = () => {
     if (!form.inv_number || !selectedWarehouseId.value) {
         return;
     }
+
     showConfirmModal.value = true;
 };
 </script>

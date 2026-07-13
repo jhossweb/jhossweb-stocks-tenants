@@ -64,16 +64,18 @@ return;
 
     switch (form.exp_coin) {
         case 'USD':
-            form.exp_valorcam = 1;
+        case 'BS':
+        case 'VES':
+            form.exp_valorcam = Number(props.latestRate.rate_usd ?? 1);
             break;
         case 'COP':
-            form.exp_valorcam = props.latestRate.rate_cop ?? 1;
+            form.exp_valorcam = Number(props.latestRate.rate_cop ?? 1);
             break;
         case 'EUR':
-            form.exp_valorcam = props.latestRate.rate_eur ?? 1;
+            form.exp_valorcam = Number(props.latestRate.rate_eur ?? 1);
             break;
         default:
-            form.exp_valorcam = props.latestRate.rate_usd ?? 1;
+            form.exp_valorcam = Number(props.latestRate.rate_usd ?? 1);
     }
 };
 

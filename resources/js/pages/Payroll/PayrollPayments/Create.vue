@@ -158,23 +158,21 @@ return exactRate;
 
 const updateExchangeRate = () => {
     if (form.payment_date === today() && props.latestRate) {
-        if (form.payment_currency === 'USD') {
-            form.payment_rate = 1;
-        } else {
-            form.payment_rate = form.payment_currency === 'COP' 
-                ? Number(props.latestRate.rate_cop) 
-                : Number(props.latestRate.rate_usd);
+        if (form.payment_currency === 'USD' || form.payment_currency === 'BS' || form.payment_currency === 'VES') {
+            form.payment_rate = Number(props.latestRate.rate_usd);
+        } else if (form.payment_currency === 'COP') {
+            form.payment_rate = Number(props.latestRate.rate_cop);
+        } else if (form.payment_currency === 'EUR') {
+            form.payment_rate = Number(props.latestRate.rate_eur);
         }
     } else {
         const selectedRate = getBestRateForDate(form.payment_date);
 
         if (selectedRate) {
-            if (form.payment_currency === 'USD') {
-                form.payment_rate = 1;
+            if (form.payment_currency === 'USD' || form.payment_currency === 'BS' || form.payment_currency === 'VES') {
+                form.payment_rate = Number(selectedRate.rate_usd);
             } else if (form.payment_currency === 'COP') {
                 form.payment_rate = Number(selectedRate.rate_cop);
-            } else if (form.payment_currency === 'BS' || form.payment_currency === 'VES') {
-                form.payment_rate = Number(selectedRate.rate_usd);
             } else if (form.payment_currency === 'EUR') {
                 form.payment_rate = Number(selectedRate.rate_eur);
             }

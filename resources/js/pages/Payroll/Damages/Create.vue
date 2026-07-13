@@ -37,14 +37,12 @@ const updateExchangeRate = () => {
 return;
 }
 
-    if (form.eda_coin === 'USD') {
-        form.eda_valorcam = 1;
+    if (form.eda_coin === 'USD' || form.eda_coin === 'BS' || form.eda_coin === 'VES') {
+        form.eda_valorcam = Number(props.latestRate.rate_usd);
     } else if (form.eda_coin === 'COP') {
         form.eda_valorcam = Number(props.latestRate.rate_cop);
     } else if (form.eda_coin === 'EUR') {
         form.eda_valorcam = Number(props.latestRate.rate_eur);
-    } else {
-        form.eda_valorcam = Number(props.latestRate.rate_usd);
     }
 };
 

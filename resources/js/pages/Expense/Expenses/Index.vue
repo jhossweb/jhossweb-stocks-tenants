@@ -111,13 +111,16 @@ const openPayModal = (expense: Expense) => {
 };
 
 watch(() => payForm.payment_currency, (newCurrency, oldCurrency) => {
-    if (!newCurrency) return;
+    if (!newCurrency) {
+return;
+}
 
     const currentAmount = Number(payForm.amount) || 0;
 
     if (oldCurrency && currentAmount > 0) {
         const rateOld = resolveRate(oldCurrency, props.latestRate);
         const rateNew = resolveRate(newCurrency, props.latestRate);
+
         if (rateOld > 0 && rateNew > 0) {
             const amountInBaseUSD = currentAmount / rateOld;
             payForm.amount = String(amountInBaseUSD * rateNew);

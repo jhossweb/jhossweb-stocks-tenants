@@ -104,10 +104,14 @@ const totalSalidas = computed(() =>
 );
 
 const stockActual = computed(() => {
-    if (!selectedWarehouse.value) return 0;
+    if (!selectedWarehouse.value) {
+return 0;
+}
+
     const stock = props.currentStocks.find(
         s => s.stk_war_id === Number(selectedWarehouse.value)
     );
+
     return stock?.stk_cant ?? 0;
 });
 
@@ -120,11 +124,20 @@ watch(selectedWarehouse, async (val) => {
     months.value = [];
     movements.value = [];
     loaded.value = false;
-    if (!val) return;
+
+    if (!val) {
+return;
+}
+
     loadingYears.value = true;
+
     try {
         const res = await fetch(`${apiBase}/years?warehouse_id=${val}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        if (!res.ok) {
+throw new Error(`HTTP ${res.status}`);
+}
+
         years.value = await res.json();
     } catch (e) {
         console.error('Error fetching years:', e);
@@ -138,13 +151,22 @@ watch(selectedYear, async (val) => {
     months.value = [];
     movements.value = [];
     loaded.value = false;
-    if (!val || !selectedWarehouse.value) return;
+
+    if (!val || !selectedWarehouse.value) {
+return;
+}
+
     loadingMonths.value = true;
+
     try {
         const res = await fetch(
             `${apiBase}/months?warehouse_id=${selectedWarehouse.value}&year=${val}`
         );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        if (!res.ok) {
+throw new Error(`HTTP ${res.status}`);
+}
+
         months.value = await res.json();
     } catch (e) {
         console.error('Error fetching months:', e);
@@ -157,19 +179,26 @@ watch([selectedWarehouse, selectedYear, selectedMonth], async () => {
     if (!selectedWarehouse.value || !selectedYear.value || !selectedMonth.value) {
         movements.value = [];
         loaded.value = false;
+
         return;
     }
+
     loadMovements();
 });
 
 async function loadMovements() {
     loadingMovements.value = true;
     loaded.value = false;
+
     try {
         const res = await fetch(
             `${apiBase}/movements?warehouse_id=${selectedWarehouse.value}&year=${selectedYear.value}&month=${selectedMonth.value}`
         );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        if (!res.ok) {
+throw new Error(`HTTP ${res.status}`);
+}
+
         const data = await res.json();
         movements.value = data.movements;
         initialBalance.value = data.initial_balance;
@@ -187,6 +216,7 @@ function getOrigenColor(origen: string): string {
         venta: 'text-red-600 bg-red-50 border-red-200',
         ajuste: 'text-amber-600 bg-amber-50 border-amber-200',
     };
+
     return colors[origen] || 'text-gray-600 bg-gray-50 border-gray-200';
 }
 

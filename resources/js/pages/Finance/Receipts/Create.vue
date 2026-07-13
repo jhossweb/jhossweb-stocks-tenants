@@ -158,57 +158,46 @@ const submit = () => {
 
 // --- LÓGICA DE TASAS ---
 
+const normalizeDate = (d: string) => d.substring(0, 10);
+
 const getBestRateForDate = (date: string) => {
     if (!props.rates || props.rates.length === 0) {
-return null;
-}
+        return null;
+    }
 
-    const exactRate = props.rates.find(r => r.rate_date === date);
+    const normalized = normalizeDate(date);
+    const exactRate = props.rates.find(r => normalizeDate(r.rate_date) === normalized);
 
     if (exactRate) {
-return exactRate;
-}
+        return exactRate;
+    }
 
     const pastRates = props.rates
-        // @ts-ignore
-        .filter(r => r.rate_date < date)
-        // @ts-ignore
-        .sort((a, b) => b.rate_date.localeCompare(a.rate_date));
+        .filter(r => normalizeDate(r.rate_date) < normalized)
+        .sort((a, b) => normalizeDate(b.rate_date).localeCompare(normalizeDate(a.rate_date)));
 
     return pastRates.length > 0 ? pastRates[0] : props.rates[0];
 };
 
 const updateExchangeRate = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const selectedRate = getBestRateForDate(form.payment_date);
 
-    if (form.payment_date === today && props.latestRate) {
-        if (form.payment_currency === 'USD') {
-            form.payment_rate = 1;
-        } else {
-            form.payment_rate = form.payment_currency === 'COP'
-                ? Number(props.latestRate.rate_cop)
-                : Number(props.latestRate.rate_usd);
-        }
-    } else {
-        const selectedRate = getBestRateForDate(form.payment_date);
+    if (!selectedRate) {
+        return;
+    }
 
-        if (selectedRate) {
-            if (form.payment_currency === 'USD') {
-                form.payment_rate = 1;
-            } else if (form.payment_currency === 'COP') {
-                form.payment_rate = Number(selectedRate.rate_cop);
-            } else if (form.payment_currency === 'BS' || form.payment_currency === 'VES') {
-                form.payment_rate = Number(selectedRate.rate_usd);
-            } else if (form.payment_currency === 'EUR') {
-                form.payment_rate = Number(selectedRate.rate_eur);
-            }
-        }
+    if (form.payment_currency === 'USD' || form.payment_currency === 'BS' || form.payment_currency === 'VES') {
+        form.payment_rate = Number(selectedRate.rate_usd);
+    } else if (form.payment_currency === 'COP') {
+        form.payment_rate = Number(selectedRate.rate_cop);
+    } else if (form.payment_currency === 'EUR') {
+        form.payment_rate = Number(selectedRate.rate_eur);
     }
 };
 
-watch(() => [form.payment_currency, form.payment_date], ([newCurrency, newDate], [oldCurrency, oldDate]) => {
+watch(() => [form.payment_currency, form.payment_date], ([newCurrency, oldCurrency]) => {
     if (newCurrency !== oldCurrency) {
-        const isInFiltered = filteredBankAccounts.value.some(ba => ba.id == form.bank_account_id)
+        const isInFiltered = filteredBankAccounts.value.some(ba => ba.id == form.bank_account_id);
 
         if (!isInFiltered) {
             form.bank_account_id = '';
@@ -216,13 +205,30 @@ watch(() => [form.payment_currency, form.payment_date], ([newCurrency, newDate],
     }
 
     updateExchangeRate();
+
+    form.payments.forEach(invoice => {
+        const max = calculateConvertedBalance(invoice);
+
+        if (Number(invoice.amount) > max) {
+            invoice.amount = max;
+        }
+    });
 });
 
 onMounted(() => {
     if (isEditMode.value && props.payment) {
         const docCurrency = props.payment.accounts_receivable?.sale_order?.sls_coin || 'USD';
         form.payment_currency = docCurrency;
-        form.payment_rate = 1;
+
+        if (docCurrency === 'USD' || docCurrency === 'BS' || docCurrency === 'VES') {
+            form.payment_rate = Number(props.latestRate?.rate_usd || 1);
+        } else if (docCurrency === 'COP') {
+            form.payment_rate = Number(props.latestRate?.rate_cop || 1);
+        } else if (docCurrency === 'EUR') {
+            form.payment_rate = Number(props.latestRate?.rate_eur || 1);
+        } else {
+            form.payment_rate = 1;
+        }
 
         const acr = props.payment.accounts_receivable;
         const currentBalance = Number(acr?.acr_balance || 0);

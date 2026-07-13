@@ -63,23 +63,21 @@ const updateExchangeRate = () => {
     const today = new Date().toISOString().split('T')[0];
 
     if (form.sls_date === today && props.latest_rate) {
-        if (form.sls_coin === 'USD') {
-            form.sls_valorcam = 1;
-        } else {
-            form.sls_valorcam = form.sls_coin === 'COP'
-                ? Number(props.latest_rate.rate_cop)
-                : Number(props.latest_rate.rate_usd);
+        if (form.sls_coin === 'USD' || form.sls_coin === 'BS' || form.sls_coin === 'VES') {
+            form.sls_valorcam = Number(props.latest_rate.rate_usd);
+        } else if (form.sls_coin === 'COP') {
+            form.sls_valorcam = Number(props.latest_rate.rate_cop);
+        } else if (form.sls_coin === 'EUR') {
+            form.sls_valorcam = Number(props.latest_rate.rate_eur);
         }
     } else {
         const selectedRate = getBestRateForDate(form.sls_date);
 
         if (selectedRate) {
-            if (form.sls_coin === 'USD') {
-                form.sls_valorcam = 1;
+            if (form.sls_coin === 'USD' || form.sls_coin === 'BS' || form.sls_coin === 'VES') {
+                form.sls_valorcam = Number(selectedRate.rate_usd);
             } else if (form.sls_coin === 'COP') {
                 form.sls_valorcam = Number(selectedRate.rate_cop);
-            } else if (form.sls_coin === 'VES' || form.sls_coin === 'BS') {
-                form.sls_valorcam = Number(selectedRate.rate_usd);
             } else if (form.sls_coin === 'EUR') {
                 form.sls_valorcam = Number(selectedRate.rate_eur);
             }

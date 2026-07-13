@@ -13,7 +13,6 @@ import {
 import { ref, computed, watch } from 'vue';
 import RateController from '@/actions/App/Http/Controllers/Settings/RateController';
 import DeleteUser from '@/components/DeleteUser.vue';
-import { formatDate, today } from '@/composables/useDate';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -34,6 +33,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatDate, today } from '@/composables/useDate';
 
 interface Rate {
     id: number;

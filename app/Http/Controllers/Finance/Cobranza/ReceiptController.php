@@ -13,12 +13,17 @@ use App\Models\BankTransaction;
 use App\Models\Customer;
 use App\Models\Rate;
 use App\Models\Receipt;
+use App\Services\Finance\RateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ReceiptController extends Controller
 {
+    public function __construct(
+        protected RateService $rateService,
+    ) {}
+
     public function create()
     {
         return Inertia::render('Finance/Receipts/Create', [
@@ -42,18 +47,6 @@ class ReceiptController extends Controller
 
         return response()->json($pending);
     }
-
-    /*
-      public function getPendingReceivables(Customer $customer)
-      {
-          $pendig = $customer->accountsReceivable()
-              ->with('saleOrder')
-              ->where('acr_balance', '>', 0)
-              ->get();
-
-          return response()->json($pendig);
-      }
-          */
 
     public function store(Request $request)
     {
@@ -79,29 +72,32 @@ class ReceiptController extends Controller
                 return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a cobrar.']);
             }
 
+            $rate = $this->rateService->getExactRateForDate($validated['payment_date']);
+
+            if (! $rate) {
+                return redirect()->back()->withErrors(['payment_date' => 'No existe tasa de cambio para la fecha seleccionada.']);
+            }
+
+            $valorcam = $this->rateService->resolveRateForCoin(
+                $validated['payment_date'],
+                $validated['payment_currency'],
+            );
+
             foreach ($activePayments as $paymentData) {
                 $acr = AccountsReceivable::with('saleOrder')->findOrFail($paymentData['acr_id']);
 
-                $amountToRegister = $paymentData['amount'];
+                $paymentAmount = (float) $paymentData['amount'];
                 $docCurrency = $acr->saleOrder->sls_coin ?? 'USD';
                 $payCurrency = $validated['payment_currency'];
-                $rate = (float) $validated['payment_rate'];
-
-                if ($docCurrency !== $payCurrency) {
-                    if ($docCurrency === 'COP' && $payCurrency === 'USD') {
-                        $amountToRegister = $amountToRegister * $rate;
-                    } elseif ($docCurrency === 'USD' && in_array($payCurrency, ['COP', 'BS', 'USD'])) {
-                        $amountToRegister = $amountToRegister / $rate;
-                    }
-                }
+                $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $rate);
 
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $validated['bank_account_id'],
                     'btr_type' => 'inflow',
-                    'btr_amount' => $amountToRegister,
+                    'btr_amount' => $paymentAmount,
                     'btr_reference' => $validated['payment_reference'],
                     'btr_description' => $validated['payment_description'] ?: 'Cobro a cliente',
-                    'btr_valorcam' => $validated['payment_rate'],
+                    'btr_valorcam' => $valorcam,
                     'btr_balance' => 0,
                     'btr_method' => $validated['payment_method'],
                     'btr_transaction_date' => $validated['payment_date'],
@@ -112,7 +108,7 @@ class ReceiptController extends Controller
                 $bankTransaction->save();
 
                 $acr->registerPayment(
-                    $amountToRegister,
+                    $amountInDocCurrency,
                     TypeReceipt::RECEIPT->value,
                     $bankTransaction->id,
                 );
@@ -203,6 +199,10 @@ class ReceiptController extends Controller
                 $bankTx->btr_description = $validated['payment_description'];
                 $bankTx->btr_amount = ($bankTx->btr_amount - $oldAmount) + $newAmount;
                 $bankTx->btr_coin = $validated['payment_currency'];
+                $bankTx->btr_valorcam = $this->rateService->resolveRateForCoin(
+                    $validated['payment_date'],
+                    $validated['payment_currency'],
+                );
                 $bankTx->save();
             }
 

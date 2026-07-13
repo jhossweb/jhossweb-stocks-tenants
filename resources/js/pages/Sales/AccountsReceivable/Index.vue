@@ -3,7 +3,6 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { FileText, CreditCard, Search, X, Eye, Pencil, Trash2, Calendar, Hash } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
-import { formatDate } from '@/composables/useDate';
 import {
     Dialog,
     DialogContent,
@@ -19,6 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { formatDate } from '@/composables/useDate';
 import accountsReceivableRoutes from '@/routes/accounts-receivable';
 import receiptRoutes from '@/routes/receipts';
 

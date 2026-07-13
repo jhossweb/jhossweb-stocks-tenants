@@ -12,7 +12,6 @@ import {
 import { computed, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input/Input.vue';
-import { formatDate } from '@/composables/useDate';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -21,6 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { formatDate } from '@/composables/useDate';
 
 defineOptions({
     layout: {
@@ -67,14 +67,12 @@ return;
 
     const c = coin || form.pay_coin;
 
-    if (c === 'USD') {
-        form.pay_valorcam = 1;
+    if (c === 'USD' || c === 'BS' || c === 'VES') {
+        form.pay_valorcam = Number(props.latestRate.rate_usd);
     } else if (c === 'COP') {
         form.pay_valorcam = Number(props.latestRate.rate_cop);
     } else if (c === 'EUR') {
         form.pay_valorcam = Number(props.latestRate.rate_eur);
-    } else {
-        form.pay_valorcam = Number(props.latestRate.rate_usd);
     }
 };
 

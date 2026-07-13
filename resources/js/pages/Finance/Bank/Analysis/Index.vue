@@ -4,7 +4,6 @@ import { BarChart3, Search, X, Calendar, Hash, ArrowUpFromLine, ArrowDownFromLin
 import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatDate } from '@/composables/useDate';
 import {
     Select,
     SelectContent,
@@ -12,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { formatDate } from '@/composables/useDate';
 import bankTransactionAnalysisRoutes from '@/routes/bank-transaction-analysis';
 
 defineOptions({
@@ -55,6 +55,7 @@ const friendlySourceName = (type: string): string => {
         'App\\Models\\Payroll': 'Nómina',
         'App\\Models\\AccountPayments': 'Pago',
     };
+
     return map[type] ?? type.split('\\').pop() ?? type;
 };
 

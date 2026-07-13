@@ -7,12 +7,16 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
 });
 
 export function formatDate(dateStr: string | null | undefined): string {
-    if (!dateStr) return '-';
+    if (!dateStr) {
+return '-';
+}
 
     const dateStrNormalized = dateStr.includes('T') ? dateStr : dateStr + 'T12:00:00';
     const date = new Date(dateStrNormalized);
 
-    if (isNaN(date.getTime())) return '-';
+    if (isNaN(date.getTime())) {
+return '-';
+}
 
     return dateFormatter.format(date);
 }

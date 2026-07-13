@@ -62,6 +62,7 @@ watch(() => props.form.payment_currency, () => {
 
 const maxAmount = computed(() => {
     const balance = props.remainingBalance
+
     if (!balance) {
         return 0
     }

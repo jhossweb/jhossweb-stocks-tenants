@@ -25,33 +25,67 @@ export function useCurrencyConversion() {
         const to = toCurrency.toUpperCase()
 
         if (from === 'USD') {
-            if (to === 'COP') return balance * cop
-            if (to === 'BS' || to === 'VES') return balance * usd
-            if (to === 'EUR') return balance * eur
+            if (to === 'COP') {
+return balance * cop
+}
+
+            if (to === 'BS' || to === 'VES') {
+return balance * usd
+}
+
+            if (to === 'EUR') {
+return balance * eur
+}
         }
 
         if (from === 'COP') {
-            if (to === 'USD') return balance / cop
+            if (to === 'USD') {
+return balance / cop
+}
+
             if (to === 'BS' || to === 'VES') {
-                if (copBs > 0) return balance / copBs
+                if (copBs > 0) {
+return balance / copBs
+}
+
                 return balance * usd / cop
             }
-            if (to === 'EUR') return balance / cop * eur
+
+            if (to === 'EUR') {
+return balance / cop * eur
+}
         }
 
         if (from === 'BS' || from === 'VES') {
-            if (to === 'USD') return balance / usd
+            if (to === 'USD') {
+return balance / usd
+}
+
             if (to === 'COP') {
-                if (copBs > 0) return balance * copBs
+                if (copBs > 0) {
+return balance * copBs
+}
+
                 return balance * cop / usd
             }
-            if (to === 'EUR') return balance / usd * eur
+
+            if (to === 'EUR') {
+return balance / usd * eur
+}
         }
 
         if (from === 'EUR') {
-            if (to === 'USD') return balance / eur
-            if (to === 'COP') return balance / eur * cop
-            if (to === 'BS' || to === 'VES') return balance / eur * usd
+            if (to === 'USD') {
+return balance / eur
+}
+
+            if (to === 'COP') {
+return balance / eur * cop
+}
+
+            if (to === 'BS' || to === 'VES') {
+return balance / eur * usd
+}
         }
 
         return balance

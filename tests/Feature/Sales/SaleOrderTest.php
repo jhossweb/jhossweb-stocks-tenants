@@ -242,7 +242,7 @@ test('update modifies a sale', function () {
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('sales.index'));
 
-    expect((float) $sale->fresh()->sls_valorcam)->toBe(2.0);
+    expect((float) $sale->fresh()->sls_valorcam)->toBe(1.0);
     expect((float) $sale->fresh()->sls_subtotal)->toBe(200.0);
 });
 

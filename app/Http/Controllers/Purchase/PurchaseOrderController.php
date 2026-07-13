@@ -2,23 +2,27 @@
 
 namespace App\Http\Controllers\Purchase;
 
-use App\Enum\Purchases\StatusPurchases;
 use App\Enum\TypeCoin;
 use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
-use App\Models\MovementsPurchase;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Rate;
 use App\Models\Supplier;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
+use App\Services\Purchases\PurchaseOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class PurchaseOrderController extends Controller
 {
+    public function __construct(
+        protected PurchaseOrderService $purchaseOrderService,
+    ) {}
+
     public function index()
     {
         $purchases = PurchaseOrder::with(['supplier', 'transactionType'])
@@ -33,12 +37,11 @@ class PurchaseOrderController extends Controller
 
     public function create()
     {
-        // To build the form
         return Inertia::render('Purchases/Create', [
             'suppliers' => Supplier::all(),
             'products' => Product::all(),
             'warehouses' => Warehouse::all(),
-            'transactionTypes' => TransactionType::all(), // Maybe filter by those related to purchases
+            'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
                 return [
                     'rate_date' => optional($rate->rate_date)->format('Y-m-d'),
@@ -78,48 +81,11 @@ class PurchaseOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Obtener automáticamente el tipo de transacción 'Compra'
-            $transactionType = TransactionType::where('trans_type_code', 'FAC')->first();
-
-            $purchase = new PurchaseOrder;
-            $purchase->invoice_number = $validated['invoice_number'];
-            $purchase->invoice_date = $validated['invoice_date'];
-            $purchase->invoice_trans_type_code = $transactionType->trans_type_code;
-            $purchase->invoice_supplier_id = $validated['invoice_supplier_id'];
-            $purchase->invoice_valorcam = $validated['invoice_valorcam'];
-            $purchase->invoice_coin = $validated['invoice_coin'];
-            $purchase->invoice_subtotal = $validated['invoice_subtotal'];
-            $purchase->invoice_exento = $validated['invoice_exento'];
-            $purchase->invoice_iva = $validated['invoice_iva'];
-            $purchase->invoice_total = $validated['invoice_total'];
-            $purchase->invoice_status = StatusPurchases::PENDING->value;
-            $purchase->save();
-
-            // Guardar detalles
-            foreach ($validated['items'] as $item) {
-                $product = Product::where('pro_code', $item['mov_pro_code'])->first();
-
-                if ($product && $product->pro_und->value === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
-                    throw new \RuntimeException("{$product->pro_name} se compra por unidades enteras.");
-                }
-
-                $movement = new MovementsPurchase;
-                $movement->mov_invoice_number = $purchase->invoice_number;
-                $movement->mov_invoice_trans_type_code = $purchase->invoice_trans_type_code;
-                $movement->mov_factor = $transactionType->trans_type_factor; // Factor real desde transaction_types
-                $movement->mov_pro_code = $item['mov_pro_code'];
-                $movement->mov_pro_iva = $item['mov_pro_iva'];
-                $movement->mov_war_id = $item['mov_war_id'];
-                $movement->mov_quantity = $item['mov_quantity'];
-                $movement->mov_unit_cost = $item['mov_unit_cost'];
-                $movement->mov_unit_cost_ref = $item['mov_unit_cost_ref'];
-                $movement->save(); // This will trigger the observer MovPurchasesObserver!
-            }
+            $this->purchaseOrderService->create($validated);
 
             DB::commit();
 
             return redirect()->route('purchases.index')->with('success', 'Compra guardada exitosamente.');
-
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -161,7 +127,7 @@ class PurchaseOrderController extends Controller
         $purchase = PurchaseOrder::findOrFail($id);
 
         $validated = $request->validate([
-            'invoice_number' => 'required|string|max:50|unique:purchase_orders,invoice_number,'.$purchase->id,
+            'invoice_number' => ['required', 'string', 'max:50', Rule::unique('purchase_orders', 'invoice_number')->ignore($purchase->id)],
             'invoice_date' => 'required|date',
             'invoice_supplier_id' => 'required|exists:suppliers,id',
             'invoice_valorcam' => 'required|numeric',
@@ -184,63 +150,11 @@ class PurchaseOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $transactionType = TransactionType::where('trans_type_code', 'FAC')->first();
-
-            $purchase->invoice_number = $validated['invoice_number'];
-            $purchase->invoice_date = $validated['invoice_date'];
-            $purchase->invoice_supplier_id = $validated['invoice_supplier_id'];
-            $purchase->invoice_valorcam = $validated['invoice_valorcam'];
-            $purchase->invoice_coin = $validated['invoice_coin'];
-            $purchase->invoice_subtotal = $validated['invoice_subtotal'];
-            $purchase->invoice_exento = $validated['invoice_exento'];
-            $purchase->invoice_iva = $validated['invoice_iva'];
-            $purchase->invoice_total = $validated['invoice_total'];
-            $purchase->save();
-
-            $existingIds = $purchase->movements()->pluck('id')->toArray();
-            $newIds = [];
-
-            foreach ($validated['items'] as $item) {
-                $product = Product::where('pro_code', $item['mov_pro_code'])->first();
-
-                if ($product && $product->pro_und->value === 'und' && $item['mov_quantity'] != (int) $item['mov_quantity']) {
-                    throw new \RuntimeException("{$product->pro_name} se compra por unidades enteras.");
-                }
-
-                if (isset($item['id']) && in_array($item['id'], $existingIds)) {
-                    $movement = MovementsPurchase::find($item['id']);
-                } else {
-                    $movement = new MovementsPurchase;
-                    $movement->mov_invoice_number = $purchase->invoice_number;
-                    $movement->mov_invoice_trans_type_code = $purchase->invoice_trans_type_code ?? $transactionType->trans_type_code;
-                    $movement->mov_factor = $transactionType->trans_type_factor;
-                }
-
-                $movement->mov_pro_code = $item['mov_pro_code'];
-                $movement->mov_pro_iva = $item['mov_pro_iva'];
-                $movement->mov_war_id = $item['mov_war_id'];
-                $movement->mov_quantity = $item['mov_quantity'];
-                $movement->mov_unit_cost = $item['mov_unit_cost'];
-                $movement->mov_unit_cost_ref = $item['mov_unit_cost_ref'];
-                $movement->save();
-
-                $newIds[] = $movement->id;
-            }
-
-            // Excluir los que se borraron
-            $itemsToDelete = array_diff($existingIds, $newIds);
-            if (! empty($itemsToDelete)) {
-                foreach ($itemsToDelete as $delId) {
-                    if ($model = MovementsPurchase::find($delId)) {
-                        $model->delete();
-                    }
-                }
-            }
+            $this->purchaseOrderService->update($purchase, $validated);
 
             DB::commit();
 
             return redirect()->route('purchases.index')->with('success', 'Compra actualizada exitosamente.');
-
         } catch (\Exception $e) {
             DB::rollBack();
 

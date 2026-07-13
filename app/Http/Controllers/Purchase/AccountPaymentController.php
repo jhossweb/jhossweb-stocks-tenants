@@ -85,29 +85,27 @@ class AccountPaymentController extends Controller
                 return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a pagar.']);
             }
 
+            $rate = Rate::where('rate_date', $validated['payment_date'])->first();
+
+            if (! $rate) {
+                return redirect()->back()->withErrors(['payment_date' => 'No existe tasa de cambio para la fecha seleccionada.']);
+            }
+
             foreach ($activePayments as $paymentData) {
                 $acp = AccountsPayable::with('purchaseOrder')->findOrFail($paymentData['acp_id']);
 
-                $amountToRegister = $paymentData['amount'];
+                $paymentAmount = (float) $paymentData['amount'];
                 $docCurrency = $acp->purchaseOrder->invoice_coin ?? 'USD';
                 $payCurrency = $validated['payment_currency'];
-                $rate = (float) $validated['payment_rate'];
-
-                if ($docCurrency !== $payCurrency) {
-                    if ($docCurrency === 'COP' && $payCurrency === 'USD') {
-                        $amountToRegister = $amountToRegister * $rate;
-                    } elseif ($docCurrency === 'USD' && in_array($payCurrency, ['COP', 'BS', 'VES'])) {
-                        $amountToRegister = $amountToRegister / $rate;
-                    }
-                }
+                $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $rate);
 
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $validated['bank_account_id'],
                     'btr_type' => 'outflow',
-                    'btr_amount' => $amountToRegister,
+                    'btr_amount' => $paymentAmount,
                     'btr_reference' => $validated['payment_reference'],
                     'btr_description' => $validated['payment_description'] ?: 'Pago a proveedor',
-                    'btr_valorcam' => $validated['payment_rate'],
+                    'btr_valorcam' => $rate->rate_usd,
                     'btr_balance' => 0,
                     'btr_method' => $validated['payment_method'],
                     'btr_transaction_date' => $validated['payment_date'],
@@ -118,7 +116,7 @@ class AccountPaymentController extends Controller
                 $bankTransaction->save();
 
                 $acp->registerPayment(
-                    $amountToRegister,
+                    $amountInDocCurrency,
                     TypePayment::PAYMENT->value,
                     $bankTransaction->id,
                 );
