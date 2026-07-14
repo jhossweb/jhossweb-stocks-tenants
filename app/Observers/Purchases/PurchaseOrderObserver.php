@@ -6,6 +6,7 @@ use App\Enum\Finanzas\TypePayment;
 use App\Enum\Purchases\StatusPurchases;
 use App\Models\AccountsPayable;
 use App\Models\PurchaseOrder;
+use App\Models\Rate;
 
 class PurchaseOrderObserver
 {
@@ -18,10 +19,19 @@ class PurchaseOrderObserver
             return;
         }
 
+        $rate = Rate::where('rate_date', $purchaseOrder->invoice_date ?? $purchaseOrder->created_at?->format('Y-m-d'))->first()
+            ?? Rate::orderBy('rate_date', 'desc')->first();
+
+        $totalUsd = $rate
+            ? Rate::convert($purchaseOrder->invoice_total, $purchaseOrder->invoice_coin, 'USD', $rate)
+            : $purchaseOrder->invoice_total;
+
         $accountsPayable = AccountsPayable::create([
             'acp_purchase_number' => $purchaseOrder->invoice_number,
             'acp_total' => $purchaseOrder->invoice_total,
             'acp_balance' => $purchaseOrder->invoice_total,
+            'acp_total_usd' => $totalUsd,
+            'acp_balance_usd' => $totalUsd,
             'acp_status' => StatusPurchases::PENDING->value,
         ]);
 
@@ -76,12 +86,21 @@ class PurchaseOrderObserver
     {
         $accountsPayable = $purchaseOrder->accountsPayable;
         if ($accountsPayable) {
-            // Update total and adjust balance if total changed
             $difference = $purchaseOrder->invoice_total - $purchaseOrder->getOriginal('invoice_total');
             $accountsPayable->acp_total = $purchaseOrder->invoice_total;
             $accountsPayable->acp_balance += $difference;
 
-            // Recalculate status based on balance
+            $rate = Rate::where('rate_date', $purchaseOrder->invoice_date ?? $purchaseOrder->created_at?->format('Y-m-d'))->first()
+                ?? Rate::orderBy('rate_date', 'desc')->first();
+
+            if ($rate) {
+                $diffUsd = Rate::convert($difference, $purchaseOrder->invoice_coin, 'USD', $rate);
+                if ($accountsPayable->acp_balance_usd !== null) {
+                    $accountsPayable->acp_balance_usd += $diffUsd;
+                }
+                $accountsPayable->acp_total_usd = Rate::convert($purchaseOrder->invoice_total, $purchaseOrder->invoice_coin, 'USD', $rate);
+            }
+
             if ($accountsPayable->acp_balance <= 0) {
                 $accountsPayable->acp_status = StatusPurchases::PAID->value;
             } elseif ($accountsPayable->acp_balance < $accountsPayable->acp_total) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { PlusCircle, DollarSign, FileText, Filter, ChevronDown, ChevronUp, Banknote, Loader2 } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
@@ -38,6 +38,7 @@ interface BankTransaction {
     btr_reference: string;
     btr_description: string;
     btr_balance: string;
+    btr_diferencial: string;
     created_at: string;
     bank_account: BankAccount;
 }
@@ -138,6 +139,41 @@ const closePayModal = () => {
     payForm.clearErrors();
     payForm.reset();
 };
+
+const estimatedDiferencial = computed(() => {
+    if (!payingExpense.value || !payForm.amount) {
+return 0;
+}
+
+    const payAmount = Number(payForm.amount) || 0;
+    const payCoin = payForm.payment_currency;
+    const docCoin = payingExpense.value.exp_coin;
+
+    if (payCoin === docCoin) {
+return 0;
+}
+
+    const payRate = Number(payForm.payment_rate) || 1;
+    const docRate = Number(payingExpense.value.exp_valorcam) || Number(props.latestRate?.rate_usd) || 1;
+
+    let paidInUsd: number;
+
+    if (payCoin === 'USD') {
+        paidInUsd = payAmount;
+    } else {
+        paidInUsd = payAmount / payRate;
+    }
+
+    let docValueInUsd: number;
+
+    if (docCoin === 'USD') {
+        docValueInUsd = payAmount;
+    } else {
+        docValueInUsd = payAmount / docRate;
+    }
+
+    return paidInUsd - docValueInUsd;
+});
 
 const submitPayment = () => {
     if (!payingExpense.value) {
@@ -292,6 +328,7 @@ const togglePayments = (expenseId: number) => {
                                                 <th class="px-3 py-1 text-left">Tasa</th>
                                                 <th class="px-3 py-1 text-left">Referencia</th>
                                                 <th class="px-3 py-1 text-left">Banco</th>
+                                                <th class="px-3 py-1 text-right">Diferencial</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -302,6 +339,12 @@ const togglePayments = (expenseId: number) => {
                                                 <td class="px-3 py-1.5">{{ pmt.btr_valorcam }}</td>
                                                 <td class="px-3 py-1.5">{{ pmt.btr_reference }}</td>
                                                 <td class="px-3 py-1.5">{{ pmt.bank_account?.bank_name ?? '-' }}</td>
+                                                <td class="px-3 py-1.5 text-right">
+                                                    <span v-if="pmt.btr_diferencial && Number(pmt.btr_diferencial) !== 0" class="font-semibold" :class="Number(pmt.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
+                                                        {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(2) }}
+                                                    </span>
+                                                    <span v-else class="text-gray-400">—</span>
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -337,6 +380,13 @@ const togglePayments = (expenseId: number) => {
                 <div class="flex justify-between text-sm pt-1 border-t border-zinc-800">
                     <span class="text-zinc-400">Saldo pendiente:</span>
                     <span class="font-semibold text-amber-400">{{ Number(payingExpense.exp_remaining_balance).toLocaleString() }} {{ payingExpense.exp_coin }}</span>
+                </div>
+                <div v-if="estimatedDiferencial !== 0 && payForm.payment_currency !== payingExpense.exp_coin" class="flex justify-between text-sm pt-1 border-t border-zinc-800">
+                    <span class="text-zinc-400">Diferencial estimado:</span>
+                    <span class="font-semibold" :class="estimatedDiferencial > 0 ? 'text-green-400' : 'text-orange-400'">
+                        {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
+                        <span class="text-[10px] font-normal opacity-60">({{ estimatedDiferencial > 0 ? 'Ganancia' : 'Pérdida' }})</span>
+                    </span>
                 </div>
             </div>
         </template>

@@ -254,6 +254,44 @@ const selectedBankAccount = computed(() => {
     return filteredBankAccounts.value.find(ba => ba.id == form.bank_account_id);
 });
 
+const estimatedDiferencial = computed(() => {
+    if (form.payments.length === 0 || totalToPay.value <= 0) {
+return 0;
+}
+
+    const payRate = Number(form.payment_rate) || 1;
+    const docRate = Number(props.latestRate?.rate_usd) || 1;
+    let totalDif = 0;
+
+    for (const invoice of form.payments) {
+        if (!invoice.amount || invoice.amount <= 0) {
+continue;
+}
+
+        const payCoin = form.payment_currency;
+
+        let paidInUsd: number;
+
+        if (payCoin === 'USD') {
+            paidInUsd = invoice.amount;
+        } else {
+            paidInUsd = invoice.amount / payRate;
+        }
+
+        let docValueInUsd: number;
+
+        if (invoice.currency === 'USD') {
+            docValueInUsd = invoice.amount;
+        } else {
+            docValueInUsd = invoice.amount / docRate;
+        }
+
+        totalDif += paidInUsd - docValueInUsd;
+    }
+
+    return totalDif;
+});
+
 const calculateConvertedBalance = (invoicePayment: any) => {
     const currentRate = getBestRateForDate(form.payment_date) || props.latestRate || {};
 
@@ -423,6 +461,22 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                 </div>
                                 <div class="text-xs text-indigo-300/70 text-right">
                                     (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
+                                </div>
+                            </div>
+
+                            <!-- Diferencial Preview -->
+                            <div
+                                v-if="estimatedDiferencial !== 0 && form.payment_currency !== 'USD'"
+                                class="pt-4 border-t border-white/10 space-y-2"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Diferencial Cambiario</span>
+                                    <span class="text-sm font-black tabular-nums" :class="estimatedDiferencial > 0 ? 'text-green-300' : 'text-orange-300'">
+                                        {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
+                                    </span>
+                                </div>
+                                <div class="text-[10px] text-indigo-300/60 text-right">
+                                    {{ estimatedDiferencial > 0 ? 'Ganancia por diferencia de tasas' : 'Pérdida por diferencia de tasas' }}
                                 </div>
                             </div>
                         </div>

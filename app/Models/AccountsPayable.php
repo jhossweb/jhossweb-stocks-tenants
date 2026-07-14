@@ -17,6 +17,8 @@ class AccountsPayable extends Model
         'acp_total',
         'acp_balance',
         'acp_status',
+        'acp_total_usd',
+        'acp_balance_usd',
     ];
 
     public function purchaseOrder()
@@ -59,19 +61,26 @@ class AccountsPayable extends Model
     /**
      * Register a payment for this account
      */
-    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?string $invoiceReference = null): void
+    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?string $invoiceReference = null, ?float $amountUsd = null): void
     {
         $this->acp_balance -= $amount;
 
+        if ($amountUsd !== null && $this->acp_balance_usd !== null) {
+            $this->acp_balance_usd -= $amountUsd;
+        }
+
         if ($this->acp_balance <= 0) {
             $this->acp_status = StatusPurchases::PAID->value;
+            $this->acp_balance = 0;
+            if ($this->acp_balance_usd !== null) {
+                $this->acp_balance_usd = max(0, $this->acp_balance_usd);
+            }
         } else {
             $this->acp_status = StatusPurchases::PARTIAL->value;
         }
 
         $this->save();
 
-        // Sincronizar el estado con el documento original (PurchaseOrder)
         if ($this->purchaseOrder) {
             $this->purchaseOrder->invoice_status = $this->acp_status;
             $this->purchaseOrder->save();
@@ -91,6 +100,19 @@ class AccountsPayable extends Model
     public function reversePayment(AccountPayments $payment): void
     {
         $this->acp_balance += $payment->apy_amount;
+
+        if (isset($this->acp_balance_usd) && $payment->bankTransaction) {
+            $paymentUsd = (float) $payment->apy_amount;
+            $payCoin = $payment->bankTransaction->btr_coin?->value ?? $payment->bankTransaction->btr_coin;
+            if ($payCoin && strtoupper($payCoin) !== 'USD' && $payment->bankTransaction->btr_valorcam > 0) {
+                $paymentUsd = match (strtoupper((string) $payCoin)) {
+                    'COP' => (float) $payment->apy_amount / (float) $payment->bankTransaction->btr_valorcam,
+                    'EUR' => (float) $payment->apy_amount / (float) $payment->bankTransaction->btr_valorcam,
+                    default => (float) $payment->apy_amount / (float) $payment->bankTransaction->btr_valorcam,
+                };
+            }
+            $this->acp_balance_usd += $paymentUsd;
+        }
 
         $this->acp_status = match (true) {
             $this->acp_balance <= 0 => StatusPurchases::PAID->value,

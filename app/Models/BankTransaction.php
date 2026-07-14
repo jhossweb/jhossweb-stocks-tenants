@@ -20,6 +20,7 @@ class BankTransaction extends Model
         'btr_reference',
         'btr_description',
         'btr_valorcam',
+        'btr_diferencial',
         'btr_coin',
         'btr_method',
         'btr_transaction_date',

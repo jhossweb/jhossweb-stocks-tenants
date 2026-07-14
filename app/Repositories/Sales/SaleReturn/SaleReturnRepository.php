@@ -111,6 +111,7 @@ class SaleReturnRepository
                 'sls_date' => $sale->sls_date,
                 'sls_total' => $sale->sls_total,
                 'sls_coin' => $sale->sls_coin,
+                'sls_valorcam' => $sale->sls_valorcam,
             ];
         });
     }

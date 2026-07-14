@@ -104,6 +104,9 @@ return;
         const itemsRes = await fetch(`/api/sale-orders/${sale.id}/items`);
         originalItems.value = await itemsRes.json();
 
+        form.sls_coin = sale.sls_coin || 'USD';
+        form.sls_valorcam = Number(sale.sls_valorcam) || Number(props.latest_rate?.rate_usd) || 1;
+
         form.items = originalItems.value.map((item: any) => ({
             mvs_pro_code: item.mvs_pro_code,
             mvs_war_id: item.mvs_war_id,
@@ -201,6 +204,43 @@ const submit = () => {
         onError: (errors) => console.log('Errores:', errors),
     });
 };
+
+const normalizeDate = (d: string) => d.substring(0, 10);
+
+const getBestRateForDate = (date: string) => {
+    if (!props.rates || props.rates.length === 0) {
+        return null;
+    }
+
+    const normalized = normalizeDate(date);
+    const exactRate = props.rates.find((r: any) => normalizeDate(r.rate_date) === normalized);
+
+    if (exactRate) {
+        return exactRate;
+    }
+
+    const pastRates = props.rates
+        .filter((r: any) => normalizeDate(r.rate_date) < normalized)
+        .sort((a: any, b: any) => normalizeDate(b.rate_date).localeCompare(normalizeDate(a.rate_date)));
+
+    return pastRates.length > 0 ? pastRates[0] : props.rates[0];
+};
+
+const updateExchangeRate = () => {
+    const selectedRate = getBestRateForDate(form.sls_date);
+
+    if (!selectedRate) {
+        return;
+    }
+
+    if (form.sls_coin === 'USD' || form.sls_coin === 'BS' || form.sls_coin === 'VES') {
+        form.sls_valorcam = Number(selectedRate.rate_usd);
+    } else if (form.sls_coin === 'COP') {
+        form.sls_valorcam = Number(selectedRate.rate_cop);
+    } else if (form.sls_coin === 'EUR') {
+        form.sls_valorcam = Number(selectedRate.rate_eur);
+    }
+};
 </script>
 
 <template>
@@ -285,11 +325,11 @@ const submit = () => {
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-zinc-400 mb-1.5">Fecha</label>
-                                <Input type="date" v-model="form.sls_date" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm" />
+                                <Input type="date" v-model="form.sls_date" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-zinc-400 mb-1.5">Moneda</label>
-                                <select v-model="form.sls_coin" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm">
+                                <select v-model="form.sls_coin" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm">
                                     <option v-for="c in coins" :key="c" :value="c">{{ c }}</option>
                                 </select>
                             </div>

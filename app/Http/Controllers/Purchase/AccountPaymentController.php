@@ -13,12 +13,17 @@ use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Rate;
 use App\Models\Supplier;
+use App\Services\Finance\RateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AccountPaymentController extends Controller
 {
+    public function __construct(
+        protected RateService $rateService,
+    ) {}
+
     /**
      * Show the form for creating a new payment receipt.
      */
@@ -85,19 +90,45 @@ class AccountPaymentController extends Controller
                 return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a pagar.']);
             }
 
-            $rate = Rate::where('rate_date', $validated['payment_date'])->first();
+            $payRate = $this->rateService->getExactRateForDate($validated['payment_date']);
 
-            if (! $rate) {
+            if (! $payRate) {
                 return redirect()->back()->withErrors(['payment_date' => 'No existe tasa de cambio para la fecha seleccionada.']);
             }
+
+            $valorcam = $this->rateService->resolveRateForCoin(
+                $validated['payment_date'],
+                $validated['payment_currency'],
+            );
 
             foreach ($activePayments as $paymentData) {
                 $acp = AccountsPayable::with('purchaseOrder')->findOrFail($paymentData['acp_id']);
 
                 $paymentAmount = (float) $paymentData['amount'];
-                $docCurrency = $acp->purchaseOrder->invoice_coin ?? 'USD';
                 $payCurrency = $validated['payment_currency'];
+                $docCurrency = $acp->purchaseOrder->invoice_coin ?? 'USD';
+
+                // Get the document's rate record for differential calculation
+                $docDate = $acp->purchaseOrder->invoice_date?->format('Y-m-d')
+                    ?? $acp->purchaseOrder->created_at?->format('Y-m-d');
+                $docRate = $docDate
+                    ? ($this->rateService->getExactRateForDate($docDate) ?? $payRate)
+                    : $payRate;
+
+                // Convert payment to document currency (existing behavior)
+                $rate = $this->rateService->getExactRateForDate($validated['payment_date']);
                 $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $rate);
+
+                // Calculate differential in USD
+                $diferencial = $this->rateService->calculateDiferencial(
+                    $paymentAmount,
+                    $payCurrency,
+                    $payRate,
+                    $docRate,
+                );
+
+                // Convert payment to USD for balance tracking
+                $amountUsd = Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate);
 
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $validated['bank_account_id'],
@@ -105,7 +136,8 @@ class AccountPaymentController extends Controller
                     'btr_amount' => $paymentAmount,
                     'btr_reference' => $validated['payment_reference'],
                     'btr_description' => $validated['payment_description'] ?: 'Pago a proveedor',
-                    'btr_valorcam' => $rate->rate_usd,
+                    'btr_valorcam' => $valorcam,
+                    'btr_diferencial' => $diferencial,
                     'btr_balance' => 0,
                     'btr_method' => $validated['payment_method'],
                     'btr_transaction_date' => $validated['payment_date'],
@@ -119,7 +151,16 @@ class AccountPaymentController extends Controller
                     $amountInDocCurrency,
                     TypePayment::PAYMENT->value,
                     $bankTransaction->id,
+                    null,
+                    $amountUsd,
                 );
+
+                // Store differential on account payment
+                $accountPayment = $acp->payments()->where('apy_bank_transaction_id', $bankTransaction->id)->first();
+                if ($accountPayment) {
+                    $accountPayment->apy_diferencial = $diferencial;
+                    $accountPayment->save();
+                }
             }
 
             DB::commit();
@@ -251,6 +292,17 @@ class AccountPaymentController extends Controller
             $acp = $payment->accountPayable;
             $acp->acp_balance += $amount;
 
+            // Restore USD balance
+            if ($acp->acp_balance_usd !== null && $payment->bankTransaction) {
+                $payCoin = $payment->bankTransaction->btr_coin?->value ?? $payment->bankTransaction->btr_coin;
+                if ($payCoin && strtoupper((string) $payCoin) !== 'USD' && $payment->bankTransaction->btr_valorcam > 0) {
+                    $paymentUsd = $amount / (float) $payment->bankTransaction->btr_valorcam;
+                } else {
+                    $paymentUsd = $amount;
+                }
+                $acp->acp_balance_usd += $paymentUsd;
+            }
+
             if ($acp->acp_balance == $acp->acp_total) {
                 $acp->acp_status = StatusPurchases::PENDING->value;
             } elseif ($acp->acp_balance > 0) {
@@ -271,6 +323,7 @@ class AccountPaymentController extends Controller
                 if ($bankTx->btr_amount <= 0) {
                     $bankTx->delete();
                 } else {
+                    $bankTx->btr_diferencial = 0;
                     $bankTx->save();
                 }
             }

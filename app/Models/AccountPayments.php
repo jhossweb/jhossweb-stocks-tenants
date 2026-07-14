@@ -16,6 +16,7 @@ class AccountPayments extends Model
         'apy_account_payable_id',
         'apy_type',
         'apy_amount',
+        'apy_diferencial',
         'apy_invoice_reference',
     ];
 

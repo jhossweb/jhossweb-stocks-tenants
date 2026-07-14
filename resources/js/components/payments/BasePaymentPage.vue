@@ -40,6 +40,7 @@ const props = defineProps<{
     totalCurrency: string
     originalTotal?: number
     originalCurrency?: string
+    estimatedDiferencial?: number
 }>()
 
 const emit = defineEmits<{
@@ -224,6 +225,22 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
                                 </div>
                                 <div class="text-xs text-indigo-300/70 text-right">
                                     (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
+                                </div>
+                            </div>
+
+                            <!-- Diferencial Preview -->
+                            <div
+                                v-if="estimatedDiferencial !== undefined && estimatedDiferencial !== 0 && form.payment_currency !== 'USD'"
+                                class="pt-4 border-t border-white/10 space-y-2"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Diferencial Cambiario</span>
+                                    <span class="text-sm font-black tabular-nums" :class="estimatedDiferencial > 0 ? 'text-green-300' : 'text-orange-300'">
+                                        {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
+                                    </span>
+                                </div>
+                                <div class="text-[10px] text-indigo-300/60 text-right">
+                                    {{ estimatedDiferencial > 0 ? 'Ganancia por diferencia de tasas' : 'Pérdida por diferencia de tasas' }}
                                 </div>
                             </div>
                         </div>

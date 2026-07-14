@@ -92,6 +92,25 @@ class Expense extends Model
 
             $amountInExpenseCurrency = $this->convertToExpenseCurrency($amountInBankCurrency, $rate, $coin);
 
+            // Calculate differential
+            $expenseCoin = $this->exp_coin->value;
+            $diferencial = 0.0;
+
+            if (strtoupper((string) $coin) !== 'USD' && strtoupper($expenseCoin) !== 'USD') {
+                // Both are non-USD: compare expense rate vs payment rate
+                $expenseRateValue = static::resolveRateForCoin($expenseCoin);
+                if ($expenseRateValue > 0 && $rate > 0) {
+                    $amountAtExpenseRate = $amountInBankCurrency / $expenseRateValue;
+                    $amountAtPayRate = $amountInBankCurrency / $rate;
+                    $diferencial = round($amountAtExpenseRate - $amountAtPayRate, 4);
+                }
+            } elseif (strtoupper((string) $coin) !== 'USD') {
+                // Payment in non-USD, expense in USD
+                if ($rate > 0) {
+                    $diferencial = round(($amountInBankCurrency / $rate) - $amountInBankCurrency, 4);
+                }
+            }
+
             $bankTransaction = BankTransaction::create([
                 'btr_bank_account_id' => $bankAccountId,
                 'btr_type' => 'outflow',
@@ -100,6 +119,7 @@ class Expense extends Model
                 'btr_reference' => $reference,
                 'btr_description' => $description ?: ('Pago de gasto: '.$this->exp_description),
                 'btr_valorcam' => $rate,
+                'btr_diferencial' => $diferencial,
                 'btr_coin' => $coin,
                 'btr_method' => $paymentMethod,
                 'btr_transaction_date' => $paymentDate,

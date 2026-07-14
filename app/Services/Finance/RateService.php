@@ -69,4 +69,32 @@ class RateService
     {
         return Rate::where('rate_date', Carbon::parse($date)->format('Y-m-d'))->first();
     }
+
+    /**
+     * Convierte un monto de una moneda a USD usando el registro Rate dado.
+     */
+    public function convertToUsd(float $amount, string $coin, Rate $rate): float
+    {
+        return Rate::convert($amount, $coin, 'USD', $rate);
+    }
+
+    /**
+     * Calcula el diferencial cambiario en USD entre la tasa del documento y la tasa del pago.
+     * Retorna positivo si es ganancia, negativo si es pérdida.
+     */
+    public function calculateDiferencial(
+        float $paymentAmount,
+        string $payCoin,
+        Rate $payRate,
+        Rate $docRate,
+    ): float {
+        if (strtoupper($payCoin) === 'USD') {
+            return 0.0;
+        }
+
+        $amountAtDocRate = Rate::convert($paymentAmount, $payCoin, 'USD', $docRate);
+        $amountAtPayRate = Rate::convert($paymentAmount, $payCoin, 'USD', $payRate);
+
+        return round($amountAtDocRate - $amountAtPayRate, 4);
+    }
 }

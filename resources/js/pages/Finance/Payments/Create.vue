@@ -228,6 +228,44 @@ const selectedBankAccount = computed(() => {
     return props.bankAccounts.find(ba => ba.id == form.bank_account_id);
 });
 
+const estimatedDiferencial = computed(() => {
+    if (form.payments.length === 0 || totalToPay.value <= 0) {
+return 0;
+}
+
+    const payRate = Number(form.payment_rate) || 1;
+    const docRate = Number(props.latestRate?.rate_usd) || 1;
+    let totalDif = 0;
+
+    for (const invoice of form.payments) {
+        if (!invoice.amount || invoice.amount <= 0) {
+continue;
+}
+
+        const payCoin = form.payment_currency;
+
+        let paidInUsd: number;
+
+        if (payCoin === 'USD') {
+            paidInUsd = invoice.amount;
+        } else {
+            paidInUsd = invoice.amount / payRate;
+        }
+
+        let docValueInUsd: number;
+
+        if (invoice.currency === 'USD') {
+            docValueInUsd = invoice.amount;
+        } else {
+            docValueInUsd = invoice.amount / docRate;
+        }
+
+        totalDif += paidInUsd - docValueInUsd;
+    }
+
+    return totalDif;
+});
+
 const calculateConvertedBalance = (invoicePayment: any) => {
     const currentRate = getBestRateForDate(form.payment_date) || props.latestRate || {};
 
@@ -261,6 +299,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
         :total-currency="form.payment_currency"
         :original-total="originalTotal"
         :original-currency="originalCurrency"
+        :estimated-diferencial="estimatedDiferencial"
         @submit="submit"
     >
         <template #entity-selector>

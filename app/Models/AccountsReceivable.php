@@ -19,6 +19,8 @@ class AccountsReceivable extends Model
         'acr_total',
         'acr_balance',
         'acr_status',
+        'acr_total_usd',
+        'acr_balance_usd',
     ];
 
     public function saleOrder()
@@ -56,13 +58,20 @@ class AccountsReceivable extends Model
         return $this->saleOrder?->customer?->clt_name ?? 'Desconocido';
     }
 
-    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null): void
+    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?float $amountUsd = null): void
     {
         $this->acr_balance -= $amount;
+
+        if ($amountUsd !== null && $this->acr_balance_usd !== null) {
+            $this->acr_balance_usd -= $amountUsd;
+        }
 
         if ($this->acr_balance <= 0) {
             $this->acr_status = StatusSales::PAID->value;
             $this->acr_balance = 0;
+            if ($this->acr_balance_usd !== null) {
+                $this->acr_balance_usd = max(0, $this->acr_balance_usd);
+            }
         } else {
             $this->acr_status = StatusSales::PARTIAL->value;
         }
@@ -84,6 +93,23 @@ class AccountsReceivable extends Model
     public function reversePayment(Receipt $receipt): void
     {
         $this->acr_balance += $receipt->rec_amount;
+
+        if (isset($this->acr_balance_usd) && $receipt->bankTransaction) {
+            $this->acr_balance_usd += (float) $receipt->bankTransaction->btr_diferencial;
+            $paymentUsd = (float) $receipt->rec_amount;
+            $payCoin = $receipt->bankTransaction->btr_coin?->value ?? $receipt->bankTransaction->btr_coin;
+            if ($payCoin && strtoupper($payCoin) !== 'USD') {
+                $paymentUsd = (float) $receipt->rec_amount;
+                if ($receipt->bankTransaction->btr_valorcam > 0) {
+                    $paymentUsd = match (strtoupper((string) $payCoin)) {
+                        'COP' => (float) $receipt->rec_amount / (float) $receipt->bankTransaction->btr_valorcam,
+                        'EUR' => (float) $receipt->rec_amount / (float) $receipt->bankTransaction->btr_valorcam,
+                        default => (float) $receipt->rec_amount / (float) $receipt->bankTransaction->btr_valorcam,
+                    };
+                }
+            }
+            $this->acr_balance_usd += $paymentUsd;
+        }
 
         if ($this->acr_balance >= $this->acr_total) {
             $this->acr_status = StatusSales::PENDING->value;

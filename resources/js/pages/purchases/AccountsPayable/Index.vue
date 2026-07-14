@@ -38,8 +38,11 @@ interface AccountsPayable {
     acp_total: string;
     acp_balance: string;
     acp_status: string;
+    acp_total_usd: string | null;
+    acp_balance_usd: string | null;
     purchase_order?: {
         invoice_number: string;
+        invoice_coin?: string;
         supplier?: {
             supplier_name: string;
         };
@@ -55,8 +58,10 @@ interface AccountsPayable {
             btr_description: string;
             btr_amount: string;
             btr_type: string;
+            btr_coin: string;
             created_at: string;
             btr_valorcam: string;
+            btr_diferencial: string;
         }
     }[];
     created_at: string;
@@ -204,10 +209,15 @@ const deletePayment = (paymentId: number) => {
                                 {{ account.purchase_order?.supplier?.supplier_name ?? 'Desconocido' }}
                             </td>
                             <td class="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white">
-                                ${{ parseFloat(account.acp_total).toFixed(2) }}
+                                {{ parseFloat(account.acp_total).toFixed(2) }}
+                                <span v-if="account.purchase_order?.invoice_coin" class="text-[10px] text-gray-400 ml-1">{{ account.purchase_order.sls_coin }}</span>
                             </td>
                             <td class="px-6 py-4 text-right font-bold" :class="parseFloat(account.acp_balance) > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
-                                ${{ parseFloat(account.acp_balance).toFixed(2) }}
+                                {{ parseFloat(account.acp_balance).toFixed(2) }}
+                                <span v-if="account.purchase_order?.invoice_coin" class="text-[10px] ml-1 opacity-60">{{ account.purchase_order.sls_coin }}</span>
+                                <div v-if="account.acp_balance_usd && account.purchase_order?.invoice_coin !== 'USD'" class="text-[10px] text-gray-400 font-normal">
+                                    ${{ parseFloat(account.acp_balance_usd).toFixed(2) }} USD
+                                </div>
                             </td>
                             <td class="px-6 py-4">
                                 <span 
@@ -266,6 +276,7 @@ const deletePayment = (paymentId: number) => {
                                     <div class="flex items-center gap-2">
                                         <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
                                             ${{ parseFloat(payment.apy_amount).toFixed(2) }}
+                                            <span v-if="payment.bank_transaction?.btr_coin" class="text-xs font-normal text-gray-400 ml-1">{{ payment.bank_transaction.btr_coin }}</span>
                                         </h4>
                                         <span v-if="payment.apy_type === 'RETURN_CREDIT'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
                                             Crédito por devolución
@@ -288,6 +299,10 @@ const deletePayment = (paymentId: number) => {
                                     </div>
                                     <div class="text-sm mt-2 text-gray-600 dark:text-gray-400" v-if="payment.bank_transaction?.btr_description">
                                         Nota: {{ payment.bank_transaction.btr_description }}
+                                    </div>
+                                    <div v-if="payment.bank_transaction?.btr_diferencial && parseFloat(payment.bank_transaction.btr_diferencial) !== 0" class="mt-2 text-xs font-semibold" :class="parseFloat(payment.bank_transaction.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
+                                        Diferencial: {{ parseFloat(payment.bank_transaction.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(parseFloat(payment.bank_transaction.btr_diferencial)).toFixed(2) }} USD
+                                        <span class="font-normal text-gray-400">({{ parseFloat(payment.bank_transaction.btr_diferencial) > 0 ? 'Ganancia' : 'Pérdida' }})</span>
                                     </div>
                                 </div>
                                 

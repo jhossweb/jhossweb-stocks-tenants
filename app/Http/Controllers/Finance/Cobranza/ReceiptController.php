@@ -72,9 +72,9 @@ class ReceiptController extends Controller
                 return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a cobrar.']);
             }
 
-            $rate = $this->rateService->getExactRateForDate($validated['payment_date']);
+            $payRate = $this->rateService->getExactRateForDate($validated['payment_date']);
 
-            if (! $rate) {
+            if (! $payRate) {
                 return redirect()->back()->withErrors(['payment_date' => 'No existe tasa de cambio para la fecha seleccionada.']);
             }
 
@@ -87,9 +87,30 @@ class ReceiptController extends Controller
                 $acr = AccountsReceivable::with('saleOrder')->findOrFail($paymentData['acr_id']);
 
                 $paymentAmount = (float) $paymentData['amount'];
-                $docCurrency = $acr->saleOrder->sls_coin ?? 'USD';
                 $payCurrency = $validated['payment_currency'];
+                $docCurrency = $acr->saleOrder->sls_coin ?? 'USD';
+
+                // Get the document's rate record for differential calculation
+                $docDate = $acr->saleOrder->sls_date?->format('Y-m-d')
+                    ?? $acr->saleOrder->created_at?->format('Y-m-d');
+                $docRate = $docDate
+                    ? ($this->rateService->getExactRateForDate($docDate) ?? $payRate)
+                    : $payRate;
+
+                // Convert payment to document currency (existing behavior)
+                $rate = $this->rateService->getExactRateForDate($validated['payment_date']);
                 $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $rate);
+
+                // Calculate differential in USD
+                $diferencial = $this->rateService->calculateDiferencial(
+                    $paymentAmount,
+                    $payCurrency,
+                    $payRate,
+                    $docRate,
+                );
+
+                // Convert payment to USD for balance tracking
+                $amountUsd = Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate);
 
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $validated['bank_account_id'],
@@ -98,6 +119,7 @@ class ReceiptController extends Controller
                     'btr_reference' => $validated['payment_reference'],
                     'btr_description' => $validated['payment_description'] ?: 'Cobro a cliente',
                     'btr_valorcam' => $valorcam,
+                    'btr_diferencial' => $diferencial,
                     'btr_balance' => 0,
                     'btr_method' => $validated['payment_method'],
                     'btr_transaction_date' => $validated['payment_date'],
@@ -111,7 +133,15 @@ class ReceiptController extends Controller
                     $amountInDocCurrency,
                     TypeReceipt::RECEIPT->value,
                     $bankTransaction->id,
+                    $amountUsd,
                 );
+
+                // Store differential on receipt
+                $receipt = $acr->payments()->where('rec_bank_transaction_id', $bankTransaction->id)->first();
+                if ($receipt) {
+                    $receipt->rec_diferencial = $diferencial;
+                    $receipt->save();
+                }
             }
 
             DB::commit();
@@ -233,6 +263,17 @@ class ReceiptController extends Controller
             $acr = $payment->accountsReceivable;
             $acr->acr_balance += $amount;
 
+            // Restore USD balance
+            if ($acr->acr_balance_usd !== null && $payment->bankTransaction) {
+                $payCoin = $payment->bankTransaction->btr_coin?->value ?? $payment->bankTransaction->btr_coin;
+                if ($payCoin && strtoupper((string) $payCoin) !== 'USD' && $payment->bankTransaction->btr_valorcam > 0) {
+                    $paymentUsd = $amount / (float) $payment->bankTransaction->btr_valorcam;
+                } else {
+                    $paymentUsd = $amount;
+                }
+                $acr->acr_balance_usd += $paymentUsd;
+            }
+
             if ($acr->acr_balance == $acr->acr_total) {
                 $acr->acr_status = StatusSales::PENDING->value;
             } elseif ($acr->acr_balance > 0) {
@@ -251,6 +292,7 @@ class ReceiptController extends Controller
                 if ($bankTx->btr_amount <= 0) {
                     $bankTx->delete();
                 } else {
+                    $bankTx->btr_diferencial = 0;
                     $bankTx->save();
                 }
             }

@@ -13,6 +13,7 @@ class Receipt extends Model
         'rec_bank_transaction_id',
         'rec_type',
         'rec_amount',
+        'rec_diferencial',
     ];
 
     public function accountsReceivable()
