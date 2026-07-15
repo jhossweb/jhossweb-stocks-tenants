@@ -14,6 +14,8 @@ export function useExpenses() {
     const expandedPayments = ref<Set<number>>(new Set());
     const showDeleteConfirm = ref(false);
     const deletingExpense = ref<Expense | null>(null);
+    const showPaymentsModal = ref(false);
+    const viewingExpensePayments = ref<Expense | null>(null);
     const latestRateRef = ref<LatestRate | null>(null);
 
     const payForm = useForm({
@@ -118,6 +120,16 @@ export function useExpenses() {
         }
     };
 
+    const openViewPayments = (expense: Expense) => {
+        viewingExpensePayments.value = expense;
+        showPaymentsModal.value = true;
+    };
+
+    const closeViewPayments = () => {
+        showPaymentsModal.value = false;
+        viewingExpensePayments.value = null;
+    };
+
     const confirmDelete = (expense: Expense) => {
         deletingExpense.value = expense;
         showDeleteConfirm.value = true;
@@ -147,6 +159,8 @@ export function useExpenses() {
         expandedPayments,
         showDeleteConfirm,
         deletingExpense,
+        showPaymentsModal,
+        viewingExpensePayments,
         payForm,
         originalBalance,
         originalCoin,
@@ -157,6 +171,8 @@ export function useExpenses() {
         togglePayments,
         confirmDelete,
         cancelDelete,
+        openViewPayments,
+        closeViewPayments,
         cancelPayment,
         cancelPaymentForm,
     };

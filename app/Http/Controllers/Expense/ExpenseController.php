@@ -27,7 +27,7 @@ class ExpenseController extends Controller
 
     public function index()
     {
-        $query = Expense::with('category')->latest();
+        $query = Expense::with('category', 'payments.bankAccount')->latest();
 
         if (request('category')) {
             $query->where('exp_category_id', request('category'));

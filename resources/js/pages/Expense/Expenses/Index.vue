@@ -5,20 +5,30 @@ import {
     DollarSign,
     FileText,
     Filter,
-    ChevronDown,
-    ChevronUp,
+    Eye,
     Banknote,
     Loader2,
     Trash2,
     XCircle,
+    Calendar,
+    Hash,
+    Landmark,
+    Repeat,
 } from 'lucide-vue-next';
 import { watch } from 'vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
-import { formatDate } from '@/composables/useDate';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import { useExpenses } from '@/composables/Expense/useExpenses';
+import { formatDate } from '@/composables/useDate';
 import type { Expense, ExpenseCategory, BankAccount, LatestRate, PaginatedData } from '@/types/Expense';
 
 defineOptions({
@@ -46,23 +56,32 @@ const {
     filterStatus,
     showPayModal,
     payingExpense,
-    expandedPayments,
     showDeleteConfirm,
     deletingExpense,
+    showPaymentsModal,
+    viewingExpensePayments,
     payForm,
     estimatedDiferencial,
     openPayModal,
     closePayModal,
     submitPayment,
-    togglePayments,
     confirmDelete,
     cancelDelete,
+    openViewPayments,
+    closeViewPayments,
 } = useExpenses();
 
 const applyFilters = () => {
     const params: Record<string, string> = {};
-    if (filterCategory.value) params.category = String(filterCategory.value);
-    if (filterStatus.value) params.status = filterStatus.value;
+
+    if (filterCategory.value) {
+        params.category = String(filterCategory.value);
+    }
+
+    if (filterStatus.value) {
+        params.status = filterStatus.value;
+    }
+
     router.get('/expenses', params, { preserveState: true, preserveScroll: true });
 };
 
@@ -70,7 +89,10 @@ watch(filterCategory, applyFilters);
 watch(filterStatus, applyFilters);
 
 const handleDelete = () => {
-    if (!deletingExpense.value) return;
+    if (!deletingExpense.value) {
+        return;
+    }
+
     router.delete(`/expenses/${deletingExpense.value.id}`, {
         preserveScroll: true,
         onSuccess: () => {
@@ -204,60 +226,16 @@ const handleDelete = () => {
                                             v-if="expense.payments?.length"
                                             variant="ghost"
                                             size="sm"
-                                            @click="togglePayments(expense.id)"
+                                            @click="openViewPayments(expense)"
+                                            class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                         >
-                                            <ChevronDown v-if="!expandedPayments.has(expense.id)" class="w-4 h-4" />
-                                            <ChevronUp v-else class="w-4 h-4" />
+                                            <Eye class="w-3.5 h-3.5 mr-1" />
+                                            Pagos
                                         </Button>
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="expandedPayments.has(expense.id) && expense.payments?.length">
-                                <td colspan="9" class="px-6 py-2 bg-gray-50 dark:bg-gray-800/50">
-                                    <div class="text-xs text-gray-500 mb-1 font-medium">Historial de Pagos</div>
-                                    <table class="w-full text-xs">
-                                        <thead>
-                                            <tr class="text-gray-400 border-b dark:border-gray-700">
-                                                <th class="px-3 py-1 text-left">Fecha</th>
-                                                <th class="px-3 py-1 text-left">Monto</th>
-                                                <th class="px-3 py-1 text-left">Moneda</th>
-                                                <th class="px-3 py-1 text-left">Tasa</th>
-                                                <th class="px-3 py-1 text-left">Referencia</th>
-                                                <th class="px-3 py-1 text-left">Banco</th>
-                                                <th class="px-3 py-1 text-right">Diferencial</th>
-                                                <th class="px-3 py-1 text-right">Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="pmt in expense.payments" :key="pmt.id" class="border-b dark:border-gray-700/50">
-                                                <td class="px-3 py-1.5">{{ formatDate(pmt.created_at) }}</td>
-                                                <td class="px-3 py-1.5 font-medium">{{ Number(pmt.btr_amount).toLocaleString() }}</td>
-                                                <td class="px-3 py-1.5">{{ pmt.btr_coin }}</td>
-                                                <td class="px-3 py-1.5">{{ pmt.btr_valorcam }}</td>
-                                                <td class="px-3 py-1.5">{{ pmt.btr_reference }}</td>
-                                                <td class="px-3 py-1.5">{{ pmt.bank_account?.bank_name ?? '-' }}</td>
-                                                <td class="px-3 py-1.5 text-right">
-                                                    <span v-if="pmt.btr_diferencial && Number(pmt.btr_diferencial) !== 0" class="font-semibold" :class="Number(pmt.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
-                                                        {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(2) }}
-                                                    </span>
-                                                    <span v-else class="text-gray-400">—</span>
-                                                </td>
-                                                <td class="px-3 py-1.5 text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        class="text-red-500 hover:text-red-700 dark:text-red-400 h-6 px-2"
-                                                        @click="router.post(`/expenses/${expense.id}/cancel-payment`, { bank_transaction_id: pmt.id }, { preserveScroll: true })"
-                                                    >
-                                                        <XCircle class="w-3 h-3 mr-1" />
-                                                        Cancelar
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
+
                         </template>
                     </tbody>
                 </table>
@@ -326,6 +304,87 @@ const handleDelete = () => {
             </Button>
         </template>
     </PayModal>
+
+    <Dialog :open="showPaymentsModal" @update:open="closeViewPayments">
+        <DialogContent class="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+                <DialogTitle>Historial de Pagos</DialogTitle>
+                <DialogDescription>
+                    Pagos registrados para: {{ viewingExpensePayments?.exp_description }}
+                </DialogDescription>
+            </DialogHeader>
+
+            <div class="mt-4">
+                <div v-if="!viewingExpensePayments?.payments || viewingExpensePayments.payments.length === 0" class="text-center py-8 text-gray-500">
+                    <FileText class="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                    No hay pagos registrados para este gasto.
+                </div>
+
+                <div v-else class="space-y-4">
+                    <div v-for="pmt in viewingExpensePayments.payments" :key="pmt.id" class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
+                                    {{ Number(pmt.btr_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                                    <span class="text-xs font-normal text-gray-400 ml-1">{{ pmt.btr_coin }}</span>
+                                </h4>
+
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-3 text-sm">
+                                    <div class="flex items-center gap-2 text-gray-500">
+                                        <Calendar class="h-4 w-4 shrink-0" />
+                                        {{ formatDate(pmt.created_at) }}
+                                    </div>
+
+                                    <div class="flex items-center gap-2 text-gray-500">
+                                        <Repeat class="h-4 w-4 shrink-0" />
+                                        Tasa: <span class="font-mono font-medium text-gray-700 dark:text-gray-300">{{ Number(pmt.btr_valorcam).toFixed(4) }}</span>
+                                    </div>
+
+                                    <div v-if="pmt.bank_account" class="flex items-center gap-2 text-gray-500">
+                                        <Landmark class="h-4 w-4 shrink-0" />
+                                        {{ pmt.bank_account.bank_name }}
+                                    </div>
+
+                                    <div v-if="pmt.btr_reference" class="flex items-center gap-2 text-gray-500">
+                                        <Hash class="h-4 w-4 shrink-0" />
+                                        Ref: {{ pmt.btr_reference }}
+                                    </div>
+
+                                    <div v-if="pmt.btr_method" class="flex items-center gap-2 text-gray-500 col-span-2">
+                                        <Banknote class="h-4 w-4 shrink-0" />
+                                        {{ pmt.btr_method }}
+                                    </div>
+                                </div>
+
+                                <div v-if="pmt.btr_description" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                    Nota: {{ pmt.btr_description }}
+                                </div>
+
+                                <div v-if="pmt.btr_diferencial && Number(pmt.btr_diferencial) !== 0" class="mt-2 text-xs font-semibold" :class="Number(pmt.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
+                                    Diferencial: {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(2) }} USD
+                                    <span class="font-normal text-gray-400">({{ Number(pmt.btr_diferencial) > 0 ? 'Ganancia' : 'Pérdida' }})</span>
+                                </div>
+                            </div>
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                class="text-red-500 hover:text-red-700 dark:text-red-400 shrink-0 ml-4"
+                                @click="router.post(`/expenses/${viewingExpensePayments.id}/cancel-payment`, { bank_transaction_id: pmt.id }, { preserveScroll: true, onSuccess: () => closeViewPayments() })"
+                            >
+                                <XCircle class="w-3.5 h-3.5 mr-1" />
+                                Cancelar
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
+                <Button variant="outline" @click="closeViewPayments">Cerrar</Button>
+            </div>
+        </DialogContent>
+    </Dialog>
 
     <Teleport to="body">
         <Transition name="modal">
