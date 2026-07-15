@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { PlusCircle, Tags, FileText } from 'lucide-vue-next';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { PlusCircle, Tags, FileText, Trash2, Loader2 } from 'lucide-vue-next';
+import { ref } from 'vue';
+import FlashMessage from '@/components/FlashMessage.vue';
 import { Button } from '@/components/ui/button';
+import type { ExpenseCategory, PaginatedData } from '@/types/Expense';
 
 defineOptions({
     layout: {
@@ -12,25 +15,36 @@ defineOptions({
     },
 });
 
-interface Category {
-    id: number;
-    exc_name: string;
-    exc_type: string;
-    exc_description: string | null;
-    expenses_count: number;
-}
-
 const props = defineProps<{
-    categories: {
-        data: Category[];
-        links: any[];
-    }
+    categories: PaginatedData<ExpenseCategory>;
     typeOptions: string[];
 }>();
+
+const showDeleteConfirm = ref(false);
+const deletingCategory = ref<ExpenseCategory | null>(null);
+
+const confirmDelete = (category: ExpenseCategory) => {
+    deletingCategory.value = category;
+    showDeleteConfirm.value = true;
+};
+
+const cancelDelete = () => {
+    showDeleteConfirm.value = false;
+    deletingCategory.value = null;
+};
+
+const handleDelete = () => {
+    if (!deletingCategory.value) return;
+    router.delete(`/expense-categories/${deletingCategory.value.id}`, {
+        preserveScroll: true,
+        onSuccess: () => cancelDelete(),
+    });
+};
 </script>
 
 <template>
     <Head title="Categorías de Gastos" />
+    <FlashMessage />
 
     <div class="flex h-full flex-1 flex-col gap-6 p-4 md:p-8">
         <div class="flex items-center justify-between">
@@ -89,15 +103,26 @@ const props = defineProps<{
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-semibold">
-                                    {{ category.expenses_count }}
+                                    {{ category.expenses_count ?? 0 }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <Link :href="`/expense-categories/${category.id}/edit`">
-                                    <Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                                        Editar
+                                <div class="flex items-center justify-end gap-1">
+                                    <Link :href="`/expense-categories/${category.id}/edit`">
+                                        <Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                                            Editar
+                                        </Button>
+                                    </Link>
+                                    <Button
+                                        v-if="(category.expenses_count ?? 0) === 0"
+                                        variant="ghost"
+                                        size="sm"
+                                        @click="confirmDelete(category)"
+                                        class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                    >
+                                        <Trash2 class="w-3.5 h-3.5" />
                                     </Button>
-                                </Link>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -114,4 +139,47 @@ const props = defineProps<{
             </div>
         </div>
     </div>
+
+    <Teleport to="body">
+        <Transition name="modal">
+            <div
+                v-if="showDeleteConfirm"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-sm p-4"
+                @click.self="cancelDelete"
+            >
+                <div class="bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl w-full max-w-md p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-red-500/10 rounded-lg">
+                            <Trash2 class="w-5 h-5 text-red-500" />
+                        </div>
+                        <h3 class="text-lg font-bold text-zinc-100">Eliminar Categoría</h3>
+                    </div>
+                    <p class="text-sm text-zinc-400 mb-6">
+                        ¿Estás seguro de que deseas eliminar la categoría "<strong class="text-zinc-200">{{ deletingCategory?.exc_name }}</strong>"? Esta acción no se puede deshacer.
+                    </p>
+                    <div class="flex justify-end gap-3">
+                        <Button variant="outline" @click="cancelDelete">Cancelar</Button>
+                        <Button
+                            @click="handleDelete"
+                            class="bg-red-600 hover:bg-red-500 text-white font-bold"
+                        >
+                            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                            Eliminar
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 </template>
+
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+    transition: opacity 0.2s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+    opacity: 0;
+}
+</style>

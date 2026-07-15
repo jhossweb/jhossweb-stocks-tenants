@@ -4,15 +4,27 @@ namespace App\Services\Finance;
 
 use App\Models\Rate;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class RateService
 {
     /**
-     * Obtiene la tasa más reciente.
+     * Obtiene la tasa más reciente (con caché de 1 hora).
+     * Cachea un array plano para evitar __PHP_Incomplete_Class con driver database.
      */
     public function getLatestRate(): ?Rate
     {
-        return Rate::orderBy('rate_date', 'desc')->first();
+        $cached = Cache::remember('rates:v2', 3600, function () {
+            $rate = Rate::orderBy('rate_date', 'desc')->first();
+
+            return $rate?->toArray();
+        });
+
+        if (! is_array($cached)) {
+            return Rate::orderBy('rate_date', 'desc')->first();
+        }
+
+        return (new Rate)->forceFill($cached);
     }
 
     /**

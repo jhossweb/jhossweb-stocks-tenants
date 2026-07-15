@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests\Expense;
 
+use App\Enum\Finanzas\TransactionMethod;
+use App\Enum\TypeCoin;
 use App\Models\BankAccount;
 use App\Models\Expense;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PayExpenseRequest extends FormRequest
 {
@@ -26,7 +29,8 @@ class PayExpenseRequest extends FormRequest
                     }
                     $amount = (float) ($this->amount ?? 0);
                     if ($account->bank_balance < $amount) {
-                        $fail("Saldo insuficiente en {$account->bank_name}. Saldo disponible: ".number_format((float) $account->bank_balance, 2).' '.$account->bank_currency);
+                        $fail("Saldo insuficiente en {$account->bank_name}. Saldo disponible: "
+                            .number_format((float) $account->bank_balance, 2).' '.$account->bank_currency);
                     }
                 },
             ],
@@ -53,10 +57,10 @@ class PayExpenseRequest extends FormRequest
             ],
             'reference' => 'required|string|max:50',
             'description' => 'nullable|string|max:150',
-            'payment_currency' => 'required|string|max:10',
-            'payment_rate' => 'required|numeric|min:0',
+            'payment_currency' => ['required', Rule::in(TypeCoin::values())],
+            'payment_rate' => 'required|numeric|min:0.0001',
             'payment_date' => 'required|date',
-            'payment_method' => 'required|string|max:30',
+            'payment_method' => ['required', Rule::in(TransactionMethod::values())],
         ];
     }
 }

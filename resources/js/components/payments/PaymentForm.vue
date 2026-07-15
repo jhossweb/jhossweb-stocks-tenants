@@ -11,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import { useCurrencyConversion } from '@/composables/useCurrencyConversion'
 import { usePayment } from '@/composables/usePayment'
 
 interface BankAccount {
@@ -21,9 +22,17 @@ interface BankAccount {
     formatted_balance?: string
 }
 
+interface RateRecord {
+    rate_date: string
+    rate_usd: number
+    rate_cop: number
+    rate_eur: number
+}
+
 const props = defineProps<{
     bankAccounts: BankAccount[]
     latestRate: any
+    rates?: RateRecord[]
     currency: string
     remainingBalance: number
     form: any
@@ -42,7 +51,8 @@ defineEmits<{
     submit: []
 }>()
 
-const { resolveRate } = usePayment()
+const { resolveRateForStorage } = usePayment()
+const { convertCurrency } = useCurrencyConversion()
 
 const filteredBankAccounts = computed(() =>
     props.bankAccounts.filter(ba => ba.bank_currency === props.form.payment_currency)
@@ -60,6 +70,25 @@ watch(() => props.form.payment_currency, () => {
     }
 })
 
+const getBestRateForDate = (date: string): RateRecord | null => {
+    if (!props.rates || props.rates.length === 0) {
+        return props.latestRate || null
+    }
+
+    const normalized = date.substring(0, 10)
+    const exactRate = props.rates.find(r => r.rate_date.substring(0, 10) === normalized)
+
+    if (exactRate) {
+        return exactRate
+    }
+
+    const pastRates = props.rates
+        .filter(r => r.rate_date.substring(0, 10) < normalized)
+        .sort((a, b) => b.rate_date.localeCompare(a.rate_date))
+
+    return pastRates.length > 0 ? pastRates[0] : props.rates[0]
+}
+
 const maxAmount = computed(() => {
     const balance = props.remainingBalance
 
@@ -74,19 +103,30 @@ const maxAmount = computed(() => {
         return balance
     }
 
-    const fromRate = resolveRate(fromCurrency, props.latestRate)
-    const toRate = Number(props.form.payment_rate) || 1
-    const amountInUSD = balance / fromRate
+    const currentRate = getBestRateForDate(props.form.payment_date) || props.latestRate || {}
 
-    return amountInUSD * toRate
+    return convertCurrency(balance, fromCurrency, toCurrency, currentRate)
 })
 
 const updateExchangeRate = () => {
     const coin = props.form.payment_currency || props.currency
-    props.form.payment_rate = resolveRate(coin, props.latestRate)
+    const date = props.form.payment_date
+
+    if (props.rates && props.rates.length > 0 && date) {
+        const rate = getBestRateForDate(date)
+
+        if (rate) {
+            props.form.payment_rate = resolveRateForStorage(coin, rate)
+
+            return
+        }
+    }
+
+    props.form.payment_rate = resolveRateForStorage(coin, props.latestRate)
 }
 
 watch(() => props.form.payment_currency, () => updateExchangeRate())
+watch(() => props.form.payment_date, () => updateExchangeRate())
 </script>
 
 <template>

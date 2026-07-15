@@ -110,7 +110,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
     Route::resource('expense-categories', ExpenseCategoryController::class);
     Route::post('expenses/{expense}/pay', [ExpenseController::class, 'pay'])->name('expenses.pay');
-    Route::resource('expenses', ExpenseController::class);
+    Route::post('expenses/{expense}/cancel-payment', [ExpenseController::class, 'cancelPayment'])->name('expenses.cancel-payment');
+    Route::resource('expenses', ExpenseController::class)->except('show');
 
     // -----------------------------------------------------------------------
     // EMPLEADOS

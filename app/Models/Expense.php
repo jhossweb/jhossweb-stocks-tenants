@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Enum\Expense\ExpenseStatus;
 use App\Enum\TypeCoin;
 use Database\Factories\ExpenseFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Expense extends Model
 {
@@ -42,142 +44,76 @@ class Expense extends Model
         ];
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(ExpenseCategory::class, 'exp_category_id');
     }
 
-    public function bankTransaction()
+    public function bankTransaction(): BelongsTo
     {
         return $this->belongsTo(BankTransaction::class, 'exp_bank_transaction_id');
     }
 
-    public function payments()
+    public function payments(): MorphMany
     {
         return $this->morphMany(BankTransaction::class, 'btr_transactionable');
     }
 
-    public static function resolveRateForCoin(string $coin): float
+    public function scopePending(Builder $query): Builder
     {
-        $latestRate = Rate::orderBy('rate_date', 'desc')->first();
-
-        return match ($coin) {
-            'USD' => 1,
-            'COP' => (float) ($latestRate?->rate_cop ?? 1),
-            'EUR' => (float) ($latestRate?->rate_eur ?? 1),
-            default => (float) ($latestRate?->rate_usd ?? 1),
-        };
+        return $query->where('exp_status', ExpenseStatus::PENDING);
     }
 
-    public function registerPayment(
-        float $amountInBankCurrency,
-        int $bankAccountId,
-        string $reference,
-        ?string $description = null,
-        ?string $paymentCurrency = null,
-        ?float $paymentRate = null,
-        ?string $paymentMethod = null,
-        ?string $paymentDate = null,
-    ): BankTransaction {
-        return DB::transaction(function () use ($amountInBankCurrency, $bankAccountId, $reference, $description, $paymentCurrency, $paymentRate, $paymentMethod, $paymentDate) {
-            $bankAccount = BankAccount::findOrFail($bankAccountId);
-
-            if ($paymentCurrency && $paymentRate !== null) {
-                $rate = $paymentRate;
-                $coin = $paymentCurrency;
-            } else {
-                $rate = $this->resolveRate($bankAccount);
-                $coin = $bankAccount->bank_currency;
-            }
-
-            $amountInExpenseCurrency = $this->convertToExpenseCurrency($amountInBankCurrency, $rate, $coin);
-
-            // Calculate differential
-            $expenseCoin = $this->exp_coin->value;
-            $diferencial = 0.0;
-
-            if (strtoupper((string) $coin) !== 'USD' && strtoupper($expenseCoin) !== 'USD') {
-                // Both are non-USD: compare expense rate vs payment rate
-                $expenseRateValue = static::resolveRateForCoin($expenseCoin);
-                if ($expenseRateValue > 0 && $rate > 0) {
-                    $amountAtExpenseRate = $amountInBankCurrency / $expenseRateValue;
-                    $amountAtPayRate = $amountInBankCurrency / $rate;
-                    $diferencial = round($amountAtExpenseRate - $amountAtPayRate, 4);
-                }
-            } elseif (strtoupper((string) $coin) !== 'USD') {
-                // Payment in non-USD, expense in USD
-                if ($rate > 0) {
-                    $diferencial = round(($amountInBankCurrency / $rate) - $amountInBankCurrency, 4);
-                }
-            }
-
-            $bankTransaction = BankTransaction::create([
-                'btr_bank_account_id' => $bankAccountId,
-                'btr_type' => 'outflow',
-                'btr_amount' => $amountInBankCurrency,
-                'btr_balance' => 0,
-                'btr_reference' => $reference,
-                'btr_description' => $description ?: ('Pago de gasto: '.$this->exp_description),
-                'btr_valorcam' => $rate,
-                'btr_diferencial' => $diferencial,
-                'btr_coin' => $coin,
-                'btr_method' => $paymentMethod,
-                'btr_transaction_date' => $paymentDate,
-            ]);
-
-            $bankTransaction->btr_transactionable()->associate($this);
-            $bankTransaction->save();
-
-            $this->exp_paid_amount += $amountInExpenseCurrency;
-            $this->exp_remaining_balance = max(0, $this->exp_amount - $this->exp_paid_amount);
-
-            if ($this->exp_remaining_balance <= 0) {
-                $this->markAsPaid($bankTransaction->id);
-            } else {
-                $this->exp_bank_transaction_id = $bankTransaction->id;
-                $this->save();
-            }
-
-            return $bankTransaction;
-        });
+    public function scopePaid(Builder $query): Builder
+    {
+        return $query->where('exp_status', ExpenseStatus::PAID);
     }
 
-    public function resolveRate(BankAccount $bankAccount): float
+    public function scopeByCategory(Builder $query, int $categoryId): Builder
     {
-        if ($this->exp_coin === $bankAccount->bank_currency) {
-            return 1;
-        }
-
-        return static::resolveRateForCoin($this->exp_coin->value);
-    }
-
-    public function convertToExpenseCurrency(float $amountInPaymentCurrency, float $paymentRate, string $paymentCoin): float
-    {
-        $expenseCoin = $this->exp_coin->value;
-
-        if ($expenseCoin === $paymentCoin) {
-            return $amountInPaymentCurrency;
-        }
-
-        $amountInUSD = $amountInPaymentCurrency / $paymentRate;
-        $expenseRate = static::resolveRateForCoin($expenseCoin);
-
-        return $amountInUSD * $expenseRate;
-    }
-
-    public function markAsPaid(?int $bankTransactionId = null): void
-    {
-        $this->exp_status = ExpenseStatus::PAID;
-        $this->exp_payment_date = now();
-        $this->exp_remaining_balance = 0;
-        if ($bankTransactionId) {
-            $this->exp_bank_transaction_id = $bankTransactionId;
-        }
-        $this->save();
+        return $query->where('exp_category_id', $categoryId);
     }
 
     public function isPaid(): bool
     {
         return $this->exp_status === ExpenseStatus::PAID;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->exp_status === ExpenseStatus::PENDING;
+    }
+
+    public function hasPayments(): bool
+    {
+        return $this->payments()->exists();
+    }
+
+    public function getTotalPaidAttribute(): float
+    {
+        return (float) $this->exp_paid_amount;
+    }
+
+    public function getRemainingAttribute(): float
+    {
+        return (float) $this->exp_remaining_balance;
+    }
+
+    public function convertToExpenseCurrency(float $amountInPaymentCurrency, float $paymentRate, string $paymentCoin): float
+    {
+        $expenseCoin = $this->exp_coin->value ?? (string) $this->exp_coin;
+
+        if ($expenseCoin === $paymentCoin) {
+            return $amountInPaymentCurrency;
+        }
+
+        $amountInUSD = $paymentRate > 0 ? $amountInPaymentCurrency / $paymentRate : 0;
+
+        return match (strtoupper($expenseCoin)) {
+            'USD' => $amountInUSD,
+            'COP' => $amountInUSD * (float) ($this->exp_valorcam ?: 1),
+            'EUR' => $amountInUSD * (float) ($this->exp_valorcam ?: 1),
+            default => $amountInUSD * (float) ($this->exp_valorcam ?: 1),
+        };
     }
 }

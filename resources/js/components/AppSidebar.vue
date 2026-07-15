@@ -168,21 +168,6 @@ const mainNavItems: NavItem[] = [
                 ],
             },
             {
-                title: 'Gastos',
-                href: '#',
-                icon: CircleDollarSign,
-                items: [
-                    {
-                        title: 'Categorías',
-                        href: '/expense-categories',
-                    },
-                    {
-                        title: 'Gastos',
-                        href: '/expenses',
-                    },
-                ],
-            },
-            {
                 title: 'Transacciones',
                 href: '#',
                 icon: ArrowRightLeft,
@@ -211,6 +196,21 @@ const mainNavItems: NavItem[] = [
                         href: '/bank-transaction-analysis',
                     },
                 ],
+            },
+        ],
+    },
+    {
+        title: 'Gastos',
+        href: '#',
+        icon: CircleDollarSign,
+        items: [
+            {
+                title: 'Categorías',
+                href: '/expense-categories',
+            },
+            {
+                title: 'Gastos',
+                href: '/expenses',
             },
         ],
     },

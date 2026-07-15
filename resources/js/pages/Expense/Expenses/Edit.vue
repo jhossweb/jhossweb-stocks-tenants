@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Save, DollarSign, Loader2, ChevronDown, ChevronUp, Banknote } from 'lucide-vue-next';
+import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import { ArrowLeft, Save, DollarSign, Loader2, ChevronDown, ChevronUp, Banknote, XCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
+import FlashMessage from '@/components/FlashMessage.vue';
 import InputError from '@/components/InputError.vue';
 import Input from '@/components/ui/input/Input.vue';
-import { today, formatDate } from '@/composables/useDate';
+import { formatDate } from '@/composables/useDate';
+import { usePayment } from '@/composables/usePayment';
+import type { Expense, ExpenseCategory, BankAccount, BankTransaction, LatestRate } from '@/types/Expense';
 
 defineOptions({
     layout: {
@@ -16,33 +19,16 @@ defineOptions({
     },
 });
 
-interface BankAccount {
-    id: number;
-    bank_name: string;
-    bank_currency: string;
-    bank_balance: string;
-}
-
-interface BankTransaction {
-    id: number;
-    btr_amount: string;
-    btr_coin: string;
-    btr_valorcam: string;
-    btr_reference: string;
-    btr_description: string;
-    btr_balance: string;
-    created_at: string;
-    bank_account: BankAccount;
-}
-
 const props = defineProps<{
-    expense: any;
-    categories: any[];
-    statusOptions: string[];
+    expense: Expense;
+    categories: ExpenseCategory[];
     coinOptions: string[];
     bankAccounts: BankAccount[];
-    latestRate: any;
+    latestRate: LatestRate;
+    methods: string[];
 }>();
+
+const { resolveRate } = usePayment();
 
 const isPaid = props.expense.exp_status === 'pagado';
 const showPayments = ref(false);
@@ -51,32 +37,13 @@ const form = useForm({
     exp_category_id: props.expense.exp_category_id || '',
     exp_description: props.expense.exp_description || '',
     exp_amount: props.expense.exp_amount || '',
-    exp_date: props.expense.exp_date || today(),
-    exp_status: props.expense.exp_status || 'pendiente',
+    exp_date: props.expense.exp_date || '',
     exp_coin: props.expense.exp_coin || 'USD',
-    exp_valorcam: props.expense.exp_valorcam || 1,
 });
 
 const updateExchangeRate = () => {
-    if (!props.latestRate) {
-return;
-}
-
-    switch (form.exp_coin) {
-        case 'USD':
-        case 'BS':
-        case 'VES':
-            form.exp_valorcam = Number(props.latestRate.rate_usd ?? 1);
-            break;
-        case 'COP':
-            form.exp_valorcam = Number(props.latestRate.rate_cop ?? 1);
-            break;
-        case 'EUR':
-            form.exp_valorcam = Number(props.latestRate.rate_eur ?? 1);
-            break;
-        default:
-            form.exp_valorcam = Number(props.latestRate.rate_usd ?? 1);
-    }
+    if (!props.latestRate) return;
+    form.exp_coin = form.exp_coin;
 };
 
 const submit = () => {
@@ -88,6 +55,7 @@ const submit = () => {
 
 <template>
     <Head title="Editar Gasto" />
+    <FlashMessage />
 
     <div class="flex h-full flex-1 flex-col gap-6 p-4 md:p-8">
         <div class="flex items-center justify-between">
@@ -117,11 +85,11 @@ const submit = () => {
             </button>
         </div>
 
-        <div v-if="isPaid" class="bg-green-900/20 border border-green-500/50 p-4 rounded-xl">
+        <div v-if="isPaid" class="bg-green-500/10 border border-green-500/20 p-4 rounded-xl">
             <p class="text-sm text-green-400 font-semibold">Este gasto está pagado. Los campos son de solo lectura.</p>
         </div>
 
-        <div v-if="Object.keys(form.errors).length > 0" class="bg-red-900/20 border border-red-500/50 p-4 rounded-xl">
+        <div v-if="Object.keys(form.errors).length > 0" class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
             <p class="text-sm text-red-400 font-bold mb-1">Hay problemas con el envío:</p>
             <ul class="list-disc list-inside text-xs text-red-300">
                 <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
@@ -141,7 +109,7 @@ const submit = () => {
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Monto</label>
-                    <Input type="number" step="0.01" min="0" v-model="form.exp_amount" class="w-full" :disabled="isPaid" />
+                    <Input type="number" step="0.01" min="0.01" v-model="form.exp_amount" class="w-full" :disabled="isPaid" />
                     <InputError :message="form.errors.exp_amount" />
                 </div>
 
@@ -154,23 +122,9 @@ const submit = () => {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tasa de Cambio</label>
-                    <Input type="number" step="0.0001" min="0" v-model="form.exp_valorcam" class="w-full" :disabled="isPaid" />
-                    <InputError :message="form.errors.exp_valorcam" />
-                </div>
-
-                <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fecha del Gasto</label>
                     <Input type="date" v-model="form.exp_date" class="w-full" :disabled="isPaid" />
                     <InputError :message="form.errors.exp_date" />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Estado</label>
-                    <select v-model="form.exp_status" :disabled="isPaid" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring" :class="{ 'opacity-60 cursor-not-allowed': isPaid }">
-                        <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
-                    </select>
-                    <InputError :message="form.errors.exp_status" />
                 </div>
 
                 <div class="md:col-span-2 lg:col-span-3">
@@ -198,6 +152,8 @@ const submit = () => {
                             <th class="px-4 py-2">Tasa</th>
                             <th class="px-4 py-2">Referencia</th>
                             <th class="px-4 py-2">Banco</th>
+                            <th class="px-4 py-2 text-right">Diferencial</th>
+                            <th class="px-4 py-2 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -208,6 +164,24 @@ const submit = () => {
                             <td class="px-4 py-2">{{ pmt.btr_valorcam }}</td>
                             <td class="px-4 py-2">{{ pmt.btr_reference }}</td>
                             <td class="px-4 py-2">{{ pmt.bank_account?.bank_name ?? '-' }}</td>
+                            <td class="px-4 py-2 text-right">
+                                <span v-if="pmt.btr_diferencial && Number(pmt.btr_diferencial) !== 0" class="font-semibold" :class="Number(pmt.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
+                                    {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(2) }}
+                                </span>
+                                <span v-else class="text-gray-400">—</span>
+                            </td>
+                            <td class="px-4 py-2 text-right">
+                                <Button
+                                    v-if="!isPaid"
+                                    variant="ghost"
+                                    size="sm"
+                                    class="text-red-500 hover:text-red-700 dark:text-red-400 h-6 px-2"
+                                    @click="router.post(`/expenses/${expense.id}/cancel-payment`, { bank_transaction_id: pmt.id }, { preserveScroll: true })"
+                                >
+                                    <XCircle class="w-3 h-3 mr-1" />
+                                    Cancelar
+                                </Button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

@@ -1,12 +1,25 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { PlusCircle, DollarSign, FileText, Filter, ChevronDown, ChevronUp, Banknote, Loader2 } from 'lucide-vue-next';
-import { ref, computed, watch } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import {
+    PlusCircle,
+    DollarSign,
+    FileText,
+    Filter,
+    ChevronDown,
+    ChevronUp,
+    Banknote,
+    Loader2,
+    Trash2,
+    XCircle,
+} from 'lucide-vue-next';
+import { watch } from 'vue';
+import FlashMessage from '@/components/FlashMessage.vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
-import { formatDate, today } from '@/composables/useDate';
-import { usePayment } from '@/composables/usePayment';
+import { formatDate } from '@/composables/useDate';
+import { useExpenses } from '@/composables/Expense/useExpenses';
+import type { Expense, ExpenseCategory, BankAccount, LatestRate, PaginatedData } from '@/types/Expense';
 
 defineOptions({
     layout: {
@@ -17,186 +30,59 @@ defineOptions({
     },
 });
 
-interface Category {
-    id: number;
-    exc_name: string;
-    exc_type: string;
-}
-
-interface BankAccount {
-    id: number;
-    bank_name: string;
-    bank_currency: string;
-    bank_balance: string;
-}
-
-interface BankTransaction {
-    id: number;
-    btr_amount: string;
-    btr_coin: string;
-    btr_valorcam: string;
-    btr_reference: string;
-    btr_description: string;
-    btr_balance: string;
-    btr_diferencial: string;
-    created_at: string;
-    bank_account: BankAccount;
-}
-
-interface Expense {
-    id: number;
-    exp_category_id: number;
-    exp_description: string;
-    exp_amount: string;
-    exp_paid_amount: string;
-    exp_remaining_balance: string;
-    exp_date: string;
-    exp_status: string;
-    exp_coin: string;
-    exp_valorcam: string;
-    exp_payment_date: string | null;
-    category?: Category;
-    payments?: BankTransaction[];
-}
-
 const props = defineProps<{
-    expenses: {
-        data: Expense[];
-        links: any[];
-    }
-    categories: Category[];
+    expenses: PaginatedData<Expense>;
+    categories: ExpenseCategory[];
     statusOptions: string[];
     coinOptions: string[];
     bankAccounts: BankAccount[];
-    latestRate: any;
-    currencies: string[];
+    latestRate: LatestRate;
+    rates: LatestRate[];
     methods: string[];
 }>();
 
-const filterCategory = ref('');
-const filterStatus = ref('');
+const {
+    filterCategory,
+    filterStatus,
+    showPayModal,
+    payingExpense,
+    expandedPayments,
+    showDeleteConfirm,
+    deletingExpense,
+    payForm,
+    estimatedDiferencial,
+    openPayModal,
+    closePayModal,
+    submitPayment,
+    togglePayments,
+    confirmDelete,
+    cancelDelete,
+} = useExpenses();
 
-const showPayModal = ref(false);
-const payingExpense = ref<Expense | null>(null);
-const expandedPayments = ref<Set<number>>(new Set());
-
-const payForm = useForm({
-    bank_account_id: '',
-    amount: '',
-    reference: '',
-    description: '',
-    payment_currency: '',
-    payment_rate: '',
-    payment_date: '',
-    payment_method: '',
-});
-
-const { resolveRate } = usePayment();
-
-const originalBalance = ref(0);
-const originalCoin = ref('USD');
-
-const openPayModal = (expense: Expense) => {
-    payingExpense.value = expense;
-    originalBalance.value = Number(expense.exp_remaining_balance) || 0;
-    originalCoin.value = expense.exp_coin || 'USD';
-    payForm.reference = '';
-    payForm.description = '';
-    payForm.payment_currency = originalCoin.value;
-    payForm.bank_account_id = '';
-    payForm.amount = String(originalBalance.value);
-    payForm.payment_date = today();
-    payForm.payment_method = props.methods.length > 0 ? props.methods[0] : '';
-    payForm.payment_rate = resolveRate(payForm.payment_currency, props.latestRate);
-    showPayModal.value = true;
+const applyFilters = () => {
+    const params: Record<string, string> = {};
+    if (filterCategory.value) params.category = String(filterCategory.value);
+    if (filterStatus.value) params.status = filterStatus.value;
+    router.get('/expenses', params, { preserveState: true, preserveScroll: true });
 };
 
-watch(() => payForm.payment_currency, (newCurrency, oldCurrency) => {
-    if (!newCurrency) {
-return;
-}
+watch(filterCategory, applyFilters);
+watch(filterStatus, applyFilters);
 
-    const currentAmount = Number(payForm.amount) || 0;
-
-    if (oldCurrency && currentAmount > 0) {
-        const rateOld = resolveRate(oldCurrency, props.latestRate);
-        const rateNew = resolveRate(newCurrency, props.latestRate);
-
-        if (rateOld > 0 && rateNew > 0) {
-            const amountInBaseUSD = currentAmount / rateOld;
-            payForm.amount = String(amountInBaseUSD * rateNew);
-        }
-    }
-
-    payForm.payment_rate = resolveRate(newCurrency, props.latestRate);
-});
-
-const closePayModal = () => {
-    showPayModal.value = false;
-    payingExpense.value = null;
-    originalBalance.value = 0;
-    originalCoin.value = 'USD';
-    payForm.clearErrors();
-    payForm.reset();
-};
-
-const estimatedDiferencial = computed(() => {
-    if (!payingExpense.value || !payForm.amount) {
-return 0;
-}
-
-    const payAmount = Number(payForm.amount) || 0;
-    const payCoin = payForm.payment_currency;
-    const docCoin = payingExpense.value.exp_coin;
-
-    if (payCoin === docCoin) {
-return 0;
-}
-
-    const payRate = Number(payForm.payment_rate) || 1;
-    const docRate = Number(payingExpense.value.exp_valorcam) || Number(props.latestRate?.rate_usd) || 1;
-
-    let paidInUsd: number;
-
-    if (payCoin === 'USD') {
-        paidInUsd = payAmount;
-    } else {
-        paidInUsd = payAmount / payRate;
-    }
-
-    let docValueInUsd: number;
-
-    if (docCoin === 'USD') {
-        docValueInUsd = payAmount;
-    } else {
-        docValueInUsd = payAmount / docRate;
-    }
-
-    return paidInUsd - docValueInUsd;
-});
-
-const submitPayment = () => {
-    if (!payingExpense.value) {
-return;
-}
-
-    payForm.post(`/expenses/${payingExpense.value.id}/pay`, {
+const handleDelete = () => {
+    if (!deletingExpense.value) return;
+    router.delete(`/expenses/${deletingExpense.value.id}`, {
         preserveScroll: true,
-        onSuccess: () => closePayModal(),
+        onSuccess: () => {
+            cancelDelete();
+        },
     });
-};
-
-const togglePayments = (expenseId: number) => {
-    if (expandedPayments.value.has(expenseId)) {
-        expandedPayments.value.delete(expenseId);
-    } else {
-        expandedPayments.value.add(expenseId);
-    }
 };
 </script>
 
 <template>
     <Head title="Listado de Gastos" />
+    <FlashMessage />
 
     <div class="flex h-full flex-1 flex-col gap-6 p-4 md:p-8">
         <div class="flex items-center justify-between">
@@ -282,6 +168,7 @@ const togglePayments = (expenseId: number) => {
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="{
                                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': expense.exp_status === 'pendiente',
+                                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': expense.exp_status === 'parcial',
                                         'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': expense.exp_status === 'pagado',
                                     }">
                                         {{ expense.exp_status }}
@@ -289,20 +176,29 @@ const togglePayments = (expenseId: number) => {
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-1">
-                                        <Link :href="`/expenses/${expense.id}/edit`">
+                                        <Link v-if="!expense.exp_status || expense.exp_status !== 'pagado'" :href="`/expenses/${expense.id}/edit`">
                                             <Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                                                 Editar
                                             </Button>
                                         </Link>
                                         <Button
-                                            v-if="expense.exp_status === 'pendiente' && Number(expense.exp_remaining_balance) > 0"
+                                            v-if="expense.exp_status !== 'pagado' && Number(expense.exp_remaining_balance) > 0"
                                             variant="outline"
                                             size="sm"
-                                            @click="openPayModal(expense)"
+                                            @click="openPayModal(expense, methods, latestRate)"
                                             class="text-green-600 border-green-300 hover:bg-green-50 dark:text-green-400 dark:border-green-700 dark:hover:bg-green-900/20"
                                         >
                                             <Banknote class="w-3.5 h-3.5 mr-1" />
                                             Pagar
+                                        </Button>
+                                        <Button
+                                            v-if="expense.exp_status !== 'pagado'"
+                                            variant="ghost"
+                                            size="sm"
+                                            @click="confirmDelete(expense)"
+                                            class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                        >
+                                            <Trash2 class="w-3.5 h-3.5" />
                                         </Button>
                                         <Button
                                             v-if="expense.payments?.length"
@@ -329,6 +225,7 @@ const togglePayments = (expenseId: number) => {
                                                 <th class="px-3 py-1 text-left">Referencia</th>
                                                 <th class="px-3 py-1 text-left">Banco</th>
                                                 <th class="px-3 py-1 text-right">Diferencial</th>
+                                                <th class="px-3 py-1 text-right">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -344,6 +241,17 @@ const togglePayments = (expenseId: number) => {
                                                         {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(2) }}
                                                     </span>
                                                     <span v-else class="text-gray-400">—</span>
+                                                </td>
+                                                <td class="px-3 py-1.5 text-right">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        class="text-red-500 hover:text-red-700 dark:text-red-400 h-6 px-2"
+                                                        @click="router.post(`/expenses/${expense.id}/cancel-payment`, { bank_transaction_id: pmt.id }, { preserveScroll: true })"
+                                                    >
+                                                        <XCircle class="w-3 h-3 mr-1" />
+                                                        Cancelar
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -394,6 +302,7 @@ const togglePayments = (expenseId: number) => {
         <PaymentForm
             :bank-accounts="bankAccounts"
             :latest-rate="latestRate"
+            :rates="rates"
             :currency="payingExpense?.exp_coin ?? 'USD'"
             :remaining-balance="Number(payingExpense?.exp_remaining_balance ?? 0)"
             :form="payForm"
@@ -402,13 +311,13 @@ const togglePayments = (expenseId: number) => {
             show-rate
             show-date
             show-method
-            :currencies="currencies"
+            :currencies="coinOptions"
             :methods="methods"
         />
 
         <template #actions>
             <Button
-                @click="submitPayment"
+                @click="submitPayment(payingExpense?.id ?? 0)"
                 :disabled="payForm.processing"
                 class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold"
             >
@@ -417,4 +326,47 @@ const togglePayments = (expenseId: number) => {
             </Button>
         </template>
     </PayModal>
+
+    <Teleport to="body">
+        <Transition name="modal">
+            <div
+                v-if="showDeleteConfirm"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-sm p-4"
+                @click.self="cancelDelete"
+            >
+                <div class="bg-zinc-900 rounded-2xl border border-zinc-800 shadow-2xl w-full max-w-md p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-red-500/10 rounded-lg">
+                            <Trash2 class="w-5 h-5 text-red-500" />
+                        </div>
+                        <h3 class="text-lg font-bold text-zinc-100">Eliminar Gasto</h3>
+                    </div>
+                    <p class="text-sm text-zinc-400 mb-6">
+                        ¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer.
+                    </p>
+                    <div class="flex justify-end gap-3">
+                        <Button variant="outline" @click="cancelDelete">Cancelar</Button>
+                        <Button
+                            @click="handleDelete"
+                            class="bg-red-600 hover:bg-red-500 text-white font-bold"
+                        >
+                            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                            Eliminar
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 </template>
+
+<style scoped>
+.modal-enter-active,
+.modal-leave-active {
+    transition: opacity 0.2s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+    opacity: 0;
+}
+</style>

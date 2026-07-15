@@ -3,16 +3,20 @@
 namespace App\Providers;
 
 use App\Models\BankTransaction;
+use App\Models\Expense;
 use App\Models\MovementInventory;
 use App\Models\MovementsPurchase;
 use App\Models\MovementsSale;
 use App\Models\PurchaseOrder;
+use App\Models\Rate;
 use App\Models\SaleOrder;
 use App\Observers\BankTransactionObserver;
+use App\Observers\ExpenseObserver;
 use App\Observers\Inventory\MovInventoryObserver;
 use App\Observers\Purchases\CostHistoryObserver;
 use App\Observers\Purchases\MovPurchasesObserver;
 use App\Observers\Purchases\PurchaseOrderObserver;
+use App\Observers\RateObserver;
 use App\Observers\Sales\MovSalesObserver;
 use App\Observers\Sales\SaleOrderObserver;
 use Carbon\CarbonImmutable;
@@ -41,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
         MovementsPurchase::observe(CostHistoryObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);
         BankTransaction::observe(BankTransactionObserver::class);
+        Expense::observe(ExpenseObserver::class);
+        Rate::observe(RateObserver::class);
 
         MovementsSale::observe(MovSalesObserver::class);
         SaleOrder::observe(SaleOrderObserver::class);
