@@ -192,18 +192,32 @@ class ExpenseService
         ?float $expenseRate = null,
     ): float {
         $expenseCoin = $expense->exp_coin->value ?? (string) $expense->exp_coin;
+        $payUpper = strtoupper($paymentCoin);
+        $expenseUpper = strtoupper($expenseCoin);
 
-        if ($expenseCoin === $paymentCoin) {
+        if ($expenseUpper === $payUpper) {
             return $amountInPaymentCurrency;
         }
 
-        if (strtoupper($paymentCoin) === 'USD') {
+        if (in_array($payUpper, ['COP', 'BS', 'VES'], true) && in_array($expenseUpper, ['COP', 'BS', 'VES'], true)) {
+            if ($payUpper === 'COP' && in_array($expenseUpper, ['BS', 'VES'], true)) {
+                return $paymentRate > 0 ? $amountInPaymentCurrency / $paymentRate : 0;
+            }
+
+            if (in_array($payUpper, ['BS', 'VES'], true) && $expenseUpper === 'COP') {
+                return $amountInPaymentCurrency * $paymentRate;
+            }
+
+            return $amountInPaymentCurrency;
+        }
+
+        if ($payUpper === 'USD') {
             $amountInUSD = $amountInPaymentCurrency;
         } else {
             $amountInUSD = $paymentRate > 0 ? $amountInPaymentCurrency / $paymentRate : 0;
         }
 
-        if (strtoupper($expenseCoin) === 'USD') {
+        if ($expenseUpper === 'USD') {
             return $amountInUSD;
         }
 
@@ -219,8 +233,10 @@ class ExpenseService
         string $payCoin,
     ): float {
         $expenseCoin = $expense->exp_coin->value ?? (string) $expense->exp_coin;
+        $payUpper = strtoupper($payCoin);
+        $expenseUpper = strtoupper($expenseCoin);
 
-        if (strtoupper($payCoin) === strtoupper($expenseCoin)) {
+        if ($payUpper === $expenseUpper) {
             return 0.0;
         }
 
@@ -230,13 +246,24 @@ class ExpenseService
             return 0.0;
         }
 
-        $payInUSD = strtoupper($payCoin) === 'USD'
-            ? $amountInBankCurrency
-            : ($payRate > 0 ? $amountInBankCurrency / $payRate : 0);
+        if (in_array($payUpper, ['COP', 'BS', 'VES'], true) && in_array($expenseUpper, ['COP', 'BS', 'VES'], true)) {
+            $amountInExpenseCurrency = $payUpper === 'COP'
+                ? ($payRate > 0 ? $amountInBankCurrency / $payRate : 0)
+                : $amountInBankCurrency * $payRate;
 
-        $docInUSD = strtoupper($payCoin) === 'USD'
-            ? $amountInBankCurrency
-            : ($docRate > 0 ? $amountInBankCurrency / $docRate : 0);
+            $latestExpenseRate = $this->getLatestCachedRate($expenseCoin);
+
+            $payInUSD = $latestExpenseRate > 0 ? $amountInExpenseCurrency / $latestExpenseRate : 0;
+            $docInUSD = $docRate > 0 ? $amountInExpenseCurrency / $docRate : 0;
+        } else {
+            $payInUSD = $payUpper === 'USD'
+                ? $amountInBankCurrency
+                : ($payRate > 0 ? $amountInBankCurrency / $payRate : 0);
+
+            $docInUSD = $payUpper === 'USD'
+                ? $amountInBankCurrency
+                : ($docRate > 0 ? $amountInBankCurrency / $docRate : 0);
+        }
 
         return round($docInUSD - $payInUSD, 4);
     }

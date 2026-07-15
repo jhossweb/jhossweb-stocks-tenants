@@ -52,6 +52,7 @@ export interface LatestRate {
     rate_usd: number;
     rate_cop: number;
     rate_eur: number;
+    rate_cop_bs?: number;
     rate_date: string;
 }
 

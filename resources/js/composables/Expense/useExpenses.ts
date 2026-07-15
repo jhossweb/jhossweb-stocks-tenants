@@ -2,10 +2,10 @@ import { useForm } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { today } from '@/composables/useDate';
 import { usePayment } from '@/composables/usePayment';
-import type { Expense, LatestRate, BankAccount } from '@/types/Expense';
+import type { Expense, LatestRate } from '@/types/Expense';
 
 export function useExpenses() {
-    const { resolveRate, resolveRateForStorage } = usePayment();
+    const { resolveRateForStorage } = usePayment();
 
     const filterCategory = ref('');
     const filterStatus = ref('');
@@ -14,6 +14,7 @@ export function useExpenses() {
     const expandedPayments = ref<Set<number>>(new Set());
     const showDeleteConfirm = ref(false);
     const deletingExpense = ref<Expense | null>(null);
+    const latestRateRef = ref<LatestRate | null>(null);
 
     const payForm = useForm({
         bank_account_id: '',
@@ -29,8 +30,11 @@ export function useExpenses() {
     const originalBalance = ref(0);
     const originalCoin = ref('USD');
 
+    const isBS = (c: string) => c === 'BS' || c === 'VES';
+
     const openPayModal = (expense: Expense, methods: string[], latestRate: LatestRate | null = null) => {
         payingExpense.value = expense;
+        latestRateRef.value = latestRate;
         originalBalance.value = Number(expense.exp_remaining_balance) || 0;
         originalCoin.value = expense.exp_coin || 'USD';
         payForm.reference = '';
@@ -49,12 +53,13 @@ export function useExpenses() {
         payingExpense.value = null;
         originalBalance.value = 0;
         originalCoin.value = 'USD';
+        latestRateRef.value = null;
         payForm.clearErrors();
         payForm.reset();
     };
 
     const estimatedDiferencial = computed(() => {
-        if (!payingExpense.value || !payForm.amount) {
+        if (!payingExpense.value || !payForm.amount || Number(payForm.amount) <= 0) {
             return 0;
         }
 
@@ -62,28 +67,40 @@ export function useExpenses() {
         const payCoin = payForm.payment_currency;
         const docCoin = payingExpense.value.exp_coin;
 
-        if (payCoin === docCoin) {
+        if (!payCoin || payCoin === docCoin) {
             return 0;
         }
 
         const payRate = Number(payForm.payment_rate) || 1;
         const docRate = Number(payingExpense.value.exp_valorcam) || 1;
 
+        if (payRate <= 0 || docRate <= 0) {
+            return 0;
+        }
+
         let paidInUsd: number;
+        let docInUsd: number;
+
         if (payCoin === 'USD') {
             paidInUsd = payAmount;
+            docInUsd = payAmount;
+        } else if ((payCoin === 'COP' && isBS(docCoin)) || (isBS(payCoin) && docCoin === 'COP')) {
+            const amountInExpenseCoin = payCoin === 'COP'
+                ? payAmount / payRate
+                : payAmount * payRate;
+
+            const latestExpenseRate = docCoin === 'COP'
+                ? Number(latestRateRef.value?.rate_cop || 1)
+                : Number(latestRateRef.value?.rate_usd || 1);
+
+            paidInUsd = latestExpenseRate > 0 ? amountInExpenseCoin / latestExpenseRate : 0;
+            docInUsd = docRate > 0 ? amountInExpenseCoin / docRate : 0;
         } else {
-            paidInUsd = payAmount / payRate;
+            paidInUsd = payRate > 0 ? payAmount / payRate : 0;
+            docInUsd = docRate > 0 ? payAmount / docRate : 0;
         }
 
-        let docValueInUsd: number;
-        if (docCoin === 'USD') {
-            docValueInUsd = Number(payingExpense.value.exp_remaining_balance) || 0;
-        } else {
-            docValueInUsd = (Number(payingExpense.value.exp_remaining_balance) || 0) / docRate;
-        }
-
-        return paidInUsd - docValueInUsd;
+        return docInUsd - paidInUsd;
     });
 
     const submitPayment = (expenseId: number) => {

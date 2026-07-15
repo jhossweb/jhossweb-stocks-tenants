@@ -102,17 +102,29 @@ class Expense extends Model
     public function convertToExpenseCurrency(float $amountInPaymentCurrency, float $paymentRate, string $paymentCoin): float
     {
         $expenseCoin = $this->exp_coin->value ?? (string) $this->exp_coin;
+        $payUpper = strtoupper($paymentCoin);
+        $expenseUpper = strtoupper($expenseCoin);
 
-        if ($expenseCoin === $paymentCoin) {
+        if ($expenseUpper === $payUpper) {
+            return $amountInPaymentCurrency;
+        }
+
+        if (in_array($payUpper, ['COP', 'BS', 'VES'], true) && in_array($expenseUpper, ['COP', 'BS', 'VES'], true)) {
+            if ($payUpper === 'COP' && in_array($expenseUpper, ['BS', 'VES'], true)) {
+                return $paymentRate > 0 ? $amountInPaymentCurrency / $paymentRate : 0;
+            }
+
+            if (in_array($payUpper, ['BS', 'VES'], true) && $expenseUpper === 'COP') {
+                return $amountInPaymentCurrency * $paymentRate;
+            }
+
             return $amountInPaymentCurrency;
         }
 
         $amountInUSD = $paymentRate > 0 ? $amountInPaymentCurrency / $paymentRate : 0;
 
-        return match (strtoupper($expenseCoin)) {
+        return match ($expenseUpper) {
             'USD' => $amountInUSD,
-            'COP' => $amountInUSD * (float) ($this->exp_valorcam ?: 1),
-            'EUR' => $amountInUSD * (float) ($this->exp_valorcam ?: 1),
             default => $amountInUSD * (float) ($this->exp_valorcam ?: 1),
         };
     }

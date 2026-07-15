@@ -12,7 +12,6 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { useCurrencyConversion } from '@/composables/useCurrencyConversion'
-import { usePayment } from '@/composables/usePayment'
 
 interface BankAccount {
     id: number
@@ -27,6 +26,7 @@ interface RateRecord {
     rate_usd: number
     rate_cop: number
     rate_eur: number
+    rate_cop_bs?: number
 }
 
 const props = defineProps<{
@@ -51,7 +51,6 @@ defineEmits<{
     submit: []
 }>()
 
-const { resolveRateForStorage } = usePayment()
 const { convertCurrency } = useCurrencyConversion()
 
 const filteredBankAccounts = computed(() =>
@@ -108,21 +107,81 @@ const maxAmount = computed(() => {
     return convertCurrency(balance, fromCurrency, toCurrency, currentRate)
 })
 
-const updateExchangeRate = () => {
-    const coin = props.form.payment_currency || props.currency
-    const date = props.form.payment_date
+const resolvePaymentRate = (expenseCoin: string, paymentCoin: string, rateRecord: any): number => {
+    const e = expenseCoin?.toUpperCase() || ''
+    const p = paymentCoin?.toUpperCase() || ''
 
-    if (props.rates && props.rates.length > 0 && date) {
-        const rate = getBestRateForDate(date)
-
-        if (rate) {
-            props.form.payment_rate = resolveRateForStorage(coin, rate)
-
-            return
+    if (!p || e === p) {
+        if (e === 'USD') {
+            return 1
         }
+
+        if (e === 'COP') {
+            return Number(rateRecord.rate_cop) || 1
+        }
+
+        if (e === 'BS' || e === 'VES') {
+            return Number(rateRecord.rate_usd) || 1
+        }
+
+        if (e === 'EUR') {
+            return Number(rateRecord.rate_eur) || 1
+        }
+
+        return Number(rateRecord.rate_usd) || 1
     }
 
-    props.form.payment_rate = resolveRateForStorage(coin, props.latestRate)
+    const isBS = (c: string) => c === 'BS' || c === 'VES'
+
+    if ((e === 'COP' && isBS(p)) || (isBS(e) && p === 'COP')) {
+        return Number(rateRecord.rate_cop_bs) || 1
+    }
+
+    if (p === 'USD') {
+        if (e === 'COP') {
+            return Number(rateRecord.rate_cop) || 1
+        }
+
+        if (isBS(e)) {
+            return Number(rateRecord.rate_usd) || 1
+        }
+
+        if (e === 'EUR') {
+            return Number(rateRecord.rate_eur) || 1
+        }
+
+        return Number(rateRecord.rate_usd) || 1
+    }
+
+    if (p === 'COP') {
+        return Number(rateRecord.rate_cop) || 1
+    }
+
+    if (isBS(p)) {
+        return Number(rateRecord.rate_usd) || 1
+    }
+
+    if (p === 'EUR') {
+        return Number(rateRecord.rate_eur) || 1
+    }
+
+    return Number(rateRecord.rate_usd) || 1
+}
+
+const updateExchangeRate = () => {
+    const expenseCoin = props.currency
+    const payCoin = props.form.payment_currency
+    const date = props.form.payment_date
+
+    const rateRecord = props.rates && props.rates.length > 0 && date
+        ? (getBestRateForDate(date) || props.latestRate)
+        : props.latestRate
+
+    if (!rateRecord) {
+        return
+    }
+
+    props.form.payment_rate = String(resolvePaymentRate(expenseCoin, payCoin, rateRecord))
 }
 
 watch(() => props.form.payment_currency, () => updateExchangeRate())
