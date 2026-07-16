@@ -113,7 +113,7 @@ const resolvePaymentRate = (expenseCoin: string, paymentCoin: string, rateRecord
 
     if (!p || e === p) {
         if (e === 'USD') {
-            return 1
+            return Number(rateRecord.rate_usd) || 1
         }
 
         if (e === 'COP') {

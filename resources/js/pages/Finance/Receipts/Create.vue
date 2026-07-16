@@ -149,11 +149,16 @@ const submit = () => {
         return;
     }
 
-    form.post(receiptRoutes.store.url(), {
-        onSuccess: () => {
-            // Success logic
-        }
-    });
+    form
+        .transform((data) => ({
+            ...data,
+            payments: data.payments.filter((p: any) => Number(p.amount) > 0),
+        }))
+        .post(receiptRoutes.store.url(), {
+            onSuccess: () => {
+                // Inertia sigue el redirect del backend automáticamente
+            },
+        });
 };
 
 // --- LÓGICA DE TASAS ---
@@ -179,6 +184,67 @@ const getBestRateForDate = (date: string) => {
     return pastRates.length > 0 ? pastRates[0] : props.rates[0];
 };
 
+const isBS = (c: string) => c === 'BS' || c === 'VES';
+
+const resolvePaymentRate = (docCurrency: string, paymentCoin: string, rateRecord: any): number => {
+    const e = docCurrency?.toUpperCase() || '';
+    const p = paymentCoin?.toUpperCase() || '';
+
+    if (!p || e === p) {
+        if (e === 'USD') {
+            return Number(rateRecord.rate_usd) || 1;
+        }
+
+        if (e === 'COP') {
+            return Number(rateRecord.rate_cop) || 1;
+        }
+
+        if (isBS(e)) {
+            return Number(rateRecord.rate_usd) || 1;
+        }
+
+        if (e === 'EUR') {
+            return Number(rateRecord.rate_eur) || 1;
+        }
+
+        return Number(rateRecord.rate_usd) || 1;
+    }
+
+    if ((e === 'COP' && isBS(p)) || (isBS(e) && p === 'COP')) {
+        return Number(rateRecord.rate_cop_bs) || 1;
+    }
+
+    if (p === 'USD') {
+        if (e === 'COP') {
+            return Number(rateRecord.rate_cop) || 1;
+        }
+
+        if (isBS(e)) {
+            return Number(rateRecord.rate_usd) || 1;
+        }
+
+        if (e === 'EUR') {
+            return Number(rateRecord.rate_eur) || 1;
+        }
+
+        return Number(rateRecord.rate_usd) || 1;
+    }
+
+    if (p === 'COP') {
+        return Number(rateRecord.rate_cop) || 1;
+    }
+
+    if (isBS(p)) {
+        return Number(rateRecord.rate_usd) || 1;
+    }
+
+    if (p === 'EUR') {
+        return Number(rateRecord.rate_eur) || 1;
+    }
+
+    return Number(rateRecord.rate_usd) || 1;
+};
+
 const updateExchangeRate = () => {
     const selectedRate = getBestRateForDate(form.payment_date);
 
@@ -186,13 +252,8 @@ const updateExchangeRate = () => {
         return;
     }
 
-    if (form.payment_currency === 'USD' || form.payment_currency === 'BS' || form.payment_currency === 'VES') {
-        form.payment_rate = Number(selectedRate.rate_usd);
-    } else if (form.payment_currency === 'COP') {
-        form.payment_rate = Number(selectedRate.rate_cop);
-    } else if (form.payment_currency === 'EUR') {
-        form.payment_rate = Number(selectedRate.rate_eur);
-    }
+    const docCurrency = originalCurrency.value || 'USD';
+    form.payment_rate = resolvePaymentRate(docCurrency, form.payment_currency, selectedRate);
 };
 
 watch(() => [form.payment_currency, form.payment_date], ([newCurrency, oldCurrency]) => {
@@ -409,7 +470,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
 
                             <div class="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 space-y-2">
                                 <div class="flex justify-between items-center mb-1">
-                                    <Label class="text-indigo-400 text-[10px] font-black uppercase tracking-wider">Tasa de Cambio (Manual)</Label>
+                                    <Label class="text-indigo-400 text-[10px] font-black uppercase tracking-wider">Tasa {{ originalCurrency || 'USD' }} / {{ form.payment_currency }}</Label>
                                     <Badge variant="outline" class="text-[10px] bg-indigo-500/10 text-indigo-400 border-none">Hoy</Badge>
                                 </div>
                                 <div class="relative">

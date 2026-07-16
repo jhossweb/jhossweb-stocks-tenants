@@ -16,6 +16,9 @@ use App\Models\Receipt;
 use App\Services\Finance\RateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ReceiptController extends Controller
@@ -50,7 +53,9 @@ class ReceiptController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        Log::info('store context fields:', $request->all());
+
+        $validator = Validator::make($request->all(), [
             'payment_date' => 'required|date',
             'customer_id' => 'required|exists:customers,id',
             'bank_account_id' => 'required|exists:bank_accounts,id',
@@ -63,6 +68,16 @@ class ReceiptController extends Controller
             'payments.*.acr_id' => 'required|exists:accounts_receivable,id',
             'payments.*.amount' => 'required|numeric|min:0',
         ]);
+
+        if ($validator->fails()) {
+            Log::warning('Validation failed for payment store request:', [
+                'errors' => $validator->errors()->toArray(),
+                'input' => $request->all(),
+            ]);
+            throw new ValidationException($validator);
+        }
+
+        $validated = $validator->validated();
 
         DB::beginTransaction();
         try {
@@ -147,8 +162,14 @@ class ReceiptController extends Controller
             DB::commit();
 
             return redirect()->route('accounts-receivable.index')->with('success', 'Comprobante de cobro generado exitosamente.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Exception caught in ReceiptController@store:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->back()->withErrors(['error' => 'Error al procesar el cobro: '.$e->getMessage()]);
         }
@@ -183,7 +204,9 @@ class ReceiptController extends Controller
             return redirect()->back()->withErrors(['error' => 'No puede editar un crédito por devolución. Elimínelo y cree uno nuevo.']);
         }
 
-        $validated = $request->validate([
+        Log::info("update context fields for payment ID: {$id}:", $request->all());
+
+        $validator = Validator::make($request->all(), [
             'payment_date' => 'required|date',
             'bank_account_id' => 'required|exists:bank_accounts,id',
             'payment_currency' => 'required|string',
@@ -191,6 +214,16 @@ class ReceiptController extends Controller
             'payment_description' => 'nullable|string|max:150',
             'amount' => 'required|numeric|min:0.01',
         ]);
+
+        if ($validator->fails()) {
+            Log::warning("Validation failed for payment update request (ID: {$id}):", [
+                'errors' => $validator->errors()->toArray(),
+                'input' => $request->all(),
+            ]);
+            throw new ValidationException($validator);
+        }
+
+        $validated = $validator->validated();
 
         DB::beginTransaction();
         try {
@@ -242,8 +275,14 @@ class ReceiptController extends Controller
             DB::commit();
 
             return redirect()->route('accounts-receivable.index')->with('success', 'Cobro actualizado exitosamente.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error("Exception caught in ReceiptController@update for ID {$id}:", [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->back()->withErrors(['error' => 'Error al actualizar el cobro: '.$e->getMessage()]);
         }
@@ -302,7 +341,7 @@ class ReceiptController extends Controller
             DB::commit();
 
             return redirect()->back()->with('success', 'Cobro eliminado exitosamente.');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
 
             return redirect()->back()->withErrors(['error' => 'Error al eliminar el cobro: '.$e->getMessage()]);

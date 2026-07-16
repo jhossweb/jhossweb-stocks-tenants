@@ -57,13 +57,13 @@ class RateService
     {
         $normalized = Carbon::parse($date)->format('Y-m-d');
 
-        $exactRate = Rate::where('rate_date', $normalized)->first();
+        $exactRate = Rate::whereDate('rate_date', $normalized)->first();
 
         if ($exactRate) {
             return $exactRate;
         }
 
-        $pastRate = Rate::where('rate_date', '<', $normalized)
+        $pastRate = Rate::whereDate('rate_date', '<', $normalized)
             ->orderBy('rate_date', 'desc')
             ->first();
 
@@ -79,7 +79,7 @@ class RateService
      */
     public function getExactRateForDate(string $date): ?Rate
     {
-        return Rate::where('rate_date', Carbon::parse($date)->format('Y-m-d'))->first();
+        return Rate::whereDate('rate_date', Carbon::parse($date)->format('Y-m-d'))->first();
     }
 
     /**
