@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employees\EmployeeController;
 use App\Http\Controllers\Expense\ExpenseCategoryController;
 use App\Http\Controllers\Expense\ExpenseController;
@@ -42,7 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
     // DASHBOARD
     // -----------------------------------------------------------------------
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // -----------------------------------------------------------------------
     // COMPRAS

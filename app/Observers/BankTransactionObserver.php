@@ -4,12 +4,24 @@ namespace App\Observers;
 
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
+use Illuminate\Support\Facades\Cache;
 
 class BankTransactionObserver
 {
-    /**
-     * Handle the BankTransaction "creating" event.
-     */
+    private function forgetDashboardCache(string $month): void
+    {
+        Cache::forget("dashboard:cashflow:inflow:{$month}");
+        Cache::forget("dashboard:cashflow:outflow:{$month}");
+    }
+
+    private function forgetDashboardCacheForTransaction(BankTransaction $bankTransaction): void
+    {
+        $month = $bankTransaction->btr_transaction_date?->format('Y-m');
+        if ($month) {
+            $this->forgetDashboardCache($month);
+        }
+    }
+
     public function creating(BankTransaction $bankTransaction): void
     {
         if ($bankTransaction->btr_type === 'outflow') {
@@ -24,14 +36,10 @@ class BankTransactionObserver
         }
     }
 
-    /**
-     * Handle the BankTransaction "created" event.
-     */
     public function created(BankTransaction $bankTransaction): void
     {
         $account = $bankTransaction->bankAccount;
 
-        // Update account balance
         if ($bankTransaction->btr_type === 'inflow') {
             $account->bank_balance += $bankTransaction->btr_amount;
         } else {
@@ -40,27 +48,32 @@ class BankTransactionObserver
 
         $account->save();
 
-        // Save the running balance in the transaction itself
         $bankTransaction->updateQuietly([
             'btr_balance' => $account->bank_balance,
         ]);
+
+        $this->forgetDashboardCacheForTransaction($bankTransaction);
     }
 
-    /**
-     * Handle the BankTransaction "updated" event.
-     */
     public function updated(BankTransaction $bankTransaction): void
     {
-        // Check if important fields changed
+        $oldMonth = $bankTransaction->getOriginal('btr_transaction_date')
+            ? date('Y-m', strtotime((string) $bankTransaction->getOriginal('btr_transaction_date')))
+            : null;
+
+        if ($oldMonth) {
+            $this->forgetDashboardCache($oldMonth);
+        }
+
+        $this->forgetDashboardCacheForTransaction($bankTransaction);
+
         if ($bankTransaction->wasChanged(['btr_amount', 'btr_type', 'btr_bank_account_id'])) {
 
-            // If the account changed, we need to adjust both the old and new accounts
             if ($bankTransaction->wasChanged('btr_bank_account_id')) {
                 $oldAccountId = $bankTransaction->getOriginal('btr_bank_account_id');
                 $oldAccount = BankAccount::find($oldAccountId);
 
                 if ($oldAccount) {
-                    // Reverse the original transaction from the old account
                     $oldAmount = $bankTransaction->getOriginal('btr_amount');
                     $oldType = $bankTransaction->getOriginal('btr_type');
 
@@ -72,7 +85,6 @@ class BankTransactionObserver
                     $oldAccount->save();
                 }
 
-                // Apply the new transaction to the new account
                 $newAccount = $bankTransaction->bankAccount;
                 if ($bankTransaction->btr_type === 'inflow') {
                     $newAccount->bank_balance += $bankTransaction->btr_amount;
@@ -81,10 +93,8 @@ class BankTransactionObserver
                 }
                 $newAccount->save();
             } else {
-                // Same account, just adjust by the delta
                 $account = $bankTransaction->bankAccount;
 
-                // Reverse old values
                 $oldAmount = $bankTransaction->getOriginal('btr_amount');
                 $oldType = $bankTransaction->getOriginal('btr_type');
 
@@ -94,7 +104,6 @@ class BankTransactionObserver
                     $account->bank_balance += $oldAmount;
                 }
 
-                // Apply new values
                 if ($bankTransaction->btr_type === 'inflow') {
                     $account->bank_balance += $bankTransaction->btr_amount;
                 } else {
@@ -104,22 +113,17 @@ class BankTransactionObserver
                 $account->save();
             }
 
-            // Sync the running balance in the transaction record
             $bankTransaction->updateQuietly([
                 'btr_balance' => $bankTransaction->bankAccount->bank_balance,
             ]);
         }
     }
 
-    /**
-     * Handle the BankTransaction "deleted" event.
-     */
     public function deleted(BankTransaction $bankTransaction): void
     {
         $account = $bankTransaction->bankAccount;
 
         if ($account) {
-            // Reverse account balance update
             if ($bankTransaction->btr_type === 'inflow') {
                 $account->bank_balance -= $bankTransaction->btr_amount;
             } else {
@@ -128,5 +132,7 @@ class BankTransactionObserver
 
             $account->save();
         }
+
+        $this->forgetDashboardCacheForTransaction($bankTransaction);
     }
 }

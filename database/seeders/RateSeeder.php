@@ -49,6 +49,6 @@ class RateSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('Rates generados del ' . $dates[0] . ' al ' . $dates[array_key_last($dates)] . '.');
+        $this->command->info('Rates generados del '.$dates[0].' al '.$dates[array_key_last($dates)].'.');
     }
 }

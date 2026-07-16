@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
+import { Head, router } from '@inertiajs/vue3';
+import {
+    Package,
+    AlertTriangle,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import KpiCard from '@/components/Dashboard/KpiCard.vue';
+import KpiDetailModal from '@/components/Dashboard/KpiDetailModal.vue';
+import { Card, CardContent } from '@/components/ui/card';
 import { dashboard } from '@/routes';
+import type { DashboardKpis, CurrencyMap, TrendData, ApArKpis } from '@/types/Dashboard';
 
 defineOptions({
     layout: {
@@ -13,35 +21,204 @@ defineOptions({
         ],
     },
 });
+
+const props = defineProps<{
+    kpis: DashboardKpis;
+    selectedMonth: string;
+}>();
+
+const modalState = ref<{
+    open: boolean;
+    title: string;
+    amounts: CurrencyMap;
+    trend?: TrendData;
+    secondaryAmounts?: ApArKpis;
+}>({
+    open: false,
+    title: '',
+    amounts: {},
+});
+
+function openModal(
+    title: string,
+    amounts: CurrencyMap,
+    trend?: TrendData,
+    secondaryAmounts?: ApArKpis,
+) {
+    modalState.value = { open: true, title, amounts, trend, secondaryAmounts };
+}
+
+function changeMonth(month: string) {
+    router.get(dashboard(), { month }, { preserveState: true, preserveScroll: true });
+}
+
+const monthOptions = computed(() => {
+    const options: { value: string; label: string }[] = [];
+    const now = new Date();
+
+    for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const label = d.toLocaleDateString('es', { year: 'numeric', month: 'long' });
+        options.push({ value, label });
+    }
+
+    return options;
+});
+
+const selectedMonthLabel = computed(() => {
+    return monthOptions.value.find((o) => o.value === props.selectedMonth)?.label ?? props.selectedMonth;
+});
+
+function formatAmount(value: number | undefined): string {
+    if (value === undefined || value === null) {
+        return '-';
+    }
+
+    return new Intl.NumberFormat('es', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(value);
+}
+
+function getTopProduct(items: { pro_name: string; quantity: number }[]): string {
+    if (!items.length) {
+        return 'Sin ventas';
+    }
+
+    const top = items[0];
+
+    return `${top.pro_name} (${formatAmount(top.quantity)} unds)`;
+}
+
+function getLowStockAlert(count: number): string {
+    if (count === 0) {
+        return 'Sin productos con stock bajo';
+    }
+
+    return `${count} producto${count !== 1 ? 's' : ''} con stock bajo`;
+}
 </script>
 
 <template>
     <Head title="Dashboard" />
 
-    <div
-        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-    >
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <div class="flex items-center justify-between">
+            <h1 class="text-foreground text-xl font-semibold">Dashboard</h1>
+            <select
+                :value="selectedMonth"
+                class="bg-background border-input rounded-lg border px-3 py-1.5 text-sm"
+                @change="changeMonth(($event.target as HTMLSelectElement).value)"
             >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
-            >
-                <PlaceholderPattern />
-            </div>
+                <option
+                    v-for="opt in monthOptions"
+                    :key="opt.value"
+                    :value="opt.value"
+                >
+                    {{ opt.label }}
+                </option>
+            </select>
         </div>
-        <div
-            class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border"
-        >
-            <PlaceholderPattern />
+
+        <div class="grid gap-4 md:grid-cols-3">
+            <KpiCard
+                label="Gastos"
+                :amounts="kpis.expenses.total"
+                :trend="kpis.expenses.trend"
+                @click="openModal(
+                    'Gastos — ' + selectedMonthLabel,
+                    kpis.expenses.total,
+                    kpis.expenses.trend,
+                    { balance: kpis.expenses.pending, balance_usd: {}, collected: {} } as ApArKpis,
+                )"
+            />
+            <KpiCard
+                label="Ingresos"
+                :amounts="kpis.cashFlow.inflow"
+                @click="openModal(
+                    'Ingresos — ' + selectedMonthLabel,
+                    kpis.cashFlow.inflow,
+                )"
+            />
+            <KpiCard
+                label="Egresos"
+                :amounts="kpis.cashFlow.outflow"
+                @click="openModal(
+                    'Egresos — ' + selectedMonthLabel,
+                    kpis.cashFlow.outflow,
+                )"
+            />
+            <KpiCard
+                label="Flujo Neto"
+                :amounts="kpis.cashFlow.net"
+                :trend="kpis.cashFlow.trend"
+                @click="openModal(
+                    'Flujo Neto — ' + selectedMonthLabel,
+                    kpis.cashFlow.net,
+                    kpis.cashFlow.trend,
+                )"
+            />
+            <KpiCard
+                label="CxC Clientes"
+                :amounts="kpis.receivables.balance"
+                @click="openModal(
+                    'Cuentas por Cobrar — ' + selectedMonthLabel,
+                    kpis.receivables.balance,
+                    undefined,
+                    kpis.receivables,
+                )"
+            />
+            <KpiCard
+                label="CxP Proveedores"
+                :amounts="kpis.payables.balance"
+                @click="openModal(
+                    'Cuentas por Pagar — ' + selectedMonthLabel,
+                    kpis.payables.balance,
+                    undefined,
+                    kpis.payables,
+                )"
+            />
         </div>
+
+        <Card>
+            <CardContent class="flex flex-col gap-3">
+                <div class="flex items-center gap-2">
+                    <Package class="text-muted-foreground size-4" />
+                    <span class="text-sm font-medium">Productos</span>
+                </div>
+
+                <div class="grid gap-2 text-sm md:grid-cols-3">
+                    <div>
+                        <span class="text-muted-foreground">Total SKUs:</span>
+                        <span class="ml-1 font-semibold">{{ formatAmount(kpis.products.totalSkus) }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <AlertTriangle
+                            v-if="kpis.products.lowStock.length > 0"
+                            class="size-3.5 text-amber-500"
+                        />
+                        <span class="text-muted-foreground">Stock bajo:</span>
+                        <span class="ml-1 font-semibold">{{ getLowStockAlert(kpis.products.lowStock.length) }}</span>
+                    </div>
+                    <div>
+                        <span class="text-muted-foreground">Más vendido:</span>
+                        <span class="ml-1 font-semibold">{{ getTopProduct(kpis.products.topSelling) }}</span>
+                    </div>
+                    <div>
+                        <span class="text-muted-foreground">Menos vendido:</span>
+                        <span class="ml-1 font-semibold">{{ getTopProduct(kpis.products.worstSelling) }}</span>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
     </div>
+
+    <KpiDetailModal
+        v-model:open="modalState.open"
+        :title="modalState.title"
+        :amounts="modalState.amounts"
+        :trend="modalState.trend"
+        :secondary-amounts="modalState.secondaryAmounts"
+    />
 </template>

@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Repositories\Dashboard;
+
+use App\Models\Expense;
+use Illuminate\Support\Facades\Cache;
+
+class ExpenseKpiRepository
+{
+    public function totalByCurrency(?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return Cache::remember("dashboard:expenses:total:{$month}", 60, function () use ($month) {
+            return Expense::query()
+                ->selectRaw('exp_coin, SUM(exp_amount) as total, SUM(exp_paid_amount) as paid')
+                ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
+                ->groupBy('exp_coin')
+                ->pluck('total', 'exp_coin')
+                ->toArray();
+        });
+    }
+
+    public function pendingBalance(): array
+    {
+        return Cache::remember('dashboard:expenses:pending', 60, function () {
+            return Expense::query()
+                ->selectRaw('exp_coin, SUM(exp_remaining_balance) as balance')
+                ->whereIn('exp_status', ['pendiente', 'parcial'])
+                ->groupBy('exp_coin')
+                ->pluck('balance', 'exp_coin')
+                ->toArray();
+        });
+    }
+
+    public function trend(?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+        $previousMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
+
+        $current = Cache::remember("dashboard:expenses:trend:current:{$month}", 60, function () use ($month) {
+            return Expense::query()
+                ->selectRaw('exp_coin, SUM(exp_amount) as total')
+                ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
+                ->groupBy('exp_coin')
+                ->pluck('total', 'exp_coin')
+                ->toArray();
+        });
+
+        $previous = Cache::remember("dashboard:expenses:trend:previous:{$previousMonth}", 60, function () use ($previousMonth) {
+            return Expense::query()
+                ->selectRaw('exp_coin, SUM(exp_amount) as total')
+                ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$previousMonth])
+                ->groupBy('exp_coin')
+                ->pluck('total', 'exp_coin')
+                ->toArray();
+        });
+
+        return $this->computeTrend($current, $previous);
+    }
+
+    private function computeTrend(array $current, array $previous): array
+    {
+        $totalCurrent = array_sum($current);
+        $totalPrevious = array_sum($previous);
+
+        if ($totalPrevious <= 0) {
+            return ['direction' => 'flat', 'percentage' => 0];
+        }
+
+        $percentage = round((($totalCurrent - $totalPrevious) / $totalPrevious) * 100, 1);
+
+        return [
+            'direction' => $percentage > 0 ? 'up' : ($percentage < 0 ? 'down' : 'flat'),
+            'percentage' => abs($percentage),
+        ];
+    }
+}
