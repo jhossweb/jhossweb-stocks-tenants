@@ -45,4 +45,20 @@ class ReceivableKpiRepository
                 ->toArray();
         });
     }
+
+    public function byCustomer(): array
+    {
+        return Cache::remember('dashboard:receivables:customer', 300, function () {
+            return AccountsReceivable::query()
+                ->selectRaw('c.customer_name, so.sls_coin, SUM(ar.acr_balance) as balance, SUM(ar.acr_balance_usd) as balance_usd')
+                ->from('accounts_receivable as ar')
+                ->join('sale_orders as so', 'ar.acr_sls_number', '=', 'so.sls_number')
+                ->join('customers as c', 'so.sls_customer_id', '=', 'c.id')
+                ->whereIn('ar.acr_status', ['pending', 'partial'])
+                ->groupBy('c.id', 'so.sls_coin')
+                ->orderByDesc('balance')
+                ->get()
+                ->toArray();
+        });
+    }
 }

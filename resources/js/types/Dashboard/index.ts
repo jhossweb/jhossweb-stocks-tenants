@@ -57,3 +57,71 @@ export interface DashboardKpis {
 }
 
 export type KpiCardType = 'expenses' | 'inflow' | 'outflow' | 'net' | 'receivables' | 'payables';
+
+// Detail Types
+export interface ExpenseCategoryItem {
+    exc_name: string;
+    exc_type: string;
+    exp_coin: string;
+    total: number;
+}
+
+export interface BankAccountItem {
+    bank_name: string;
+    bank_currency: string;
+    btr_coin: string;
+    total: number;
+}
+
+export interface NetAccountItem {
+    bank_name: string;
+    bank_currency: string;
+    total: number;
+}
+
+export interface CustomerBalanceItem {
+    customer_name: string;
+    sls_coin: string;
+    balance: number;
+    balance_usd: number;
+}
+
+export interface SupplierBalanceItem {
+    supplier_name: string;
+    invoice_coin: string;
+    balance: number;
+    balance_usd: number;
+}
+
+// Detail response types per analytics page
+export interface ExpenseDetails {
+    byCategory: ExpenseCategoryItem[];
+}
+
+export interface CashFlowDetails {
+    inflowByAccount: BankAccountItem[];
+    outflowByAccount: BankAccountItem[];
+    netByAccount: NetAccountItem[];
+}
+
+export interface ReceivableDetails {
+    byCustomer: CustomerBalanceItem[];
+}
+
+export interface PayableDetails {
+    bySupplier: SupplierBalanceItem[];
+}
+
+export interface ProductDetails {
+    topSelling: ProductMovement[];
+    worstSelling: ProductMovement[];
+    lowStock: LowStockItem[];
+}
+
+export interface AnalyticsSummary {
+    expenses?: ExpenseKpis;
+    cashFlow?: CashFlowKpis;
+    receivables?: ApArKpis;
+    payables?: ApArKpis;
+    products?: Pick<ProductKpis, 'totalSkus' | 'lowStock'>;
+}

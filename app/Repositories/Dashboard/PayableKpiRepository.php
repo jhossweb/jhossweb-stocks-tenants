@@ -45,4 +45,20 @@ class PayableKpiRepository
                 ->toArray();
         });
     }
+
+    public function bySupplier(): array
+    {
+        return Cache::remember('dashboard:payables:supplier', 300, function () {
+            return AccountsPayable::query()
+                ->selectRaw('s.supplier_name, po.invoice_coin, SUM(ap.acp_balance) as balance, SUM(ap.acp_balance_usd) as balance_usd')
+                ->from('accounts_payables as ap')
+                ->join('purchase_orders as po', 'ap.acp_purchase_number', '=', 'po.invoice_number')
+                ->join('suppliers as s', 'po.invoice_supplier_id', '=', 's.id')
+                ->whereIn('ap.acp_status', ['pending', 'partial'])
+                ->groupBy('s.id', 'po.invoice_coin')
+                ->orderByDesc('balance')
+                ->get()
+                ->toArray();
+        });
+    }
 }

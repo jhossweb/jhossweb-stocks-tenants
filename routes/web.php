@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employees\EmployeeController;
 use App\Http\Controllers\Expense\ExpenseCategoryController;
@@ -44,6 +45,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // DASHBOARD
     // -----------------------------------------------------------------------
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // -----------------------------------------------------------------------
+    // ANALYTICS
+    // -----------------------------------------------------------------------
+    Route::prefix('analytics')->name('analytics.')->group(function () {
+        Route::get('{type}', [AnalyticsController::class, 'show'])->name('show');
+    });
 
     // -----------------------------------------------------------------------
     // COMPRAS

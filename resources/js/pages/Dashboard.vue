@@ -4,12 +4,11 @@ import {
     Package,
     AlertTriangle,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
-import KpiDetailModal from '@/components/Dashboard/KpiDetailModal.vue';
 import { Card, CardContent } from '@/components/ui/card';
 import { dashboard } from '@/routes';
-import type { DashboardKpis, CurrencyMap, TrendData, ApArKpis } from '@/types/Dashboard';
+import type { DashboardKpis } from '@/types/Dashboard';
 
 defineOptions({
     layout: {
@@ -27,25 +26,8 @@ const props = defineProps<{
     selectedMonth: string;
 }>();
 
-const modalState = ref<{
-    open: boolean;
-    title: string;
-    amounts: CurrencyMap;
-    trend?: TrendData;
-    secondaryAmounts?: ApArKpis;
-}>({
-    open: false,
-    title: '',
-    amounts: {},
-});
-
-function openModal(
-    title: string,
-    amounts: CurrencyMap,
-    trend?: TrendData,
-    secondaryAmounts?: ApArKpis,
-) {
-    modalState.value = { open: true, title, amounts, trend, secondaryAmounts };
+function goTo(path: string) {
+    router.get(path, { month: props.selectedMonth }, { preserveScroll: true });
 }
 
 function changeMonth(month: string) {
@@ -64,10 +46,6 @@ const monthOptions = computed(() => {
     }
 
     return options;
-});
-
-const selectedMonthLabel = computed(() => {
-    return monthOptions.value.find((o) => o.value === props.selectedMonth)?.label ?? props.selectedMonth;
 });
 
 function formatAmount(value: number | undefined): string {
@@ -126,62 +104,40 @@ function getLowStockAlert(count: number): string {
                 label="Gastos"
                 :amounts="kpis.expenses.total"
                 :trend="kpis.expenses.trend"
-                @click="openModal(
-                    'Gastos — ' + selectedMonthLabel,
-                    kpis.expenses.total,
-                    kpis.expenses.trend,
-                    { balance: kpis.expenses.pending, balance_usd: {}, collected: {} } as ApArKpis,
-                )"
+                @click="goTo('/analytics/expenses')"
             />
             <KpiCard
                 label="Ingresos"
                 :amounts="kpis.cashFlow.inflow"
-                @click="openModal(
-                    'Ingresos — ' + selectedMonthLabel,
-                    kpis.cashFlow.inflow,
-                )"
+                @click="goTo('/analytics/cash-flow')"
             />
             <KpiCard
                 label="Egresos"
                 :amounts="kpis.cashFlow.outflow"
-                @click="openModal(
-                    'Egresos — ' + selectedMonthLabel,
-                    kpis.cashFlow.outflow,
-                )"
+                @click="goTo('/analytics/cash-flow')"
             />
             <KpiCard
                 label="Flujo Neto"
                 :amounts="kpis.cashFlow.net"
                 :trend="kpis.cashFlow.trend"
-                @click="openModal(
-                    'Flujo Neto — ' + selectedMonthLabel,
-                    kpis.cashFlow.net,
-                    kpis.cashFlow.trend,
-                )"
+                @click="goTo('/analytics/cash-flow')"
             />
             <KpiCard
                 label="CxC Clientes"
                 :amounts="kpis.receivables.balance"
-                @click="openModal(
-                    'Cuentas por Cobrar — ' + selectedMonthLabel,
-                    kpis.receivables.balance,
-                    undefined,
-                    kpis.receivables,
-                )"
+                @click="goTo('/analytics/receivables')"
             />
             <KpiCard
                 label="CxP Proveedores"
                 :amounts="kpis.payables.balance"
-                @click="openModal(
-                    'Cuentas por Pagar — ' + selectedMonthLabel,
-                    kpis.payables.balance,
-                    undefined,
-                    kpis.payables,
-                )"
+                @click="goTo('/analytics/payables')"
             />
         </div>
 
-        <Card>
+        <Card
+            class="cursor-pointer transition-shadow hover:shadow-md"
+            @click="goTo('/analytics/products')"
+        >
             <CardContent class="flex flex-col gap-3">
                 <div class="flex items-center gap-2">
                     <Package class="text-muted-foreground size-4" />
@@ -213,12 +169,4 @@ function getLowStockAlert(count: number): string {
             </CardContent>
         </Card>
     </div>
-
-    <KpiDetailModal
-        v-model:open="modalState.open"
-        :title="modalState.title"
-        :amounts="modalState.amounts"
-        :trend="modalState.trend"
-        :secondary-amounts="modalState.secondaryAmounts"
-    />
 </template>

@@ -62,4 +62,40 @@ class ProductKpiRepository
                 ->toArray();
         });
     }
+
+    public function topSellingReport(?string $month, int $limit = 10): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return Cache::remember("dashboard:products:top:{$month}:{$limit}", 300, function () use ($limit, $month) {
+            return Product::query()
+                ->select('products.pro_name', DB::raw('COALESCE(SUM(ms.mvs_quantity), 0) as quantity'))
+                ->leftJoin('movements_sales as ms', 'products.pro_code', '=', 'ms.mvs_pro_code')
+                ->whereRaw("strftime('%Y-%m', ms.created_at) = ?", [$month])
+                ->groupBy('products.pro_code', 'products.pro_name')
+                ->having('quantity', '>', 0)
+                ->orderByDesc('quantity')
+                ->limit($limit)
+                ->get()
+                ->toArray();
+        });
+    }
+
+    public function worstSellingReport(?string $month, int $limit = 10): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return Cache::remember("dashboard:products:worst:{$month}:{$limit}", 300, function () use ($limit, $month) {
+            return Product::query()
+                ->select('products.pro_name', DB::raw('COALESCE(SUM(ms.mvs_quantity), 0) as quantity'))
+                ->leftJoin('movements_sales as ms', 'products.pro_code', '=', 'ms.mvs_pro_code')
+                ->whereRaw("strftime('%Y-%m', ms.created_at) = ?", [$month])
+                ->groupBy('products.pro_code', 'products.pro_name')
+                ->having('quantity', '>', 0)
+                ->orderBy('quantity')
+                ->limit($limit)
+                ->get()
+                ->toArray();
+        });
+    }
 }

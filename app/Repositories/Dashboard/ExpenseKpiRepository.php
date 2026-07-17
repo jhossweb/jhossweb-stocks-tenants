@@ -59,6 +59,23 @@ class ExpenseKpiRepository
         return $this->computeTrend($current, $previous);
     }
 
+    public function byCategory(?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return Cache::remember("dashboard:expenses:category:{$month}", 300, function () use ($month) {
+            return Expense::query()
+                ->selectRaw('ec.exc_name, ec.exc_type, e.exp_coin, SUM(e.exp_amount) as total')
+                ->join('expense_categories as ec', 'e.exp_category_id', '=', 'ec.id')
+                ->from('expenses as e')
+                ->whereRaw("strftime('%Y-%m', e.exp_date) = ?", [$month])
+                ->groupBy('ec.id', 'e.exp_coin')
+                ->orderByDesc('total')
+                ->get()
+                ->toArray();
+        });
+    }
+
     private function computeTrend(array $current, array $previous): array
     {
         $totalCurrent = array_sum($current);

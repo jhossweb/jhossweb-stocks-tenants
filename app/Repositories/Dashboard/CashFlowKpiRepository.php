@@ -76,4 +76,45 @@ class CashFlowKpiRepository
             'percentage' => abs($percentage),
         ];
     }
+
+    public function byAccount(string $type, ?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return Cache::remember("dashboard:cashflow:{$type}:account:{$month}", 300, function () use ($type, $month) {
+            return BankTransaction::query()
+                ->selectRaw('ba.bank_name, ba.bank_currency, bt.btr_coin, SUM(bt.btr_amount) as total')
+                ->from('bank_transactions as bt')
+                ->join('bank_accounts as ba', 'bt.btr_bank_account_id', '=', 'ba.id')
+                ->where('bt.btr_type', $type)
+                ->whereRaw("strftime('%Y-%m', bt.btr_transaction_date) = ?", [$month])
+                ->groupBy('ba.id', 'bt.btr_coin')
+                ->orderByDesc('total')
+                ->get()
+                ->toArray();
+        });
+    }
+
+    public function netByAccount(?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+        $inflow = $this->byAccount('inflow', $month);
+        $outflow = $this->byAccount('outflow', $month);
+
+        $accounts = collect([...$inflow, ...$outflow])->pluck('bank_name')->unique();
+        $net = [];
+
+        foreach ($accounts as $account) {
+            $in = collect($inflow)->firstWhere('bank_name', $account)['total'] ?? 0;
+            $out = collect($outflow)->firstWhere('bank_name', $account)['total'] ?? 0;
+            $net[] = [
+                'bank_name' => $account,
+                'bank_currency' => collect($inflow)->firstWhere('bank_name', $account)['bank_currency']
+                    ?? collect($outflow)->firstWhere('bank_name', $account)['bank_currency'] ?? '',
+                'total' => $in - $out,
+            ];
+        }
+
+        return $net;
+    }
 }
