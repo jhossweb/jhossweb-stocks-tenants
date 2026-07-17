@@ -4,6 +4,7 @@ namespace App\Observers\Purchases;
 
 use App\Models\MovementsPurchase;
 use App\Models\Product;
+use App\Services\Dashboard\DashboardCacheInvalidator;
 use DB;
 
 class MovPurchasesObserver
@@ -20,6 +21,8 @@ class MovPurchasesObserver
 
     public function created(MovementsPurchase $movement): void
     {
+        DashboardCacheInvalidator::products();
+
         $transType = strtolower((string) $movement->mov_invoice_trans_type_code);
 
         if (in_array($transType, ['fac', 'devc'])) {
@@ -36,6 +39,8 @@ class MovPurchasesObserver
 
     public function updated(MovementsPurchase $movementsPurchase): void
     {
+        DashboardCacheInvalidator::products();
+
         $oldCant = (float) $movementsPurchase->getOriginal('mov_quantity');
         $oldFactor = (int) $movementsPurchase->getOriginal('mov_factor');
         $oldWareId = $movementsPurchase->getOriginal('mov_war_id');
@@ -59,6 +64,8 @@ class MovPurchasesObserver
 
     public function deleted(MovementsPurchase $movementsPurchase): void
     {
+        DashboardCacheInvalidator::products();
+
         $transType = strtolower((string) $movementsPurchase->mov_invoice_trans_type_code);
 
         if (in_array($transType, ['fac', 'devc'])) {

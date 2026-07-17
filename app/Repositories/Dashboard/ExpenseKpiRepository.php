@@ -3,7 +3,6 @@
 namespace App\Repositories\Dashboard;
 
 use App\Models\Expense;
-use Illuminate\Support\Facades\Cache;
 
 class ExpenseKpiRepository
 {
@@ -11,69 +10,57 @@ class ExpenseKpiRepository
     {
         $month ??= now()->format('Y-m');
 
-        return Cache::remember("dashboard:expenses:total:{$month}", 60, function () use ($month) {
-            return Expense::query()
-                ->selectRaw('exp_coin, SUM(exp_amount) as total, SUM(exp_paid_amount) as paid')
-                ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
-                ->groupBy('exp_coin')
-                ->pluck('total', 'exp_coin')
-                ->toArray();
-        });
+        return Expense::query()
+            ->selectRaw('exp_coin, SUM(exp_amount) as total, SUM(exp_paid_amount) as paid')
+            ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
+            ->groupBy('exp_coin')
+            ->pluck('total', 'exp_coin')
+            ->toArray();
     }
 
     public function pendingBalance(): array
     {
-        return Cache::remember('dashboard:expenses:pending', 60, function () {
-            return Expense::query()
-                ->selectRaw('exp_coin, SUM(exp_remaining_balance) as balance')
-                ->whereIn('exp_status', ['pendiente', 'parcial'])
-                ->groupBy('exp_coin')
-                ->pluck('balance', 'exp_coin')
-                ->toArray();
-        });
+        return Expense::query()
+            ->selectRaw('exp_coin, SUM(exp_remaining_balance) as balance')
+            ->whereIn('exp_status', ['pendiente', 'parcial'])
+            ->groupBy('exp_coin')
+            ->pluck('balance', 'exp_coin')
+            ->toArray();
     }
 
-    public function trend(?string $month): array
+    public function trend(string $month): array
     {
-        $month ??= now()->format('Y-m');
         $previousMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
 
-        $current = Cache::remember("dashboard:expenses:trend:current:{$month}", 60, function () use ($month) {
-            return Expense::query()
-                ->selectRaw('exp_coin, SUM(exp_amount) as total')
-                ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
-                ->groupBy('exp_coin')
-                ->pluck('total', 'exp_coin')
-                ->toArray();
-        });
-
-        $previous = Cache::remember("dashboard:expenses:trend:previous:{$previousMonth}", 60, function () use ($previousMonth) {
-            return Expense::query()
-                ->selectRaw('exp_coin, SUM(exp_amount) as total')
-                ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$previousMonth])
-                ->groupBy('exp_coin')
-                ->pluck('total', 'exp_coin')
-                ->toArray();
-        });
+        $current = $this->totalRaw($month);
+        $previous = $this->totalRaw($previousMonth);
 
         return $this->computeTrend($current, $previous);
+    }
+
+    private function totalRaw(string $month): array
+    {
+        return Expense::query()
+            ->selectRaw('exp_coin, SUM(exp_amount) as total')
+            ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
+            ->groupBy('exp_coin')
+            ->pluck('total', 'exp_coin')
+            ->toArray();
     }
 
     public function byCategory(?string $month): array
     {
         $month ??= now()->format('Y-m');
 
-        return Cache::remember("dashboard:expenses:category:{$month}", 300, function () use ($month) {
-            return Expense::query()
-                ->selectRaw('ec.exc_name, ec.exc_type, e.exp_coin, SUM(e.exp_amount) as total')
-                ->join('expense_categories as ec', 'e.exp_category_id', '=', 'ec.id')
-                ->from('expenses as e')
-                ->whereRaw("strftime('%Y-%m', e.exp_date) = ?", [$month])
-                ->groupBy('ec.id', 'e.exp_coin')
-                ->orderByDesc('total')
-                ->get()
-                ->toArray();
-        });
+        return Expense::query()
+            ->selectRaw('ec.exc_name, ec.exc_type, e.exp_coin, SUM(e.exp_amount) as total')
+            ->join('expense_categories as ec', 'e.exp_category_id', '=', 'ec.id')
+            ->from('expenses as e')
+            ->whereRaw("strftime('%Y-%m', e.exp_date) = ?", [$month])
+            ->groupBy('ec.id', 'e.exp_coin')
+            ->orderByDesc('total')
+            ->get()
+            ->toArray();
     }
 
     private function computeTrend(array $current, array $previous): array

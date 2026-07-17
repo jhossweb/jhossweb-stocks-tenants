@@ -7,6 +7,7 @@ use App\Enum\Purchases\StatusPurchases;
 use App\Models\AccountsPayable;
 use App\Models\PurchaseOrder;
 use App\Models\Rate;
+use App\Services\Dashboard\DashboardCacheInvalidator;
 
 class PurchaseOrderObserver
 {
@@ -15,6 +16,8 @@ class PurchaseOrderObserver
      */
     public function created(PurchaseOrder $purchaseOrder): void
     {
+        DashboardCacheInvalidator::payables($purchaseOrder->invoice_date?->format('Y-m'));
+
         if (strtoupper($purchaseOrder->invoice_trans_type_code) !== 'FAC') {
             return;
         }
@@ -84,6 +87,8 @@ class PurchaseOrderObserver
      */
     public function updated(PurchaseOrder $purchaseOrder): void
     {
+        DashboardCacheInvalidator::payables($purchaseOrder->invoice_date?->format('Y-m'));
+
         $accountsPayable = $purchaseOrder->accountsPayable;
         if ($accountsPayable) {
             $difference = $purchaseOrder->invoice_total - $purchaseOrder->getOriginal('invoice_total');
@@ -118,6 +123,7 @@ class PurchaseOrderObserver
      */
     public function deleted(PurchaseOrder $purchaseOrder): void
     {
+        DashboardCacheInvalidator::payables($purchaseOrder->invoice_date?->format('Y-m'));
         $purchaseOrder->accountsPayable()?->delete();
     }
 }

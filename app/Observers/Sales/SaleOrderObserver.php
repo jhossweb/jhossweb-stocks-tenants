@@ -6,11 +6,14 @@ use App\Enum\Sales\StatusSales;
 use App\Models\AccountsReceivable;
 use App\Models\Rate;
 use App\Models\SaleOrder;
+use App\Services\Dashboard\DashboardCacheInvalidator;
 
 class SaleOrderObserver
 {
     public function created(SaleOrder $saleOrder): void
     {
+        DashboardCacheInvalidator::receivables($saleOrder->sls_date?->format('Y-m'));
+
         if ($saleOrder->sls_trans_type_code === 'FACV') {
             $rate = Rate::where('rate_date', $saleOrder->sls_date ?? $saleOrder->created_at?->format('Y-m-d'))->first()
                 ?? Rate::orderBy('rate_date', 'desc')->first();
@@ -32,6 +35,8 @@ class SaleOrderObserver
 
     public function updated(SaleOrder $saleOrder): void
     {
+        DashboardCacheInvalidator::receivables($saleOrder->sls_date?->format('Y-m'));
+
         $accountsReceivable = $saleOrder->accountsReceivable;
         if ($accountsReceivable) {
             $difference = $saleOrder->sls_total - $saleOrder->getOriginal('sls_total');
@@ -62,6 +67,7 @@ class SaleOrderObserver
 
     public function deleted(SaleOrder $saleOrder): void
     {
+        DashboardCacheInvalidator::receivables($saleOrder->sls_date?->format('Y-m'));
         $saleOrder->accountsReceivable()?->delete();
     }
 }

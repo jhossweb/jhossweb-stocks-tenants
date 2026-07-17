@@ -10,8 +10,12 @@ class BankTransactionObserver
 {
     private function forgetDashboardCache(string $month): void
     {
+        $prevMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
+
         Cache::forget("dashboard:cashflow:inflow:{$month}");
         Cache::forget("dashboard:cashflow:outflow:{$month}");
+        Cache::forget("dashboard:cashflow:inflow:{$prevMonth}");
+        Cache::forget("dashboard:cashflow:outflow:{$prevMonth}");
     }
 
     private function forgetDashboardCacheForTransaction(BankTransaction $bankTransaction): void

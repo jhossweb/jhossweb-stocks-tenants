@@ -18,9 +18,8 @@ class ExpenseObserver
         $previousMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
 
         Cache::forget("dashboard:expenses:total:{$month}");
+        Cache::forget("dashboard:expenses:total:{$previousMonth}");
         Cache::forget('dashboard:expenses:pending');
-        Cache::forget("dashboard:expenses:trend:current:{$month}");
-        Cache::forget("dashboard:expenses:trend:previous:{$previousMonth}");
     }
 
     public function created(Expense $expense): void

@@ -4,12 +4,15 @@ namespace App\Observers\Sales;
 
 use App\Models\MovementsSale;
 use App\Models\Product;
+use App\Services\Dashboard\DashboardCacheInvalidator;
 use DB;
 
 class MovSalesObserver
 {
     public function created(MovementsSale $movement): void
     {
+        DashboardCacheInvalidator::products($movement->created_at?->format('Y-m'));
+
         $transType = strtolower((string) $movement->mvs_trans_type_code);
         if (! in_array($transType, ['facv', 'devv'])) {
             return;
@@ -32,6 +35,8 @@ class MovSalesObserver
 
     public function updated(MovementsSale $movementsSale): void
     {
+        DashboardCacheInvalidator::products($movementsSale->created_at?->format('Y-m'));
+
         $oldCant = (float) $movementsSale->getOriginal('mvs_quantity');
         $oldFactor = (int) $movementsSale->getOriginal('mvs_factor');
         $oldWareId = $movementsSale->getOriginal('mvs_war_id');
@@ -68,6 +73,8 @@ class MovSalesObserver
 
     public function deleted(MovementsSale $movementsSale): void
     {
+        DashboardCacheInvalidator::products($movementsSale->created_at?->format('Y-m'));
+
         $transType = strtolower((string) $movementsSale->mvs_trans_type_code);
         if (! in_array($transType, ['facv', 'devv'])) {
             return;

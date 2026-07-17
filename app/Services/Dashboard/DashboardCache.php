@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Cache;
 
 class DashboardCache
 {
+    private const TTL = 60;
+
     private array $items = [];
 
     public function prefetch(string $month): void
@@ -28,15 +30,20 @@ class DashboardCache
         return array_key_exists($key, $this->items) && $this->items[$key] !== null;
     }
 
+    public function set(string $key, mixed $value): void
+    {
+        Cache::put($key, $value, self::TTL);
+        $this->items[$key] = $value;
+    }
+
     private function allKeys(string $month): array
     {
         $prev = date('Y-m', strtotime("{$month}-01 -1 month"));
 
         return [
+            // Current month
             "dashboard:expenses:total:{$month}",
             'dashboard:expenses:pending',
-            "dashboard:expenses:trend:current:{$month}",
-            "dashboard:expenses:trend:previous:{$prev}",
             "dashboard:cashflow:inflow:{$month}",
             "dashboard:cashflow:outflow:{$month}",
             'dashboard:receivables:balance',
@@ -47,6 +54,10 @@ class DashboardCache
             'dashboard:products:low_stock',
             "dashboard:products:top:{$month}:5",
             "dashboard:products:worst:{$month}:5",
+            // Previous month (for trend computation)
+            "dashboard:expenses:total:{$prev}",
+            "dashboard:cashflow:inflow:{$prev}",
+            "dashboard:cashflow:outflow:{$prev}",
         ];
     }
 }
