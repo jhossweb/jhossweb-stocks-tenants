@@ -1,454 +1,452 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2, Search } from 'lucide-vue-next';
-import { ref, onMounted } from 'vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { Landmark, Calculator } from 'lucide-vue-next';
+import { ref, computed, onMounted } from 'vue';
+import FormActions from '@/components/Form/FormActions.vue';
+import FormRowDelete from '@/components/Form/FormRowDelete.vue';
+import FormSection from '@/components/Form/FormSection.vue';
+import ItemsTable from '@/components/Form/ItemsTable.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
+import type { ColumnConfig } from '@/types/Transaction';
 
 const props = defineProps<{
     suppliers: any[];
     products: any[];
     warehouses: any[];
-    rates: any[]; // Se espera un array de objetos: { rate_date, rate_usd, rate_cop, rate_eur }
+    rates: any[];
     coins: string[];
     latest_rate: any;
     transactionTypes: any[];
     ivas: string[];
 }>();
 
+const prodRef = computed(() => props.products);
+const wareRef = computed(() => props.warehouses);
+const ratesRef = computed(() => props.rates);
+const latestRef = computed(() => props.latest_rate);
+
+const tx = useTransactionForm(prodRef, wareRef, ratesRef, latestRef);
+
+const valorcam = ref(
+    props.latest_rate ? Number(props.latest_rate.rate_usd) : 1,
+);
+
 const form = useForm({
     invoice_number: '',
     invoice_date: new Date().toISOString().split('T')[0],
     invoice_supplier_id: '',
-    invoice_valorcam: props.latest_rate ? Number(props.latest_rate.rate_usd) : 1,
+    invoice_valorcam: 1,
     invoice_coin: 'USD',
-    
-    items: [
-        { mov_pro_code: '', mov_war_id: '', mov_quantity: 1, mov_unit_cost_ref: 0, mov_unit_cost: 0, mov_pro_iva: 0 }
-    ],
+    items: [] as any[],
     invoice_subtotal: 0,
     invoice_iva: 0,
     invoice_exento: 0,
     invoice_total: 0,
 });
 
-// --- LÓGICA DE TASAS ---
+form.invoice_valorcam = valorcam.value;
 
-const getBestRateForDate = (date: string) => {
-    if (!props.rates || props.rates.length === 0) {
-return null;
+const createBlankItem = () => ({
+    mov_pro_code: '',
+    mov_war_id: '',
+    mov_quantity: 1,
+    mov_unit_cost_ref: 0,
+    mov_unit_cost: 0,
+    mov_pro_iva: 0,
+    _pending: false,
+});
+
+if (form.items.length === 0) {
+    form.items.push(createBlankItem());
 }
 
-    // 1. Intentar buscar la tasa de la fecha exacta
-    const exactRate = props.rates.find(r => r.rate_date === date);
-    
-    if (exactRate) {
-return exactRate;
-}
-
-    // 2. Si no existe, buscar la más reciente anterior a esa fecha
-    const pastRates = props.rates
-        .filter(r => r.rate_date < date)
-        .sort((a, b) => b.rate_date.localeCompare(a.rate_date));
-
-    return pastRates.length > 0 ? pastRates[0] : props.rates[0]; 
+const recalc = () => {
+    tx.calculateTotals(
+        form.items,
+        v => {
+            form.invoice_subtotal = v;
+        },
+        v => {
+            form.invoice_iva = v;
+        },
+        v => {
+            form.invoice_exento = v;
+        },
+        v => {
+            form.invoice_total = v;
+        },
+    );
 };
-const updateExchangeRate = () => {
-    const today = new Date().toISOString().split('T')[0];
-
-    if (form.invoice_date === today && props.latest_rate) {
-        if (form.invoice_coin === 'USD' || form.invoice_coin === 'BS' || form.invoice_coin === 'VES') {
-            form.invoice_valorcam = Number(props.latest_rate.rate_usd);
-        } else if (form.invoice_coin === 'COP') {
-            form.invoice_valorcam = Number(props.latest_rate.rate_cop);
-        } else if (form.invoice_coin === 'EUR') {
-            form.invoice_valorcam = Number(props.latest_rate.rate_eur);
-        }
-    } else {
-        const selectedRate = getBestRateForDate(form.invoice_date);
-
-        if (selectedRate) {
-            if (form.invoice_coin === 'USD' || form.invoice_coin === 'BS' || form.invoice_coin === 'VES') {
-                form.invoice_valorcam = Number(selectedRate.rate_usd);
-            } else if (form.invoice_coin === 'COP') {
-                form.invoice_valorcam = Number(selectedRate.rate_cop);
-            } else if (form.invoice_coin === 'EUR') {
-                form.invoice_valorcam = Number(selectedRate.rate_eur);
-            }
-        }
-    }
-
-    form.items.forEach((_, i) => updateCostRef(i));
-};
-
-
-const updateCostRef = (index: number) => {
-    const item = form.items[index];
-    
-    // La tasa que el usuario ve/escribe (3600 para COP, 44.71 para BS, etc.)
-    const tasaManual = Number(form.invoice_valorcam) || 1;
-    
-    // El costo unitario en la moneda de la factura
-    const costoUnitario = Number(item.mov_unit_cost) || 0;
-
-    let totalEnUsd = 0;
-
-    if (form.invoice_coin === 'USD') {
-        // Si la factura es en USD, el costo ya es la referencia
-        totalEnUsd = costoUnitario;
-    } else {
-        // Para CUALQUIER otra moneda (COP, BS, VES, EUR):
-        // Costo / Tasa = Valor en USD
-        // Ejemplo COP: 3600 / 3600 = 1 USD
-        // Ejemplo BS: 44.71 / 44.71 = 1 USD
-        totalEnUsd = costoUnitario / tasaManual;
-    }
-
-    // Guardamos con 4 decimales para precisión
-    item.mov_unit_cost_ref = Number(totalEnUsd.toFixed(4));
-    
-    calculateTotals();
-};
-
-
-const getProductIvaRate = (proCode: string) => {
-    if (!proCode) {
-return 0;
-}
-
-    const product = props.products.find(p => p.pro_code === proCode);
-
-    return product && product.pro_iva ? Number(product.pro_iva) / 100 : 0;
-};
-
-const getProductIvaLabel = (proCode: string) => {
-    if (!proCode) {
-return '-';
-}
-
-    const product = props.products.find(p => p.pro_code === proCode);
-
-    if (!product || !product.pro_iva) {
-return '-';
-}
-
-    return product.pro_iva === '0' ? 'EX' : `${product.pro_iva}%`;
-};
-
-const calculateTotals = () => {
-    let subtotal = 0;
-    let sumIva = 0;
-    let exento = 0;
-
-    form.items.forEach(item => {
-        const lineTotal = Number(item.mov_quantity) * Number(item.mov_unit_cost);
-        subtotal += lineTotal;
-        const ivaPercentage = getProductIvaRate(item.mov_pro_code) * 100;
-        const ivaRate = ivaPercentage / 100;
-        
-        sumIva += lineTotal * ivaRate;
-        item.mov_pro_iva = ivaPercentage;
-        
-        if (ivaRate === 0) {
-            exento += lineTotal;
-        }
-    });
-
-    form.invoice_subtotal = Number(subtotal.toFixed(4));
-    form.invoice_iva = Number(sumIva.toFixed(4));
-    form.invoice_exento = Number(exento.toFixed(4));
-    form.invoice_total = Number((subtotal + sumIva).toFixed(4));
-};
-
-const getItemTotal = (item: any) => {
-    const baseTotal = Number(item.mov_quantity) * Number(item.mov_unit_cost);
-    const ivaRate = getProductIvaRate(item.mov_pro_code);
-
-    return (baseTotal + (baseTotal * ivaRate)).toFixed(2);
-};
-
-const addItem = () => {
-    form.items.push({ mov_pro_code: '', mov_war_id: '', mov_quantity: 1, mov_unit_cost_ref: 0, mov_unit_cost: 0, mov_pro_iva: 0 });
-};
-
-const removeItem = (index: number) => {
-    if (form.items.length > 1) {
-        form.items.splice(index, 1);
-        calculateTotals();
-    }
-};
-
-const getSupplierName = (id: string | number) => {
-    const s = props.suppliers.find(s => s.id == id);
-
-    return s ? (s.supplier_name || s.name) : 'Seleccione proveedor';
-};
-
-const getProductName = (code: string) => {
-    const p = props.products.find(p => p.pro_code === code);
-
-    return p ? p.pro_name : 'Seleccione producto';
-};
-
-const getProductUnd = (code: string) => {
-    const p = props.products.find(p => p.pro_code === code);
-
-    return p ? p.pro_und : '';
-};
-
-const getProductConversion = (code: string) => {
-    const p = props.products.find(p => p.pro_code === code);
-
-    return p ? (p.pro_conversion_factor ?? 1) : 1;
-};
-
-const getUndLabel = (und: string) => ({
-    'und': 'Und',
-    'mts': 'Mts',
-    'kg': 'Kg',
-    'm2': 'm²'
-}[und] || und);
 
 const selectSupplier = (supplier: any) => {
     form.invoice_supplier_id = supplier.id;
 };
 
 const selectProduct = (index: number, product: any) => {
-    form.items[index].mov_pro_code = product.pro_code;
-    calculateTotals();
+    const item = form.items[index];
+    item.mov_pro_code = product.pro_code;
+    item._pending = true;
+
+    setTimeout(() => {
+        item._pending = false;
+        recalc();
+    }, 150);
+};
+
+const addItem = () => {
+    tx.addItem(form.items, createBlankItem);
+};
+
+const removeItem = (index: number) => {
+    tx.removeItem(form.items, index, recalc);
+};
+
+const handleQuantityInput = (index: number) => {
+    tx.updateCostRef(form.invoice_coin, valorcam.value, form.items[index]);
+};
+
+const handleCostInput = (index: number) => {
+    tx.updateCostRef(form.invoice_coin, valorcam.value, form.items[index]);
+};
+
+const handleExchangeUpdate = () => {
+    tx.updateExchangeRate(form.invoice_date, form.invoice_coin, valorcam, recalc);
 };
 
 const submit = () => {
-    console.log('Enviando formulario...', form.data());
-    form.post('/purchases', { 
+    form.invoice_valorcam = valorcam.value;
+    form.post('/purchases', {
         preserveScroll: true,
-        onSuccess: () => console.log('Éxito!'),
-        onError: (errors) => console.log('Errores:', errors),
     });
 };
 
-onMounted(() => updateExchangeRate());
+onMounted(() => {
+    form.items.forEach(item => {
+        tx.updateCostRef(form.invoice_coin, valorcam.value, item);
+    });
+});
+
+const columns: ColumnConfig[] = [
+    { key: 'product', label: 'Producto' },
+    { key: 'warehouse', label: 'Almacén' },
+    { key: 'iva', label: 'IVA', align: 'center', class: 'text-primary' },
+    { key: 'qty', label: 'Cant.', align: 'center', width: '6rem' },
+    { key: 'cost', label: 'Costo Unit.', align: 'right' },
+    { key: 'ref', label: 'Ref ($)', align: 'right', class: 'text-primary' },
+    { key: 'total', label: 'Total', align: 'right' },
+];
 </script>
 
 <template>
     <Head title="Nueva Compra" />
 
-    <div class="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans">
-        <div class="max-w-7xl mx-auto space-y-6">
-            
-            <div class="flex items-center justify-between bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl">
-                <div class="flex items-center gap-4">
-                    <Link href="/purchases" class="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white">
-                        <ArrowLeft class="w-6 h-6" />
-                    </Link>
-                    <div>
-                        <h1 class="text-xl font-bold">Nueva Compra</h1>
-                        <p class="text-xs text-zinc-500">Registro de facturas e inventario</p>
-                    </div>
-                </div>
-                <button 
-                    @click="submit" 
-                    :disabled="form.processing"
-                    class="inline-flex items-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-lg shadow-indigo-900/20"
+    <div class="mx-auto flex max-w-7xl flex-col gap-6 p-4 md:p-8">
+        <FormActions
+            title="Nueva Compra"
+            subtitle="Registro de facturas e inventario"
+            back-url="/purchases"
+            :processing="form.processing"
+            @save="submit"
+        />
+
+        <!-- Validation errors -->
+        <div
+            v-if="Object.keys(form.errors).length > 0"
+            class="rounded-xl border border-destructive/50 bg-destructive/10 p-4"
+        >
+            <p class="mb-1 text-sm font-bold text-destructive">
+                Hay problemas con el envío:
+            </p>
+            <ul class="list-inside list-disc text-xs text-destructive/80">
+                <li
+                    v-for="(error, key) in form.errors"
+                    :key="key"
                 >
-                    <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-                    <Save v-else class="w-4 h-4 mr-2" />
-                    {{ form.processing ? 'Guardando...' : 'Guardar' }}
-                </button>
-            </div>
+                    {{ error }}
+                </li>
+            </ul>
+        </div>
 
-            <!-- Mostrar errores generales o de validación que no se capturan abajo -->
-            <div v-if="Object.keys(form.errors).length > 0" class="bg-red-900/20 border border-red-500/50 p-4 rounded-xl">
-                <p class="text-sm text-red-400 font-bold mb-1">Hay problemas con el envío:</p>
-                <ul class="list-disc list-inside text-xs text-red-300">
-                    <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
-                </ul>
-            </div>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <!-- Sidebar: Config + Totals -->
+            <div class="flex flex-col gap-6 lg:col-span-4">
+                <FormSection>
+                        <template #header>
+                                <Landmark class="size-4 text-primary" />
+                                <span>Configuración General</span>
+                            </template>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-zinc-900 rounded-xl border border-zinc-800 p-6 shadow-sm space-y-5">
-                        <div class="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-widest">
-                            <Landmark class="w-4 h-4" /> Configuración General
-                        </div>
-                        
+                    <div class="flex flex-col gap-5">
                         <div>
-                            <label class="block text-sm font-medium text-zinc-400 mb-1.5">N° Factura</label>
-                            <Input type="text" v-model="form.invoice_number" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition-colors" />
-                            <p v-if="form.errors.invoice_number" class="text-xs text-red-500 mt-1">{{ form.errors.invoice_number }}</p>
+                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">N° Factura</label>
+                            <Input
+                                v-model="form.invoice_number"
+                                type="text"
+                                class="w-full"
+                            />
+                            <p
+                                v-if="form.errors.invoice_number"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.invoice_number }}
+                            </p>
                         </div>
 
-                      
-
                         <div>
-                            <label class="block text-sm font-medium text-zinc-400 mb-1.5">Proveedor</label>
+                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Proveedor</label>
                             <SelectorModal
                                 title="Seleccionar Proveedor"
                                 description="Busque y seleccione un proveedor de la lista"
                                 :items="suppliers"
-                                :searchFields="['supplier_name', 'name', 'supplier_rif', 'rif']"
-                                :displayFields="[
+                                :search-fields="['supplier_name', 'name', 'supplier_rif', 'rif']"
+                                :display-fields="[
                                     { label: 'Nombre', key: 'supplier_name' },
-                                    { label: 'RIF', key: 'supplier_rif' }
+                                    { label: 'RIF', key: 'supplier_rif' },
                                 ]"
-                                :triggerLabel="getSupplierName(form.invoice_supplier_id)"
-                                :selectedValue="form.invoice_supplier_id"
+                                :trigger-label="tx.getSupplierName(suppliers, form.invoice_supplier_id)"
+                                :selected-value="form.invoice_supplier_id"
                                 @select="selectSupplier"
                             />
-                            <p v-if="form.errors.invoice_supplier_id" class="text-xs text-red-500 mt-1">{{ form.errors.invoice_supplier_id }}</p>
+                            <p
+                                v-if="form.errors.invoice_supplier_id"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.invoice_supplier_id }}
+                            </p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-zinc-400 mb-1.5">Fecha</label>
-                                <Input type="date" v-model="form.invoice_date" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm focus:ring-indigo-600" />
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha</label>
+                                <Input
+                                    v-model="form.invoice_date"
+                                    type="date"
+                                    class="w-full"
+                                    @change="handleExchangeUpdate"
+                                />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-zinc-400 mb-1.5">Moneda</label>
-                                <select v-model="form.invoice_coin" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm focus:ring-indigo-600">
-                                    <option v-for="c in coins" :key="c" :value="c">{{ c }}</option>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Moneda</label>
+                                <select
+                                    v-model="form.invoice_coin"
+                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    @change="handleExchangeUpdate"
+                                >
+                                    <option
+                                        v-for="c in coins"
+                                        :key="c"
+                                        :value="c"
+                                    >
+                                        {{ c }}
+                                    </option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="p-4 bg-indigo-900/10 rounded-lg border border-indigo-500/20">
-                            <label class="block text-xs font-bold text-indigo-400 uppercase mb-1.5">Tasa de Cambio Manual</label>
-                            <Input 
-                                type="number" 
-                                step="0.0001" 
-                                v-model="form.invoice_valorcam" 
-                                @input="form.items.forEach((_, i) => updateCostRef(i))"
-                                class="w-full bg-zinc-950 border-zinc-700 rounded-md text-sm font-mono font-bold text-indigo-300 focus:ring-indigo-600"
+                        <div class="rounded-lg border bg-muted/30 p-4">
+                            <label class="mb-1.5 block text-xs font-bold uppercase text-muted-foreground">Tasa de Cambio</label>
+                            <div class="mb-2 text-xs text-muted-foreground">
+                                Tasa del día: <span class="font-semibold text-primary">{{ valorcam }}</span>
+                            </div>
+                            <Input
+                                v-model="valorcam"
+                                type="number"
+                                step="0.0001"
+                                class="w-full font-mono text-sm font-bold"
+                                @input="recalc"
                             />
                         </div>
-
-                       
                     </div>
+                </FormSection>
 
-                    <div class="bg-indigo-600 text-white rounded-xl p-6 shadow-xl relative overflow-hidden">
-                        <Calculator class="absolute -right-4 -bottom-4 w-24 h-24 text-white/10" />
-                        <div class="relative z-10 space-y-3">
-                            <div class="flex justify-between text-xs text-indigo-100 font-medium"><span>SUBTOTAL</span> <span>{{ form.invoice_subtotal }}</span></div>
-                            <div class="flex justify-between text-xs text-indigo-100 font-medium"><span>EXENTO</span> <span>{{ form.invoice_exento }}</span></div>
-                            <div class="flex justify-between text-xs text-indigo-100 font-medium"><span>IVA</span> <span>{{ form.invoice_iva }}</span></div>
-                            <div class="pt-3 border-t border-white/10 flex justify-between items-end">
-                                <span class="text-white font-bold text-sm uppercase">Total {{ form.invoice_coin }}</span>
-                                <span class="text-3xl font-black tabular-nums">{{ form.invoice_total }}</span>
-                            </div>
+                <!-- Totals Card -->
+                <div class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg">
+                    <Calculator class="text-primary-foreground/10 absolute -bottom-4 -right-4 size-24" />
+                    <div class="relative z-10 flex flex-col gap-3">
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>SUBTOTAL</span>
+                            <span>{{ form.invoice_subtotal }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>EXENTO</span>
+                            <span>{{ form.invoice_exento }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>IVA</span>
+                            <span>{{ form.invoice_iva }}</span>
+                        </div>
+                        <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
+                            <span class="text-sm font-bold uppercase">Total {{ form.invoice_coin }}</span>
+                            <span class="text-3xl font-black tabular-nums">{{ form.invoice_total }}</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="lg:col-span-8 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
-                    <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
-                        <span class="text-xs font-bold uppercase text-zinc-500 tracking-wider">Detalle de Productos</span>
-                        <button @click="addItem" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 px-3 py-1.5 hover:bg-indigo-500/10 rounded-lg transition-colors">
-                            <PlusCircle class="w-4 h-4" /> Agregar Item
-                        </button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
-                                <tr>
-                                    <th class="px-4 py-4 text-left">Producto</th>
-                                    <th class="px-4 py-4 text-left">Almacén</th>
-                                    <th class="px-4 py-4 text-center text-indigo-400">IVA</th>
-                                    <th class="px-4 py-4 text-center w-24">Cant.</th>
-                                    <th class="px-4 py-4 text-right">Costo Unit.</th>
-                                    <th class="px-4 py-4 text-right text-indigo-400">Ref ($)</th>
-                                    <th class="px-4 py-4 text-right">Total</th>
-                                    <th class="px-4 py-4 w-12"></th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-800">
-                                <tr v-for="(item, index) in form.items" :key="index" class="hover:bg-zinc-800/30 transition-colors">
-                                    <td class="p-3 min-w-[250px]">
-                                        <SelectorModal
-                                            title="Seleccionar Producto"
-                                            :items="products"
-                                            :searchFields="['pro_name', 'pro_code']"
-                                            :displayFields="[
-                                                { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
-                                                { label: 'Nombre', key: 'pro_name' },
-                                                { label: 'Und', key: 'pro_und', class: 'font-mono text-xs text-center' }
-                                            ]"
-                                            :triggerLabel="getProductName(item.mov_pro_code)"
-                                            :selectedValue="item.mov_pro_code"
-                                            triggerClass="bg-transparent border-none hover:bg-zinc-800/50"
-                                            @select="(p) => selectProduct(index, p)"
-                                        />
-                                        <p v-if="form.errors[`items.${index}.mov_pro_code`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mov_pro_code`] }}</p>
-                                    </td>
-                                    <td class="p-3">
-                                        <select v-model="item.mov_war_id" class="w-full bg-transparent border-none focus:ring-0 text-sm text-zinc-300">
-                                            <option value="" class="bg-zinc-900">Seleccione...</option>
-                                            <option v-for="w in warehouses" :key="w.id" :value="w.id" class="bg-zinc-900">{{ w.id }}</option>
-                                        </select>
-                                        <p v-if="form.errors[`items.${index}.mov_war_id`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mov_war_id`] }}</p>
-                                    </td>
-                                    <td class="p-3 text-center text-xs font-bold text-indigo-400 bg-indigo-500/10 rounded-md">
-                                        {{ getProductIvaLabel(item.mov_pro_code) }}
-                                    </td>
-                                    <td class="p-3">
-                                        <div class="flex items-center gap-1">
-                                            <input type="number" v-model="item.mov_quantity"
-                                                :step="getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
-                                                :min="getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
-                                                @input="calculateTotals"
-                                                class="w-20 text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-indigo-600 text-zinc-300" />
-                                            <span v-if="item.mov_pro_code" class="text-[10px] font-bold uppercase text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
-                                                {{ getUndLabel(getProductUnd(item.mov_pro_code)) }}
-                                            </span>
-                                        </div>
-                                        <div v-if="item.mov_pro_code && (getProductUnd(item.mov_pro_code) === 'mts' || getProductUnd(item.mov_pro_code) === 'kg' || getProductUnd(item.mov_pro_code) === 'm2') && getProductConversion(item.mov_pro_code) > 1" class="text-[9px] text-amber-400 mt-0.5">
-                                            ×{{ getProductConversion(item.mov_pro_code) }} {{ getUndLabel(getProductUnd(item.mov_pro_code)) }}
-                                        </div>
-                                        <p v-if="form.errors[`items.${index}.mov_quantity`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mov_quantity`] }}</p>
-                                    </td>
-                                    <td class="p-3">
-                                        <input type="number" step="0.0001" v-model="item.mov_unit_cost" @input="updateCostRef(index)" class="w-full text-right border-none bg-transparent font-bold text-zinc-200 focus:ring-0" />
-                                        <p v-if="form.errors[`items.${index}.mov_unit_cost`]" class="text-[10px] text-red-500">{{ form.errors[`items.${index}.mov_unit_cost`] }}</p>
-                                    </td>
-                                    <td class="p-3">
-                                        <div class="text-right font-mono text-indigo-400 font-medium text-xs py-1">
-                                            {{ item.mov_unit_cost_ref }}
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-right font-bold text-zinc-400">
-                                        {{ getItemTotal(item) }}
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <button @click="removeItem(index)" class="text-zinc-600 hover:text-red-500 transition-colors p-1" title="Eliminar fila">
-                                            <Trash2 class="w-4 h-4" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <!-- Items Table -->
+            <div class="lg:col-span-8">
+                <ItemsTable
+                    :columns="columns"
+                    :empty="form.items.length === 0"
+                    @add="addItem"
+                >
+                    <TransitionGroup name="row">
+                        <tr
+                            v-for="(item, index) in form.items"
+                            :key="index"
+                            class="hover:bg-muted/30 transition-colors"
+                        >
+                            <td class="min-w-[220px] p-3">
+                                <SelectorModal
+                                    title="Seleccionar Producto"
+                                    :items="products"
+                                    :search-fields="['pro_name', 'pro_code']"
+                                    :display-fields="[
+                                        { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
+                                        { label: 'Nombre', key: 'pro_name' },
+                                        { label: 'Und', key: 'pro_und', class: 'font-mono text-xs text-center' },
+                                    ]"
+                                    :trigger-label="tx.getProductName(item.mov_pro_code)"
+                                    :selected-value="item.mov_pro_code"
+                                    trigger-class="bg-transparent border-none hover:bg-muted/50 w-full"
+                                    @select="(p: any) => selectProduct(index, p)"
+                                />
+                            </td>
+                            <td class="p-3">
+                                <select
+                                    v-model="item.mov_war_id"
+                                    class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                                >
+                                    <option
+                                        value=""
+                                        class="bg-card"
+                                    >
+                                        Seleccione...
+                                    </option>
+                                    <option
+                                        v-for="w in warehouses"
+                                        :key="w.id"
+                                        :value="w.id"
+                                        class="bg-card"
+                                    >
+                                        {{ w.war_name || w.id }}
+                                    </option>
+                                </select>
+                            </td>
+                            <td class="p-3 text-center">
+                                <span
+                                    v-if="item._pending"
+                                    class="bg-muted inline-block size-5 animate-pulse rounded"
+                                />
+                                <span
+                                    v-else
+                                    class="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary"
+                                >
+                                    {{ tx.getProductIvaLabel(item.mov_pro_code) }}
+                                </span>
+                            </td>
+                            <td class="p-3">
+                                <div class="flex items-center justify-center gap-1">
+                                    <input
+                                        v-model="item.mov_quantity"
+                                        type="number"
+                                        :step="tx.getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
+                                        :min="tx.getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
+                                        class="border-input bg-background w-20 rounded-md border py-1.5 text-center text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                        @input="handleQuantityInput(index)"
+                                    >
+                                    <span
+                                        v-if="item.mov_pro_code"
+                                        class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary"
+                                    >
+                                        {{ tx.getUndLabel(tx.getProductUnd(item.mov_pro_code)) }}
+                                    </span>
+                                </div>
+                                <div
+                                    v-if="item.mov_pro_code && ['mts', 'kg', 'm2'].includes(tx.getProductUnd(item.mov_pro_code)) && tx.getProductConversion(item.mov_pro_code) > 1"
+                                    class="mt-0.5 text-[10px] text-amber-500"
+                                >
+                                    ×{{ tx.getProductConversion(item.mov_pro_code) }}
+                                    {{ tx.getUndLabel(tx.getProductUnd(item.mov_pro_code)) }}
+                                </div>
+                            </td>
+                            <td class="p-3">
+                                <div class="flex items-center gap-1">
+                                    <input
+                                        v-model="item.mov_unit_cost"
+                                        type="number"
+                                        step="0.0001"
+                                        class="w-full border-none bg-transparent text-right text-sm font-bold focus:ring-0"
+                                        @input="handleCostInput(index)"
+                                    >
+                                    <span
+                                        v-if="item._pending"
+                                        class="bg-muted inline-block size-4 animate-pulse rounded"
+                                    />
+                                </div>
+                            </td>
+                            <td class="p-3 text-right">
+                                <span
+                                    v-if="item._pending"
+                                    class="bg-muted inline-block h-4 w-16 animate-pulse rounded"
+                                />
+                                <span
+                                    v-else
+                                    class="font-mono text-xs font-medium text-primary"
+                                >
+                                    {{ item.mov_unit_cost_ref }}
+                                </span>
+                            </td>
+                            <td class="p-3 text-right font-bold text-muted-foreground">
+                                <span
+                                    v-if="item._pending"
+                                    class="bg-muted inline-block h-4 w-16 animate-pulse rounded"
+                                />
+                                <span v-else>{{ tx.getItemTotal(item) }}</span>
+                            </td>
+                            <td class="p-3 text-center">
+                                <FormRowDelete @remove="removeItem(index)" />
+                            </td>
+                        </tr>
+                    </TransitionGroup>
+                </ItemsTable>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-/* Eliminar flechas de inputs numéricos */
+/* Remove number input arrows */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
-input[type=number] {
-  -moz-appearance: textfield;
+input[type='number'] {
+    -moz-appearance: textfield;
 }
 
-/* Estilo para el calendario en dark mode */
-input[type="date"]::-webkit-calendar-picker-indicator {
+/* Date picker dark mode */
+input[type='date']::-webkit-calendar-picker-indicator {
     filter: invert(1);
+}
+
+/* Row transition */
+.row-enter-active,
+.row-leave-active {
+    transition: all 0.2s ease;
+}
+.row-enter-from {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+.row-leave-to {
+    opacity: 0;
+    transform: translateX(8px);
+}
+.row-move {
+    transition: transform 0.2s ease;
 }
 </style>

@@ -17,7 +17,7 @@ class ExpenseService
 
     public function create(array $data): Expense
     {
-        $valorcam = $this->rateService->resolveRateForCoin(
+        $valorcam = $data['exp_valorcam'] ?? $this->rateService->resolveRateForCoin(
             $data['exp_date'],
             $data['exp_coin'],
         );

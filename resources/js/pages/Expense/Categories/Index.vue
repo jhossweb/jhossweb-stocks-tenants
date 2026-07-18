@@ -1,19 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { PlusCircle, Tags, FileText, Trash2, Loader2 } from 'lucide-vue-next';
+import { ArrowLeft, Tags, FileText, Trash2, Loader2 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import FlashMessage from '@/components/FlashMessage.vue';
-import { Button } from '@/components/ui/button';
 import type { ExpenseCategory, PaginatedData } from '@/types/Expense';
-
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Categorías de Gastos', href: '/expense-categories' },
-        ],
-    },
-});
 
 const props = defineProps<{
     categories: PaginatedData<ExpenseCategory>;
@@ -34,7 +24,9 @@ const cancelDelete = () => {
 };
 
 const handleDelete = () => {
-    if (!deletingCategory.value) return;
+    if (!deletingCategory.value) {
+        return;
+    }
     router.delete(`/expense-categories/${deletingCategory.value.id}`, {
         preserveScroll: true,
         onSuccess: () => cancelDelete(),
@@ -46,95 +38,89 @@ const handleDelete = () => {
     <Head title="Categorías de Gastos" />
     <FlashMessage />
 
-    <div class="flex h-full flex-1 flex-col gap-6 p-4 md:p-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
-                    <Tags class="h-8 w-8 text-primary" />
-                    Categorías de Gastos
-                </h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Clasifica los gastos según su tipo.
-                </p>
+    <div class="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <div class="flex items-center justify-between bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl">
+                <div class="flex items-center gap-4">
+                    <Link href="/expenses" class="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white">
+                        <ArrowLeft class="w-6 h-6" />
+                    </Link>
+                    <div>
+                        <h1 class="text-xl font-bold">Categorías de Gastos</h1>
+                        <p class="text-xs text-zinc-500">Clasifica los gastos según su tipo.</p>
+                    </div>
+                </div>
+                <Link href="/expense-categories/create" class="inline-flex items-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-all shadow-lg shadow-indigo-900/20">
+                    <Tags class="w-4 h-4 mr-2" /> Nueva Categoría
+                </Link>
             </div>
-            <Link href="/expense-categories/create">
-                <Button class="shadow-md hover:shadow-lg transition-shadow">
-                    <PlusCircle class="mr-2 h-4 w-4" />
-                    Nueva Categoría
-                </Button>
-            </Link>
-        </div>
 
-        <div class="rounded-xl border border-sidebar-border bg-white shadow-sm dark:bg-gray-900 overflow-hidden flex-1 flex flex-col">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-300">
-                        <tr>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Nombre</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Tipo</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Descripción</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700 text-center">Gastos</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700 text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-if="categories.data.length === 0">
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                                <div class="flex flex-col items-center gap-3">
-                                    <FileText class="w-12 h-12 text-gray-300 dark:text-gray-600" />
-                                    <span class="text-base font-medium">No hay categorías registradas</span>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-for="category in categories.data" :key="category.id" class="bg-white border-b dark:bg-gray-900 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                {{ category.exc_name }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" :class="{
-                                    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': category.exc_type === 'fijo',
-                                    'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200': category.exc_type === 'variable',
-                                }">
-                                    {{ category.exc_type }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 max-w-xs truncate">
-                                {{ category.exc_description ?? '-' }}
-                            </td>
-                            <td class="px-6 py-4 text-center">
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-semibold">
-                                    {{ category.expenses_count ?? 0 }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-1">
-                                    <Link :href="`/expense-categories/${category.id}/edit`">
-                                        <Button variant="ghost" size="sm" class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+            <div class="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
+                            <tr>
+                                <th class="px-4 py-4 text-left">Nombre</th>
+                                <th class="px-4 py-4 text-left">Tipo</th>
+                                <th class="px-4 py-4 text-left">Descripción</th>
+                                <th class="px-4 py-4 text-center">Gastos</th>
+                                <th class="px-4 py-4 w-12"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-800">
+                            <tr v-if="categories.data.length === 0">
+                                <td colspan="5" class="px-4 py-12 text-center text-zinc-500">
+                                    <FileText class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
+                                    <p>No hay categorías registradas</p>
+                                </td>
+                            </tr>
+                            <tr v-for="category in categories.data" :key="category.id" class="hover:bg-zinc-800/30 transition-colors">
+                                <td class="px-4 py-4 font-medium text-zinc-200 whitespace-nowrap">
+                                    {{ category.exc_name }}
+                                </td>
+                                <td class="px-4 py-4">
+                                    <span class="text-xs px-2 py-1 rounded-full"
+                                        :class="{
+                                            'bg-purple-900/30 text-purple-400': category.exc_type === 'fijo',
+                                            'bg-amber-900/30 text-amber-400': category.exc_type === 'variable',
+                                        }">
+                                        {{ category.exc_type }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 max-w-xs truncate text-zinc-400">
+                                    {{ category.exc_description ?? '-' }}
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 text-sm font-semibold text-zinc-300">
+                                        {{ category.expenses_count ?? 0 }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <Link :href="`/expense-categories/${category.id}/edit`" class="text-indigo-400 hover:text-indigo-300 text-xs">
                                             Editar
-                                        </Button>
-                                    </Link>
-                                    <Button
-                                        v-if="(category.expenses_count ?? 0) === 0"
-                                        variant="ghost"
-                                        size="sm"
-                                        @click="confirmDelete(category)"
-                                        class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                    >
-                                        <Trash2 class="w-3.5 h-3.5" />
-                                    </Button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                                        </Link>
+                                        <button
+                                            v-if="(category.expenses_count ?? 0) === 0"
+                                            @click="confirmDelete(category)"
+                                            class="inline-flex items-center gap-1 px-2 py-1 text-xs text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 class="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div v-if="categories.links.length > 3" class="px-6 py-4 border-t dark:border-gray-800 flex justify-center bg-gray-50 dark:bg-gray-900">
-                <div class="flex gap-1">
-                    <template v-for="(link, key) in categories.links" :key="key">
-                        <div v-if="link.url === null" class="px-4 py-2 text-sm text-gray-400 border rounded cursor-not-allowed" v-html="link.label"></div>
-                        <Link v-else :href="link.url" class="px-4 py-2 text-sm border rounded hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors" :class="{ 'bg-primary text-primary-foreground font-bold': link.active }" v-html="link.label"></Link>
-                    </template>
+                <div v-if="categories.links.length > 3" class="px-6 py-4 border-t border-zinc-800 flex justify-center">
+                    <div class="flex gap-1">
+                        <template v-for="(link, key) in categories.links" :key="key">
+                            <div v-if="link.url === null" class="px-4 py-2 text-sm text-zinc-500 border border-zinc-700 rounded cursor-not-allowed" v-html="link.label"></div>
+                            <Link v-else :href="link.url" class="px-4 py-2 text-sm border border-zinc-700 rounded hover:bg-zinc-800 transition-colors text-zinc-300" :class="{ 'bg-indigo-600 text-white border-indigo-600 font-bold': link.active }" v-html="link.label"></Link>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -158,14 +144,14 @@ const handleDelete = () => {
                         ¿Estás seguro de que deseas eliminar la categoría "<strong class="text-zinc-200">{{ deletingCategory?.exc_name }}</strong>"? Esta acción no se puede deshacer.
                     </p>
                     <div class="flex justify-end gap-3">
-                        <Button variant="outline" @click="cancelDelete">Cancelar</Button>
-                        <Button
+                        <button @click="cancelDelete" class="px-4 py-2 text-sm border border-zinc-700 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-300">Cancelar</button>
+                        <button
                             @click="handleDelete"
-                            class="bg-red-600 hover:bg-red-500 text-white font-bold"
+                            class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold transition-colors"
                         >
                             <Loader2 class="w-4 h-4 mr-2 animate-spin" />
                             Eliminar
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </div>

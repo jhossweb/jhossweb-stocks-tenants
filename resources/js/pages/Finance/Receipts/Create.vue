@@ -6,21 +6,18 @@ import {
     Loader2,
     Search,
     Landmark,
-    Calculator,
     CreditCard,
     Building2,
-    Calendar,
-    DollarSign,
     CheckCircle2,
     AlertCircle,
-    Repeat
+    Repeat,
+    Calculator,
 } from 'lucide-vue-next';
 import { ref, watch, computed, onMounted } from 'vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input/Input.vue';
-import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -369,342 +366,324 @@ const calculateConvertedBalance = (invoicePayment: any) => {
 <template>
     <Head title="Comprobante de Cobro" />
 
-    <div class="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans">
-        <div class="max-w-6xl mx-auto space-y-6">
-
-            <!-- Header -->
-            <div class="flex items-center justify-between bg-zinc-900/50 backdrop-blur-xl p-6 rounded-2xl border border-zinc-800 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5">
-                    <CheckCircle2 class="w-32 h-32" />
-                </div>
-
-                <div class="flex items-center gap-4 relative z-10">
-                    <Link href="/accounts-receivable" class="p-2.5 bg-zinc-800/50 hover:bg-zinc-800 rounded-xl transition-all text-zinc-400 hover:text-white border border-zinc-700/50">
-                        <ArrowLeft class="w-5 h-5" />
-                    </Link>
-                    <div>
-                        <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
-                            {{ isEditMode ? 'Editar Cobro' : 'Comprobante de Cobro' }}
-                        </h1>
-                        <p class="text-xs text-zinc-500 font-medium tracking-wide first-letter:uppercase">
-                            {{ isEditMode ? 'Actualización de cobro registrado' : 'Registro de ingresos y abonos de clientes' }}
-                        </p>
-                    </div>
-                </div>
-
-                <Button
-                    @click="submit"
-                    :disabled="form.processing || totalToPay <= 0"
-                    size="lg"
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-12 px-8 rounded-xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-all relative z-10"
+    <div class="mx-auto flex max-w-7xl flex-col gap-6 p-4 md:p-8">
+        <div class="flex items-center justify-between rounded-xl border bg-card px-6 py-4 shadow-sm">
+            <div class="flex items-center gap-4">
+                <Link
+                    href="/accounts-receivable"
+                    class="text-muted-foreground hover:text-foreground rounded-full p-2 transition-colors hover:bg-accent"
                 >
-                    <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-                    <Save v-else class="w-4 h-4 mr-2" />
-                    {{ isEditMode ? 'Actualizar Cobro' : 'Generar Cobro' }}
-                </Button>
-            </div>
-
-            <!-- Errors -->
-            <div v-if="Object.keys(form.errors).length > 0" class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-start gap-3">
-                <AlertCircle class="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                    <ArrowLeft class="size-5" />
+                </Link>
                 <div>
-                    <h4 class="text-sm font-bold text-red-500">Por favor, corrige los siguientes errores:</h4>
-                    <ul class="text-xs text-red-400 list-disc list-inside mt-1 space-y-1">
-                        <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
-                    </ul>
+                    <h1 class="text-xl font-bold">
+                        {{ isEditMode ? 'Editar Cobro' : 'Comprobante de Cobro' }}
+                    </h1>
+                    <p class="text-xs text-muted-foreground">
+                        {{ isEditMode ? 'Actualización de cobro registrado' : 'Registro de ingresos y abonos de clientes' }}
+                    </p>
+                </div>
+            </div>
+            <Button
+                @click="submit"
+                :disabled="form.processing || totalToPay <= 0"
+                size="lg"
+                class="bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12 px-8 rounded-xl shadow-sm transition-all"
+            >
+                <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
+                <Save v-else class="w-4 h-4 mr-2" />
+                {{ isEditMode ? 'Actualizar Cobro' : 'Generar Cobro' }}
+            </Button>
+        </div>
+
+        <div v-if="Object.keys(form.errors).length > 0" class="rounded-xl border border-destructive/50 bg-destructive/10 p-4">
+            <p class="mb-1 text-sm font-bold text-destructive">
+                Por favor, corrige los siguientes errores:
+            </p>
+            <ul class="list-inside list-disc text-xs text-destructive/80">
+                <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+            </ul>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div class="flex flex-col gap-6 lg:col-span-4">
+                <div class="rounded-xl border bg-card shadow-sm">
+                    <div class="flex items-center gap-2 border-b px-6 py-4">
+                        <Landmark class="size-4 text-primary" />
+                        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Datos del Cliente</span>
+                    </div>
+                    <div class="flex flex-col gap-5 p-6">
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Cliente</label>
+                            <div v-if="isEditMode" class="flex h-10 items-center rounded-lg border bg-muted/30 px-3 text-sm">
+                                {{ getCustomerName(form.customer_id) }}
+                            </div>
+                            <SelectorModal v-else
+                                title="Seleccionar Cliente"
+                                description="Busque y seleccione el cliente a cobrar"
+                                :items="customers"
+                                :searchFields="['clt_name']"
+                                :displayFields="[
+                                    { label: 'Nombre', key: 'clt_name' }
+                                ]"
+                                :triggerLabel="getCustomerName(form.customer_id)"
+                                :selectedValue="form.customer_id"
+                                @select="selectCustomer"
+                            />
+                            <span v-if="form.errors.customer_id" class="mt-1 text-xs text-destructive">{{ form.errors.customer_id }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha de Cobro</label>
+                                <Input type="date" v-model="form.payment_date" :class="{'border-destructive': form.errors.payment_date}" />
+                                <span v-if="form.errors.payment_date" class="mt-1 text-xs text-destructive">{{ form.errors.payment_date }}</span>
+                            </div>
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Moneda de Cobro</label>
+                                <Select v-model="form.payment_currency" :disabled="isEditMode">
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Moneda" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem v-for="c in currencies" :key="c" :value="c">{{ c }}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <span v-if="form.errors.payment_currency" class="mt-1 text-xs text-destructive">{{ form.errors.payment_currency }}</span>
+                            </div>
+                        </div>
+
+                        <div class="rounded-lg border bg-muted/30 p-4">
+                            <label class="mb-1.5 block text-xs font-bold uppercase text-muted-foreground">Tasa {{ originalCurrency || 'USD' }} / {{ form.payment_currency }}</label>
+                            <Input
+                                type="number"
+                                step="0.0001"
+                                v-model="form.payment_rate"
+                                :disabled="isEditMode"
+                                class="font-mono text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <span v-if="form.errors.payment_rate" class="mt-1 text-xs text-destructive">{{ form.errors.payment_rate }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg">
+                    <Calculator class="text-primary-foreground/10 absolute -bottom-4 -right-4 size-24" />
+                    <div class="relative z-10 flex flex-col gap-3">
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>Total a Liquidar</span>
+                            <span>{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>Tasa Aplicada</span>
+                            <span class="font-mono">{{ Number(form.payment_rate).toFixed(4) }}</span>
+                        </div>
+
+                        <div
+                            v-if="originalTotal > 0 && originalCurrency && originalCurrency !== form.payment_currency"
+                            class="flex flex-col gap-2 border-t border-primary-foreground/10 pt-3"
+                        >
+                            <div class="flex items-center gap-2 text-xs">
+                                <Repeat class="size-3.5" /> Conversión de Moneda
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Total a pagar</span>
+                                <span class="font-bold">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
+                            </div>
+                            <div class="text-xs text-right text-primary-foreground/70">
+                                (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="estimatedDiferencial !== 0 && form.payment_currency !== 'USD'"
+                            class="flex flex-col gap-2 border-t border-primary-foreground/10 pt-3"
+                        >
+                            <div class="flex justify-between">
+                                <span class="text-xs">Diferencial Cambiario</span>
+                                <span
+                                    class="text-sm font-bold"
+                                    :class="estimatedDiferencial > 0 ? 'text-green-300' : 'text-orange-300'"
+                                >
+                                    {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
+                                </span>
+                            </div>
+                            <div class="text-xs text-right text-primary-foreground/70">
+                                {{ estimatedDiferencial > 0 ? 'Ganancia por diferencia de tasas' : 'Pérdida por diferencia de tasas' }}
+                            </div>
+                        </div>
+
+                        <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
+                            <span class="text-sm font-bold uppercase">Total {{ form.payment_currency }}</span>
+                            <span class="text-3xl font-black tabular-nums">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-                <!-- Left Sidebar: Basic Info -->
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 space-y-6 shadow-sm">
-                        <div class="flex items-center gap-2 text-indigo-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
-                            <Landmark class="w-4 h-4" /> Datos del Cliente
+            <div class="flex flex-col gap-6 lg:col-span-8">
+                <div class="overflow-hidden rounded-xl border bg-card shadow-sm flex flex-col min-h-[400px]">
+                    <div class="flex items-center justify-between border-b px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="rounded-lg bg-primary/10 p-2 text-primary">
+                                <CreditCard class="size-4" />
+                            </div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Facturas Pendientes</span>
                         </div>
-
-                        <div class="space-y-4">
-                            <div class="space-y-2">
-                                <Label class="text-zinc-400 text-xs font-semibold">Cliente</Label>
-                                <div v-if="isEditMode" class="h-11 bg-zinc-950/50 border border-zinc-800 rounded-xl px-3 flex items-center text-sm text-zinc-300">
-                                    {{ getCustomerName(form.customer_id) }}
-                                </div>
-                                <SelectorModal v-else
-                                    title="Seleccionar Cliente"
-                                    description="Busque y seleccione el cliente a cobrar"
-                                    :items="customers"
-                                    :searchFields="['clt_name']"
-                                    :displayFields="[
-                                        { label: 'Nombre', key: 'clt_name' }
-                                    ]"
-                                    :triggerLabel="getCustomerName(form.customer_id)"
-                                    :selectedValue="form.customer_id"
-                                    @select="selectCustomer"
-                                />
-                                <span v-if="form.errors.customer_id" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.customer_id }}</span>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2">
-                                    <Label class="text-zinc-400 text-xs font-semibold">Fecha de Cobro</Label>
-                                    <div class="relative">
-                                        <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                                        <Input type="date" v-model="form.payment_date" :class="{'border-red-500': form.errors.payment_date}" class="pl-10 h-11 bg-zinc-950/50 border-zinc-800 text-sm focus:ring-indigo-600 rounded-xl" />
-                                    </div>
-                                    <span v-if="form.errors.payment_date" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_date }}</span>
-                                </div>
-                                <div class="space-y-2">
-                                    <Label class="text-zinc-400 text-xs font-semibold">Moneda de Cobro</Label>
-                                    <Select v-model="form.payment_currency" :disabled="isEditMode">
-                                        <SelectTrigger class="h-11 bg-zinc-950/50 border-zinc-800 rounded-xl">
-                                            <SelectValue placeholder="Moneda" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem v-for="c in currencies" :key="c" :value="c">{{ c }}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <span v-if="form.errors.payment_currency" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_currency }}</span>
-                                </div>
-                            </div>
-
-                            <div class="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 space-y-2">
-                                <div class="flex justify-between items-center mb-1">
-                                    <Label class="text-indigo-400 text-[10px] font-black uppercase tracking-wider">Tasa {{ originalCurrency || 'USD' }} / {{ form.payment_currency }}</Label>
-                                    <Badge variant="outline" class="text-[10px] bg-indigo-500/10 text-indigo-400 border-none">Hoy</Badge>
-                                </div>
-                                <div class="relative">
-                                    <DollarSign class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400/50" />
-                                        <Input
-                                            type="number"
-                                            step="0.0001"
-                                            v-model="form.payment_rate"
-                                            :disabled="isEditMode"
-                                            class="pl-10 h-11 bg-zinc-950 border-zinc-800 text-sm font-mono font-bold text-indigo-400 focus:ring-indigo-600 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                                        />
-                                </div>
-                                <span v-if="form.errors.payment_rate" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_rate }}</span>
-                            </div>
-                        </div>
+                        <Badge v-if="pendingReceivables.length" variant="outline" class="bg-muted/30 text-muted-foreground text-[10px]">
+                            {{ pendingReceivables.length }} facturas encontradas
+                        </Badge>
                     </div>
 
-                    <!-- Payment Summary Box -->
-                    <div class="bg-indigo-600 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
-                        <div class="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                            <Calculator class="w-48 h-48" />
+                    <div class="relative flex-1 overflow-x-auto">
+                        <div v-if="isLoadingInvoices" class="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm z-10">
+                            <Loader2 class="size-8 animate-spin text-primary" />
                         </div>
 
-                        <div class="relative z-10 space-y-6">
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Total a Liquidar</p>
-                                <div class="flex items-baseline gap-2">
-                                    <span class="text-xs text-indigo-200">{{ form.payment_currency }}</span>
-                                    <span class="text-5xl font-black tabular-nums tracking-tighter">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
-                                </div>
-                            </div>
-
-                            <div class="pt-4 border-t border-white/10 flex items-center justify-between">
-                                <div class="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Tasa Aplicada</div>
-                                <div class="text-sm font-mono font-bold">{{ Number(form.payment_rate).toFixed(4) }}</div>
-                            </div>
-
-                            <!-- Conversion Notice -->
-                            <div
-                                v-if="originalTotal > 0 && originalCurrency && originalCurrency !== form.payment_currency"
-                                class="pt-4 border-t border-white/10 space-y-2"
-                            >
-                                <div class="flex items-center gap-2 text-[10px] font-bold text-indigo-100 uppercase tracking-wider">
-                                    <Repeat class="w-3.5 h-3.5" /> Conversión de Moneda
-                                </div>
-                                <div class="flex items-baseline justify-between">
-                                    <span class="text-indigo-200 text-sm">Total a pagar</span>
-                                    <span class="font-black text-white text-lg">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
-                                </div>
-                                <div class="text-xs text-indigo-300/70 text-right">
-                                    (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
-                                </div>
-                            </div>
-
-                            <!-- Diferencial Preview -->
-                            <div
-                                v-if="estimatedDiferencial !== 0 && form.payment_currency !== 'USD'"
-                                class="pt-4 border-t border-white/10 space-y-2"
-                            >
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Diferencial Cambiario</span>
-                                    <span class="text-sm font-black tabular-nums" :class="estimatedDiferencial > 0 ? 'text-green-300' : 'text-orange-300'">
-                                        {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
-                                    </span>
-                                </div>
-                                <div class="text-[10px] text-indigo-300/60 text-right">
-                                    {{ estimatedDiferencial > 0 ? 'Ganancia por diferencia de tasas' : 'Pérdida por diferencia de tasas' }}
-                                </div>
-                            </div>
+                        <div v-if="!form.customer_id" class="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-4">
+                            <Search class="size-12 opacity-20" />
+                            <p class="text-sm font-medium italic">Seleccione un cliente para ver sus facturas</p>
                         </div>
+
+                        <div v-else-if="pendingReceivables.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground gap-4">
+                            <CheckCircle2 class="size-12 text-green-500/20" />
+                            <p class="text-sm font-medium">El cliente no tiene deudas pendientes</p>
+                        </div>
+
+                        <table v-else class="w-full text-sm text-left">
+                            <thead class="border-b bg-muted/50 text-[10px] font-bold uppercase text-muted-foreground">
+                                <tr>
+                                    <th class="px-6 py-5">Factura</th>
+                                    <th class="px-6 py-5">Saldo Pendiente</th>
+                                    <th class="px-6 py-5 text-center w-48">Monto a Cobrar</th>
+                                    <th class="px-6 py-5 text-right w-12"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr v-for="invoice in form.payments" :key="invoice.acr_id" class="group hover:bg-muted/30 transition-colors">
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold">#{{ invoice.invoice_number }}</span>
+                                            <span class="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Factura de Venta</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col gap-1">
+                                            <div class="flex items-center gap-1 font-mono font-bold text-muted-foreground">
+                                                <span class="text-[10px] text-muted-foreground/60">{{ invoice.currency }}</span>
+                                                {{ Number(invoice.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                            </div>
+                                            <div
+                                                v-if="invoice.currency !== form.payment_currency"
+                                                class="flex items-center gap-1 font-mono text-[11px] text-primary font-bold"
+                                            >
+                                                <span class="text-[10px] text-primary/60">≈ {{ form.payment_currency }}</span>
+                                                {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="relative">
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                v-model="invoice.amount"
+                                                @input="invoice.amount = Math.min(Number(invoice.amount), calculateConvertedBalance(invoice))"
+                                                class="text-right font-bold tabular-nums transition-all group-hover:border-primary/50"
+                                            />
+                                            <button
+                                                @click="invoice.amount = calculateConvertedBalance(invoice)"
+                                                class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-primary hover:text-primary/80 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                MÁX
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div v-if="invoice.amount > 0" class="flex justify-center text-green-500">
+                                            <CheckCircle2 class="size-4" />
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Main Section: Invoices & Bank Info -->
-                <div class="lg:col-span-8 space-y-8">
-
-                    <!-- Pending Invoices Table -->
-                    <div class="bg-zinc-900 rounded-2xl border border-zinc-800 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-                        <div class="p-5 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
-                            <div class="flex items-center gap-3">
-                                <div class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
-                                    <CreditCard class="w-5 h-5" />
-                                </div>
-                                <h3 class="text-sm font-black uppercase tracking-widest text-zinc-400">Facturas Pendientes</h3>
-                            </div>
-                            <Badge v-if="pendingReceivables.length" variant="outline" class="bg-zinc-800 border-zinc-700 text-zinc-400 text-[10px]">
-                                {{ pendingReceivables.length }} facturas encontradas
-                            </Badge>
-                        </div>
-
-                        <div class="flex-1 overflow-x-auto relative">
-                            <div v-if="isLoadingInvoices" class="absolute inset-0 bg-zinc-950/20 backdrop-blur-sm flex items-center justify-center z-10">
-                                <Loader2 class="w-8 h-8 animate-spin text-indigo-500" />
-                            </div>
-
-                            <div v-if="!form.customer_id" class="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 gap-4">
-                                <Search class="w-12 h-12 opacity-20" />
-                                <p class="text-sm font-medium italic">Seleccione un cliente para ver sus facturas</p>
-                            </div>
-
-                            <div v-else-if="pendingReceivables.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 gap-4">
-                                <CheckCircle2 class="w-12 h-12 text-green-500/20" />
-                                <p class="text-sm font-medium">El cliente no tiene deudas pendientes</p>
-                            </div>
-
-                            <table v-else class="w-full text-sm text-left">
-                                <thead class="bg-zinc-950/50 text-zinc-500 text-[10px] uppercase font-black border-b border-zinc-800">
-                                    <tr>
-                                        <th class="px-6 py-5">Factura</th>
-                                        <th class="px-6 py-5">Saldo Pendiente</th>
-                                        <th class="px-6 py-5 text-center w-48">Monto a Cobrar</th>
-                                        <th class="px-6 py-5 text-right w-12 text-zinc-400"></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-zinc-800">
-                                    <tr v-for="invoice in form.payments" :key="invoice.acr_id" class="group hover:bg-zinc-800/30 transition-colors">
-                                        <td class="px-6 py-5">
-                                            <div class="flex flex-col">
-                                                <span class="font-black text-zinc-200">#{{ invoice.invoice_number }}</span>
-                                                <span class="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Factura de Venta</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-5">
-                                            <div class="flex flex-col gap-1">
-                                                <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
-                                                    <span class="text-[10px] text-zinc-600">{{ invoice.currency }}</span>
-                                                    {{ Number(invoice.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
-                                                </div>
-                                                <div
-                                                    v-if="invoice.currency !== form.payment_currency"
-                                                    class="flex items-center gap-1 font-mono text-[11px] text-indigo-400 font-bold"
-                                                >
-                                                    <span class="text-[10px] text-indigo-600">≈ {{ form.payment_currency }}</span>
-                                                    {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-5">
-                                            <div class="relative">
-                                                <Input
-                                                    type="number"
-                                                    step="0.01"
-                                                    v-model="invoice.amount"
-                                                    @input="invoice.amount = Math.min(Number(invoice.amount), calculateConvertedBalance(invoice))"
-                                                    class="text-right h-10 bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/50 rounded-lg text-sm font-black tabular-nums transition-all focus:ring-indigo-600"
-                                                />
-                                                <button
-                                                    @click="invoice.amount = calculateConvertedBalance(invoice)"
-                                                    class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-black text-indigo-500 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    MÁX
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-5">
-                                            <div v-if="invoice.amount > 0" class="flex justify-center text-green-500">
-                                                <CheckCircle2 class="w-4 h-4" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="rounded-xl border bg-card shadow-sm">
+                    <div class="flex items-center gap-2 border-b px-6 py-4">
+                        <Building2 class="size-4 text-primary" />
+                        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Origen de Fondos</span>
                     </div>
-
-                    <!-- Payment Sources -->
-                    <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 space-y-6 shadow-sm">
-                        <div class="flex items-center gap-2 text-indigo-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
-                            <Building2 class="w-4 h-4" /> Origen de Fondos
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <div class="space-y-2">
-                                    <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Banco y Cuenta</Label>
+                    <div class="flex flex-col gap-5 p-6">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div class="flex flex-col gap-5">
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Banco y Cuenta</label>
                                     <Select v-model="form.bank_account_id">
-                                        <SelectTrigger class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl focus:ring-indigo-600">
+                                        <SelectTrigger>
                                             <SelectValue placeholder="Seleccione cuenta bancaria" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem v-for="ba in filteredBankAccounts" :key="ba.id" :value="ba.id.toString()">
                                                 <div class="flex flex-col items-start py-0.5">
-                                                    <span class="font-bold text-zinc-200">{{ ba.bank_name }}</span>
-                                                    <span class="text-[10px] font-mono text-zinc-500">{{ ba.bank_account_number }} ({{ ba.bank_currency }})</span>
+                                                    <span class="font-bold">{{ ba.bank_name }}</span>
+                                                    <span class="text-[10px] font-mono text-muted-foreground">{{ ba.bank_account_number }} ({{ ba.bank_currency }})</span>
                                                 </div>
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <span v-if="form.errors.bank_account_id" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.bank_account_id }}</span>
+                                    <span v-if="form.errors.bank_account_id" class="mt-1 text-xs text-destructive">{{ form.errors.bank_account_id }}</span>
                                 </div>
 
-                                <div class="space-y-2">
-                                    <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Tipo de Transacción</Label>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Tipo de Transacción</label>
                                     <Select v-model="form.payment_method" :disabled="isEditMode">
-                                        <SelectTrigger class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl">
+                                        <SelectTrigger>
                                             <SelectValue placeholder="Método de cobro" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem v-for="m in methods" :key="m" :value="m">{{ m }}</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <span v-if="form.errors.payment_method" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_method }}</span>
+                                    <span v-if="form.errors.payment_method" class="mt-1 text-xs text-destructive">{{ form.errors.payment_method }}</span>
                                 </div>
                             </div>
 
-                            <div class="space-y-4">
-                                <div class="space-y-2">
-                                    <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Referencia / Voucher</Label>
-                                    <Input v-model="form.payment_reference" placeholder="N° de transacción o referencia" :class="{'border-red-500': form.errors.payment_reference}" class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl" />
-                                    <span v-if="form.errors.payment_reference" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_reference }}</span>
+                            <div class="flex flex-col gap-5">
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Referencia / Voucher</label>
+                                    <Input v-model="form.payment_reference" placeholder="N° de transacción o referencia" :class="{'border-destructive': form.errors.payment_reference}" />
+                                    <span v-if="form.errors.payment_reference" class="mt-1 text-xs text-destructive">{{ form.errors.payment_reference }}</span>
                                 </div>
-                                <div class="space-y-2">
-                                    <Label class="text-zinc-400 text-xs font-semibold tracking-wide">Observaciones</Label>
-                                    <Input v-model="form.payment_description" placeholder="Opcional" :class="{'border-red-500': form.errors.payment_description}" class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl" />
-                                    <span v-if="form.errors.payment_description" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.payment_description }}</span>
+                                <div>
+                                    <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Observaciones</label>
+                                    <Input v-model="form.payment_description" placeholder="Opcional" :class="{'border-destructive': form.errors.payment_description}" />
+                                    <span v-if="form.errors.payment_description" class="mt-1 text-xs text-destructive">{{ form.errors.payment_description }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Bank Account Balance Info -->
-                        <div v-if="selectedBankAccount" class="mt-4 p-4 rounded-xl flex items-center gap-4 border" :class="selectedBankAccount.bank_balance >= totalInPaymentCurrency ? 'bg-green-500/5 border-green-500/10' : 'bg-red-500/5 border-red-500/10'">
-                            <div :class="selectedBankAccount.bank_balance >= totalInPaymentCurrency ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'" class="p-2.5 rounded-lg">
-                                <Landmark class="w-5 h-5" />
+                        <div
+                            v-if="selectedBankAccount"
+                            class="flex items-center gap-4 rounded-xl border p-4"
+                            :class="selectedBankAccount.bank_balance >= totalInPaymentCurrency ? 'border-green-500/10 bg-green-500/5' : 'border-red-500/10 bg-red-500/5'"
+                        >
+                            <div
+                                :class="selectedBankAccount.bank_balance >= totalInPaymentCurrency ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'"
+                                class="rounded-lg p-2.5"
+                            >
+                                <Landmark class="size-5" />
                             </div>
                             <div class="flex-1">
-                                <p class="text-[10px] font-black uppercase text-zinc-500">Saldo Disponible en Banco</p>
-                                <p class="text-sm font-bold antialiased">{{ selectedBankAccount.formatted_balance }}</p>
+                                <p class="text-[10px] font-bold uppercase text-muted-foreground">Saldo Disponible en Banco</p>
+                                <p class="text-sm font-bold">{{ selectedBankAccount.formatted_balance }}</p>
                             </div>
-                            <div v-if="selectedBankAccount.bank_balance < totalInPaymentCurrency" class="flex items-center gap-1.5 text-red-500 text-[10px] font-black bg-red-500/10 px-3 py-1 rounded-full uppercase">
-                                <AlertCircle class="w-3 h-3" /> Fondos Insuficientes
+                            <div v-if="selectedBankAccount.bank_balance < totalInPaymentCurrency" class="flex items-center gap-1.5 rounded-full bg-red-500/10 px-3 py-1 text-[10px] font-bold uppercase text-red-500">
+                                <AlertCircle class="size-3" /> Fondos Insuficientes
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -712,7 +691,6 @@ const calculateConvertedBalance = (invoicePayment: any) => {
 </template>
 
 <style scoped>
-/* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   appearance: none;
@@ -724,18 +702,14 @@ input[type=number] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
-
-/* Custom transitions */
 .v-enter-active,
 .v-leave-active {
   transition: opacity 0.5s ease;
 }
-
 .v-enter-from,
 .v-leave-to {
   opacity: 0;
 }
-
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
     opacity: 0.5;

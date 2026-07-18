@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import {
     Loader2,
     Search,
@@ -10,7 +10,6 @@ import { ref, watch, computed, onMounted } from 'vue';
 import BasePaymentPage from '@/components/payments/BasePaymentPage.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import { Badge as UIBadge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input/Input.vue';
 import { Label } from '@/components/ui/label';
 
@@ -224,10 +223,6 @@ onMounted(() => {
     }
 });
 
-const selectedBankAccount = computed(() => {
-    return props.bankAccounts.find(ba => ba.id == form.bank_account_id);
-});
-
 const estimatedDiferencial = computed(() => {
     if (form.payments.length === 0 || totalToPay.value <= 0) {
 return 0;
@@ -364,7 +359,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-800">
-                            <tr v-for="(invoice, index) in form.payments" :key="invoice.acp_id" class="group hover:bg-zinc-800/30 transition-colors">
+                            <tr v-for="invoice in form.payments" :key="invoice.acp_id" class="group hover:bg-zinc-800/30 transition-colors">
                                 <td class="px-6 py-5">
                                     <div class="flex flex-col">
                                         <span class="font-black text-zinc-200">#{{ invoice.invoice_number }}</span>

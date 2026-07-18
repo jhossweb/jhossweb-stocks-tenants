@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { PlusCircle, Trash2, ArrowLeft, Save, Landmark, Calculator, Loader2, Search } from 'lucide-vue-next';
-import { ref, watch, onMounted } from 'vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import { Landmark, Calculator, Loader2 } from 'lucide-vue-next';
+import { ref, computed, watch, onMounted } from 'vue';
+import FormActions from '@/components/Form/FormActions.vue';
+import FormSection from '@/components/Form/FormSection.vue';
+import ItemsTable from '@/components/Form/ItemsTable.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
 import { formatDate, today } from '@/composables/useDate';
-
+import type { ColumnConfig } from '@/types/Transaction';
 
 const props = defineProps<{
     customers: any[];
@@ -19,27 +23,36 @@ const props = defineProps<{
     saleReturn: any;
 }>();
 
+const prodRef = computed(() => props.products);
+const wareRef = computed(() => props.warehouses);
+const ratesRef = computed(() => props.rates);
+const latestRef = computed(() => props.latest_rate);
+
+const tx = useTransactionForm(prodRef, wareRef, ratesRef, latestRef);
+
 const form = useForm({
     sls_number: props.saleReturn.sls_number || '',
     sls_date: props.saleReturn.sls_date || today(),
     sls_customer_id: props.saleReturn.sls_customer_id || '',
-    sls_valorcam: props.saleReturn.sls_valorcam || (props.latest_rate ? Number(props.latest_rate.rate_usd) : 1),
+    sls_valorcam: props.saleReturn.sls_valorcam
+        || (props.latest_rate ? Number(props.latest_rate.rate_usd) : 1),
     sls_coin: props.saleReturn.sls_coin || 'USD',
     sls_reference: props.saleReturn.sls_reference || '',
-    items: props.saleReturn.movements && props.saleReturn.movements.length > 0
-        ? props.saleReturn.movements.map((m: any) => ({
-            id: m.id,
-            mvs_pro_code: m.mvs_pro_code,
-            mvs_war_id: m.mvs_war_id,
-            mvs_quantity: m.mvs_quantity,
-            mvs_unit_price: m.mvs_unit_price,
-            mvs_unit_price_ref: m.mvs_unit_price_ref,
-            mvs_pro_iva: m.mvs_pro_iva,
-            _available_qty: m.mvs_quantity,
-            _pro_name: m.product?.pro_name || m.mvs_pro_code,
-            _war_name: m.warehouse?.war_name || m.warehouse?.id || m.mvs_war_id,
-        }))
-        : [],
+    items: (props.saleReturn.movements && props.saleReturn.movements.length > 0
+        ? props.saleReturn.movements
+        : []
+    ).map((m: any) => ({
+        id: m.id,
+        mvs_pro_code: m.mvs_pro_code,
+        mvs_war_id: m.mvs_war_id,
+        mvs_quantity: m.mvs_quantity,
+        mvs_unit_price: m.mvs_unit_price,
+        mvs_unit_price_ref: m.mvs_unit_price_ref,
+        mvs_pro_iva: m.mvs_pro_iva,
+        _available_qty: m.mvs_quantity,
+        _pro_name: m.product?.pro_name || m.mvs_pro_code,
+        _war_name: m.warehouse?.war_name || m.warehouse?.id || m.mvs_war_id,
+    })),
     sls_subtotal: props.saleReturn.sls_subtotal || 0,
     sls_iva: props.saleReturn.sls_iva || 0,
     sls_exento: props.saleReturn.sls_exento || 0,
@@ -47,29 +60,16 @@ const form = useForm({
 });
 
 const unpaidSales = ref<any[]>([]);
-const originalItems = ref<any[]>([]);
 const loadingSales = ref(false);
 const loadingItems = ref(false);
 const selectedInvoiceNumber = ref(props.saleReturn.sls_reference || '');
 const isInitializing = ref(true);
 const salesError = ref('');
 
-const getCustomerName = (id: string | number) => {
-    const c = props.customers.find(c => c.id == id);
-
-    return c ? c.clt_name : 'Seleccione cliente';
-};
-
-const getProductName = (code: string) => {
-    const p = props.products.find(p => p.pro_code === code);
-
-    return p ? `${p.pro_name}` : 'Seleccione producto';
-};
-
 const getWarehouseName = (id: number) => {
     const w = props.warehouses.find(wh => wh.id == id);
 
-    return w ? w.war_name || w.id : id;
+    return w ? w.war_name || String(w.id) : String(id);
 };
 
 const selectCustomer = (customer: any) => {
@@ -79,8 +79,8 @@ const selectCustomer = (customer: any) => {
 
 const fetchUnpaidSales = async (customerId: number) => {
     if (!customerId) {
-return;
-}
+        return;
+    }
 
     loadingSales.value = true;
     salesError.value = '';
@@ -88,7 +88,7 @@ return;
     try {
         const res = await fetch(`/api/customers/${customerId}/unpaid-sales`);
 
-        if (! res.ok) {
+        if (!res.ok) {
             const err = await res.json().catch(() => ({ error: 'Error del servidor' }));
 
             throw new Error(err.error || `HTTP ${res.status}`);
@@ -105,24 +105,28 @@ return;
 
 const fetchSaleItems = async (saleNumber: string) => {
     if (!saleNumber) {
-return;
-}
+        return;
+    }
 
     loadingItems.value = true;
 
     try {
         const res = await fetch(`/api/sale-orders/by-number/${saleNumber}`);
         const sale = await res.json();
-        const itemsRes = await fetch(`/api/sale-orders/${sale.id}/items?exclude_return_id=${props.saleReturn.id}`);
-        originalItems.value = await itemsRes.json();
+        const itemsRes = await fetch(
+            `/api/sale-orders/${sale.id}/items?exclude_return_id=${props.saleReturn.id}`,
+        );
+        const originalItems = await itemsRes.json();
 
         if (!isInitializing.value) {
             form.sls_coin = sale.sls_coin || 'USD';
-            form.sls_valorcam = Number(sale.sls_valorcam) || Number(props.latest_rate?.rate_usd) || 1;
+            form.sls_valorcam = Number(sale.sls_valorcam)
+                || Number(props.latest_rate?.rate_usd)
+                || 1;
         }
 
         if (!isInitializing.value) {
-            form.items = originalItems.value.map((item: any) => ({
+            form.items = originalItems.map((item: any) => ({
                 mvs_pro_code: item.mvs_pro_code,
                 mvs_war_id: item.mvs_war_id,
                 mvs_quantity: item.available_qty,
@@ -137,7 +141,7 @@ return;
 
         calculateTotals();
     } catch {
-        originalItems.value = [];
+        // ignore
     } finally {
         loadingItems.value = false;
     }
@@ -163,50 +167,21 @@ onMounted(async () => {
     isInitializing.value = false;
 });
 
-const getProductUnd = (code: string) => {
-    const p = props.products.find(p => p.pro_code === code);
-
-    return p ? p.pro_und : '';
-};
-
-const getUndLabel = (und: string) => ({
-    'und': 'Und',
-    'mts': 'Mts',
-    'kg': 'Kg',
-    'm2': 'm²'
-}[und] || und);
-
-const getProductIvaRate = (proCode: string) => {
-    const product = props.products.find(p => p.pro_code === proCode);
-
-    return product && product.pro_iva ? Number(product.pro_iva) / 100 : 0;
-};
-
-const getProductIvaLabel = (proCode: string) => {
-    const product = props.products.find(p => p.pro_code === proCode);
-
-    if (!product || !product.pro_iva) {
-return '-';
-}
-
-    return product.pro_iva === '0' ? 'EX' : `${product.pro_iva}%`;
-};
-
 const calculateTotals = () => {
     let subtotal = 0;
     let sumIva = 0;
     let exento = 0;
 
-    form.items.forEach((item: any) => {
+    for (const item of form.items) {
         const lineTotal = Number(item.mvs_quantity) * Number(item.mvs_unit_price);
         subtotal += lineTotal;
-        const ivaRate = getProductIvaRate(item.mvs_pro_code);
+        const ivaRate = tx.getProductIvaRate(item.mvs_pro_code);
         sumIva += lineTotal * ivaRate;
 
         if (ivaRate === 0) {
             exento += lineTotal;
         }
-    });
+    }
 
     form.sls_subtotal = Number(subtotal.toFixed(4));
     form.sls_iva = Number(sumIva.toFixed(4));
@@ -216,7 +191,7 @@ const calculateTotals = () => {
 
 const getItemTotal = (item: any) => {
     const baseTotal = Number(item.mvs_quantity) * Number(item.mvs_unit_price);
-    const ivaRate = getProductIvaRate(item.mvs_pro_code);
+    const ivaRate = tx.getProductIvaRate(item.mvs_pro_code);
 
     return (baseTotal + (baseTotal * ivaRate)).toFixed(2);
 };
@@ -224,231 +199,259 @@ const getItemTotal = (item: any) => {
 const submit = () => {
     form.put(`/sale-returns/${props.saleReturn.id}`, {
         preserveScroll: true,
-        onSuccess: () => console.log('Éxito!'),
-        onError: (errors) => console.log('Errores:', errors),
     });
 };
 
-const normalizeDate = (d: string) => d.substring(0, 10);
-
-const getBestRateForDate = (date: string) => {
-    if (!props.rates || props.rates.length === 0) {
-        return null;
-    }
-
-    const normalized = normalizeDate(date);
-    const exactRate = props.rates.find((r: any) => normalizeDate(r.rate_date) === normalized);
-
-    if (exactRate) {
-        return exactRate;
-    }
-
-    const pastRates = props.rates
-        .filter((r: any) => normalizeDate(r.rate_date) < normalized)
-        .sort((a: any, b: any) => normalizeDate(b.rate_date).localeCompare(normalizeDate(a.rate_date)));
-
-    return pastRates.length > 0 ? pastRates[0] : props.rates[0];
-};
-
-const updateExchangeRate = () => {
-    const selectedRate = getBestRateForDate(form.sls_date);
-
-    if (!selectedRate) {
-        return;
-    }
-
-    if (form.sls_coin === 'USD' || form.sls_coin === 'BS' || form.sls_coin === 'VES') {
-        form.sls_valorcam = Number(selectedRate.rate_usd);
-    } else if (form.sls_coin === 'COP') {
-        form.sls_valorcam = Number(selectedRate.rate_cop);
-    } else if (form.sls_coin === 'EUR') {
-        form.sls_valorcam = Number(selectedRate.rate_eur);
-    }
-};
+const columns: ColumnConfig[] = [
+    { key: 'product', label: 'Producto' },
+    { key: 'warehouse', label: 'Almacén' },
+    { key: 'iva', label: 'IVA', align: 'center', class: 'text-primary' },
+    { key: 'qty', label: 'Cant.', align: 'center', width: '6rem' },
+    { key: 'price', label: 'Precio Unit.', align: 'right' },
+    { key: 'ref', label: 'Ref ($)', align: 'right', class: 'text-primary' },
+    { key: 'total', label: 'Total', align: 'right' },
+];
 </script>
 
 <template>
     <Head title="Editar Devolución" />
 
-    <div class="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans">
-        <div class="max-w-7xl mx-auto space-y-6">
-            <div class="flex items-center justify-between bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl">
-                <div class="flex items-center gap-4">
-                    <Link href="/sale-returns" class="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white">
-                        <ArrowLeft class="w-6 h-6" />
-                    </Link>
-                    <div>
-                        <h1 class="text-xl font-bold">Editar Devolución</h1>
-                        <p class="text-xs text-zinc-500">Registro de notas de crédito y devoluciones</p>
-                    </div>
-                </div>
-                <button
-                    @click="submit"
-                    :disabled="form.processing"
-                    class="inline-flex items-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-lg shadow-indigo-900/20"
+    <div class="mx-auto flex max-w-7xl flex-col gap-6 p-4 md:p-8">
+        <FormActions
+            title="Editar Devolución"
+            subtitle="Registro de notas de crédito y devoluciones"
+            back-url="/sale-returns"
+            :processing="form.processing"
+            @save="submit"
+        />
+
+        <div
+            v-if="Object.keys(form.errors).length > 0"
+            class="rounded-xl border border-destructive/50 bg-destructive/10 p-4"
+        >
+            <p class="mb-1 text-sm font-bold text-destructive">
+                Hay problemas con el envío:
+            </p>
+            <ul class="list-inside list-disc text-xs text-destructive/80">
+                <li
+                    v-for="(error, key) in form.errors"
+                    :key="key"
                 >
-                    <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-                    <Save v-else class="w-4 h-4 mr-2" />
-                    {{ form.processing ? 'Guardando...' : 'Guardar' }}
-                </button>
-            </div>
+                    {{ error }}
+                </li>
+            </ul>
+        </div>
 
-            <div v-if="Object.keys(form.errors).length > 0" class="bg-red-900/20 border border-red-500/50 p-4 rounded-xl">
-                <p class="text-sm text-red-400 font-bold mb-1">Hay problemas con el envío:</p>
-                <ul class="list-disc list-inside text-xs text-red-300">
-                    <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
-                </ul>
-            </div>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div class="flex flex-col gap-6 lg:col-span-4">
+                <FormSection>
+                    <template #header>
+                        <Landmark class="size-4 text-primary" />
+                        <span>Configuración General</span>
+                    </template>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-zinc-900 rounded-xl border border-zinc-800 p-6 shadow-sm space-y-5">
-                        <div class="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-widest">
-                            <Landmark class="w-4 h-4" /> Configuración General
+                    <div class="flex flex-col gap-5">
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">N° Devolución</label>
+                            <Input
+                                v-model="form.sls_number"
+                                type="text"
+                            />
+                            <p
+                                v-if="form.errors.sls_number"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.sls_number }}
+                            </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-zinc-400 mb-1.5">N° Devolución</label>
-                            <Input type="text" v-model="form.sls_number" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg" />
-                            <p v-if="form.errors.sls_number" class="text-xs text-red-500 mt-1">{{ form.errors.sls_number }}</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-zinc-400 mb-1.5">Cliente</label>
+                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Cliente</label>
                             <SelectorModal
                                 title="Seleccionar Cliente"
                                 description="Busque y seleccione un cliente de la lista"
                                 :items="customers"
-                                :searchFields="['clt_name', 'clt_email', 'clt_phone']"
-                                :displayFields="[
+                                :search-fields="['clt_name', 'clt_email', 'clt_phone']"
+                                :display-fields="[
                                     { label: 'Nombre', key: 'clt_name' },
-                                    { label: 'Email', key: 'clt_email' }
+                                    { label: 'Email', key: 'clt_email' },
                                 ]"
-                                :triggerLabel="getCustomerName(form.sls_customer_id)"
-                                :selectedValue="form.sls_customer_id"
+                                :trigger-label="tx.getCustomerName(customers, form.sls_customer_id)"
+                                :selected-value="form.sls_customer_id"
                                 @select="selectCustomer"
                             />
-                            <p v-if="form.errors.sls_customer_id" class="text-xs text-red-500 mt-1">{{ form.errors.sls_customer_id }}</p>
+                            <p
+                                v-if="form.errors.sls_customer_id"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.sls_customer_id }}
+                            </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-zinc-400 mb-1.5">Factura Original</label>
-                            <div v-if="loadingSales" class="text-zinc-500 text-sm flex items-center gap-2">
-                                <Loader2 class="w-4 h-4 animate-spin" /> Cargando...
+                            <label class="mb-1.5 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                                Factura Original
+                                <Loader2
+                                    v-if="loadingSales"
+                                    class="size-3 animate-spin text-primary"
+                                />
+                            </label>
+                            <div v-if="loadingSales">
+                                <span class="text-sm text-muted-foreground">Cargando...</span>
                             </div>
-                            <p v-else-if="salesError" class="text-xs text-red-500">{{ salesError }}</p>
-                            <select v-else v-model="selectedInvoiceNumber" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm">
-                                <option value="">Seleccione factura</option>
-                                <option v-for="s in unpaidSales" :key="s.id" :value="s.sls_number">
+                            <p
+                                v-else-if="salesError"
+                                class="text-xs text-destructive"
+                            >
+                                {{ salesError }}
+                            </p>
+                            <select
+                                v-else
+                                v-model="selectedInvoiceNumber"
+                                class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                            >
+                                <option value="">
+                                    Seleccione factura
+                                </option>
+                                <option
+                                    v-for="s in unpaidSales"
+                                    :key="s.id"
+                                    :value="s.sls_number"
+                                >
                                     {{ s.sls_number }} - {{ formatDate(s.sls_date) }} ({{ s.sls_total }} {{ s.sls_coin }})
                                 </option>
                             </select>
-                            <p v-if="form.errors.sls_reference" class="text-xs text-red-500 mt-1">{{ form.errors.sls_reference }}</p>
+                            <p
+                                v-if="form.errors.sls_reference"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.sls_reference }}
+                            </p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-zinc-400 mb-1.5">Fecha</label>
-                                <Input type="date" v-model="form.sls_date" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm" />
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha</label>
+                                <Input
+                                    v-model="form.sls_date"
+                                    type="date"
+                                />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-zinc-400 mb-1.5">Moneda</label>
-                                <select v-model="form.sls_coin" @change="updateExchangeRate" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg text-sm">
-                                    <option v-for="c in coins" :key="c" :value="c">{{ c }}</option>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Moneda</label>
+                                <select
+                                    v-model="form.sls_coin"
+                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                >
+                                    <option
+                                        v-for="c in coins"
+                                        :key="c"
+                                        :value="c"
+                                    >
+                                        {{ c }}
+                                    </option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="p-4 bg-indigo-900/10 rounded-lg border border-indigo-500/20">
-                            <label class="block text-xs font-bold text-indigo-400 uppercase mb-1.5">Tasa de Cambio</label>
-                            <Input type="number" step="0.0001" v-model="form.sls_valorcam" class="w-full bg-zinc-950 border-zinc-700 rounded-md text-sm font-mono font-bold text-indigo-300" />
+                        <div class="rounded-lg border bg-muted/30 p-4">
+                            <label class="mb-1.5 block text-xs font-bold uppercase text-muted-foreground">Tasa de Cambio</label>
+                            <Input
+                                v-model="form.sls_valorcam"
+                                type="number"
+                                step="0.0001"
+                                class="font-mono text-sm font-bold"
+                            />
                         </div>
                     </div>
+                </FormSection>
 
-                    <div class="bg-indigo-600 text-white rounded-xl p-6 shadow-xl relative overflow-hidden">
-                        <Calculator class="absolute -right-4 -bottom-4 w-24 h-24 text-white/10" />
-                        <div class="relative z-10 space-y-3">
-                            <div class="flex justify-between text-xs text-indigo-100 font-medium"><span>SUBTOTAL</span> <span>{{ form.sls_subtotal }}</span></div>
-                            <div class="flex justify-between text-xs text-indigo-100 font-medium"><span>EXENTO</span> <span>{{ form.sls_exento }}</span></div>
-                            <div class="flex justify-between text-xs text-indigo-100 font-medium"><span>IVA</span> <span>{{ form.sls_iva }}</span></div>
-                            <div class="pt-3 border-t border-white/10 flex justify-between items-end">
-                                <span class="text-white font-bold text-sm uppercase">Total {{ form.sls_coin }}</span>
-                                <span class="text-3xl font-black tabular-nums">{{ form.sls_total }}</span>
-                            </div>
+                <div class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg">
+                    <Calculator class="text-primary-foreground/10 absolute -bottom-4 -right-4 size-24" />
+                    <div class="relative z-10 flex flex-col gap-3">
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>SUBTOTAL</span>
+                            <span>{{ form.sls_subtotal }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>EXENTO</span>
+                            <span>{{ form.sls_exento }}</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                            <span>IVA</span>
+                            <span>{{ form.sls_iva }}</span>
+                        </div>
+                        <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
+                            <span class="text-sm font-bold uppercase">Total {{ form.sls_coin }}</span>
+                            <span class="text-3xl font-black tabular-nums">{{ form.sls_total }}</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="lg:col-span-8 bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
-                    <div class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
-                        <span class="text-xs font-bold uppercase text-zinc-500 tracking-wider">
-                            Detalle de Productos
-                            <span v-if="loadingItems" class="ml-2 text-indigo-400">
-                                <Loader2 class="w-3 h-3 inline animate-spin" />
+            <div class="lg:col-span-8">
+                <ItemsTable
+                    :columns="columns"
+                    :loading="loadingItems"
+                    loading-text="Cargando productos..."
+                    :empty="form.items.length === 0 && !loadingItems"
+                    @add="() => {}"
+                >
+                    <tr
+                        v-for="(item, index) in form.items"
+                        :key="index"
+                        class="hover:bg-muted/30 transition-colors"
+                    >
+                        <td class="p-3">
+                            <span class="text-sm">{{ item._pro_name || item.mvs_pro_code }}</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="text-sm text-muted-foreground">
+                                {{ item._war_name || getWarehouseName(item.mvs_war_id) }}
                             </span>
-                        </span>
-                    </div>
-
-                    <div v-if="form.items.length === 0 && !loadingItems" class="p-12 text-center">
-                        <Search class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
-                        <p class="text-zinc-500">No hay productos en esta devolución</p>
-                    </div>
-
-                    <div v-else class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
-                                <tr>
-                                    <th class="px-4 py-4 text-left">Producto</th>
-                                    <th class="px-4 py-4 text-left">Almacén</th>
-                                    <th class="px-4 py-4 text-center text-indigo-400">IVA</th>
-                                    <th class="px-4 py-4 text-center w-24">Cant.</th>
-                                    <th class="px-4 py-4 text-right">Precio Unit.</th>
-                                    <th class="px-4 py-4 text-right text-indigo-400">Ref ($)</th>
-                                    <th class="px-4 py-4 text-right">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-800">
-                                <tr v-for="(item, index) in form.items" :key="index" class="hover:bg-zinc-800/30 transition-colors">
-                                    <td class="p-3">
-                                        <span class="text-sm text-zinc-200">{{ item._pro_name || item.mvs_pro_code }}</span>
-                                    </td>
-                                    <td class="p-3">
-                                        <span class="text-sm text-zinc-400">{{ item._war_name || getWarehouseName(item.mvs_war_id) }}</span>
-                                    </td>
-                                    <td class="p-3 text-center text-xs font-bold text-indigo-400 bg-indigo-500/10 rounded-md">
-                                        {{ getProductIvaLabel(item.mvs_pro_code) }}
-                                    </td>
-                                    <td class="p-3">
-                                        <div class="flex items-center gap-1">
-                                            <input type="number" v-model="item.mvs_quantity" @input="calculateTotals"
-                                                :max="item._available_qty"
-                                                :step="getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
-                                                :min="getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
-                                                class="w-20 text-center border-none bg-zinc-950/50 rounded-md py-1.5 focus:ring-1 focus:ring-indigo-600 text-zinc-300" />
-                                            <span v-if="item.mvs_pro_code" class="text-[10px] font-bold uppercase text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
-                                                {{ getUndLabel(getProductUnd(item.mvs_pro_code)) }}
-                                            </span>
-                                        </div>
-                                        <div class="text-[9px] text-zinc-500 text-center mt-0.5">Máx: {{ item._available_qty }}</div>
-                                    </td>
-                                    <td class="p-3">
-                                        <span class="block w-full text-right font-bold text-zinc-200 py-1.5">
-                                            {{ Number(item.mvs_unit_price).toFixed(4) }}
-                                        </span>
-                                    </td>
-                                    <td class="p-3">
-                                        <div class="text-right font-mono text-indigo-400 font-medium text-xs py-1">
-                                            {{ item.mvs_unit_price_ref }}
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-right font-bold text-zinc-400">
-                                        {{ getItemTotal(item) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                        </td>
+                        <td class="p-3 text-center">
+                            <span class="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                                {{ tx.getProductIvaLabel(item.mvs_pro_code) }}
+                            </span>
+                        </td>
+                        <td class="p-3">
+                            <div class="flex items-center justify-center gap-1">
+                                <input
+                                    v-model="item.mvs_quantity"
+                                    type="number"
+                                    :max="item._available_qty"
+                                    :step="tx.getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
+                                    :min="tx.getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
+                                    class="border-input bg-background w-20 rounded-md border py-1.5 text-center text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    @input="calculateTotals"
+                                >
+                                <span
+                                    v-if="item.mvs_pro_code"
+                                    class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary"
+                                >
+                                    {{ tx.getUndLabel(tx.getProductUnd(item.mvs_pro_code)) }}
+                                </span>
+                            </div>
+                            <div class="mt-0.5 text-center text-[10px] text-muted-foreground">
+                                Máx: {{ item._available_qty }}
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <span class="block w-full py-1.5 text-right font-bold">
+                                {{ Number(item.mvs_unit_price).toFixed(4) }}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right">
+                            <span class="font-mono text-xs font-medium text-primary">
+                                {{ item.mvs_unit_price_ref }}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right font-bold text-muted-foreground">
+                            {{ getItemTotal(item) }}
+                        </td>
+                    </tr>
+                </ItemsTable>
             </div>
         </div>
     </div>
@@ -457,13 +460,13 @@ const updateExchangeRate = () => {
 <style scoped>
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
-input[type=number] {
-  -moz-appearance: textfield;
+input[type='number'] {
+    -moz-appearance: textfield;
 }
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }
 </style>

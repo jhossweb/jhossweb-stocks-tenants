@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { BarChart3, Search, X, Calendar, Hash, ArrowUpFromLine, ArrowDownFromLine, Landmark, Tag } from 'lucide-vue-next';
+import { ArrowLeft, BarChart3, X, Calendar, ArrowUpFromLine, ArrowDownFromLine, Landmark } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -13,16 +12,6 @@ import {
 } from '@/components/ui/select';
 import { formatDate } from '@/composables/useDate';
 import bankTransactionAnalysisRoutes from '@/routes/bank-transaction-analysis';
-
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Finanzas', href: '#' },
-            { title: 'Análisis de Movimientos', href: '/bank-transaction-analysis' },
-        ],
-    },
-});
 
 interface BankAccount {
     id: number;
@@ -104,147 +93,133 @@ const clearFilters = () => {
 <template>
     <Head title="Análisis de Movimientos Bancarios" />
 
-    <div class="flex h-full flex-1 flex-col gap-6 p-4 md:p-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
-                    <BarChart3 class="h-8 w-8 text-primary" />
-                    Análisis de Movimientos Bancarios
-                </h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Visualiza y analiza todos los movimientos de ingresos y egresos bancarios.
-                </p>
+    <div class="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <div class="flex items-center justify-between bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl">
+                <div class="flex items-center gap-4">
+                    <Link href="/finance" class="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white">
+                        <ArrowLeft class="w-6 h-6" />
+                    </Link>
+                    <div>
+                        <h1 class="text-xl font-bold">Análisis de Movimientos Bancarios</h1>
+                        <p class="text-xs text-zinc-500">Visualiza y analiza todos los movimientos de ingresos y egresos bancarios.</p>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white dark:bg-gray-900 border border-sidebar-border p-4 rounded-xl shadow-sm">
-            <div class="flex flex-wrap items-center gap-3">
-                <Select v-model="bankAccountId">
-                    <SelectTrigger class="w-[220px]">
-                        <Landmark class="h-4 w-4 mr-2 text-gray-400" />
-                        <SelectValue placeholder="Todos los bancos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Todos los bancos</SelectItem>
-                        <SelectItem v-for="bank in bankAccounts" :key="bank.id" :value="String(bank.id)">
-                            {{ bank.bank_name }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl shadow-sm">
+                <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <Select v-model="bankAccountId">
+                            <SelectTrigger class="w-[220px] bg-zinc-800 border-zinc-700 text-zinc-100">
+                                <Landmark class="h-4 w-4 mr-2 text-zinc-400" />
+                                <SelectValue placeholder="Todos los bancos" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todos los bancos</SelectItem>
+                                <SelectItem v-for="bank in bankAccounts" :key="bank.id" :value="String(bank.id)">
+                                    {{ bank.bank_name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
 
-                <div class="flex items-center gap-2">
-                    <Calendar class="h-4 w-4 text-gray-400 shrink-0" />
-                    <Input
-                        v-model="dateFrom"
-                        type="date"
-                        class="w-[160px]"
-                        placeholder="Desde"
-                    />
-                    <span class="text-gray-400">—</span>
-                    <Input
-                        v-model="dateTo"
-                        type="date"
-                        class="w-[160px]"
-                        placeholder="Hasta"
-                    />
+                        <div class="flex items-center gap-2">
+                            <Calendar class="h-4 w-4 text-zinc-400 shrink-0" />
+                            <Input
+                                v-model="dateFrom"
+                                type="date"
+                                class="w-[160px] bg-zinc-800 border-zinc-700 text-zinc-100"
+                                placeholder="Desde"
+                            />
+                            <span class="text-zinc-500">—</span>
+                            <Input
+                                v-model="dateTo"
+                                type="date"
+                                class="w-[160px] bg-zinc-800 border-zinc-700 text-zinc-100"
+                                placeholder="Hasta"
+                            />
+                        </div>
+
+                        <button v-if="bankAccountId !== 'all' || dateFrom || dateTo" @click="clearFilters" class="inline-flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-red-400 transition-colors rounded-lg hover:bg-zinc-800">
+                            <X class="h-4 w-4" />
+                            Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
+                            <tr>
+                                <th class="px-4 py-4 text-left">Fecha</th>
+                                <th class="px-4 py-4 text-left">Banco</th>
+                                <th class="px-4 py-4 text-center">Tipo</th>
+                                <th class="px-4 py-4 text-right">Monto</th>
+                                <th class="px-4 py-4 text-right">Saldo</th>
+                                <th class="px-4 py-4 text-left">Referencia</th>
+                                <th class="px-4 py-4 text-left">Descripción</th>
+                                <th class="px-4 py-4 text-center">Moneda</th>
+                                <th class="px-4 py-4 text-left">Origen</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-800">
+                            <tr v-if="transactions.data.length === 0">
+                                <td colspan="9" class="px-4 py-12 text-center text-zinc-500">
+                                    <BarChart3 class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
+                                    <p>No hay movimientos registrados</p>
+                                </td>
+                            </tr>
+                            <tr v-for="txn in transactions.data" :key="txn.id" class="hover:bg-zinc-800/30 transition-colors">
+                                <td class="px-4 py-4 whitespace-nowrap font-mono text-xs text-zinc-300">
+                                    {{ formatDate(txn.created_at) }}
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap font-medium text-zinc-200">
+                                    {{ txn.bank_account?.bank_name ?? '—' }}
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    <span class="text-xs px-2 py-1 rounded-full inline-flex items-center gap-1"
+                                        :class="txn.btr_type === 'inflow'
+                                            ? 'bg-green-900/30 text-green-400'
+                                            : 'bg-red-900/30 text-red-400'">
+                                        <ArrowUpFromLine v-if="txn.btr_type === 'inflow'" class="h-3 w-3" />
+                                        <ArrowDownFromLine v-else class="h-3 w-3" />
+                                        {{ txn.btr_type === 'inflow' ? 'Ingreso' : 'Egreso' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 text-right font-mono tabular-nums text-zinc-200">
+                                    ${{ parseFloat(txn.btr_amount).toFixed(2) }}
+                                </td>
+                                <td class="px-4 py-4 text-right font-mono tabular-nums text-zinc-400">
+                                    ${{ parseFloat(txn.btr_balance).toFixed(2) }}
+                                </td>
+                                <td class="px-4 py-4 font-mono text-xs text-zinc-300">
+                                    {{ txn.btr_reference }}
+                                </td>
+                                <td class="px-4 py-4 max-w-[200px] truncate text-zinc-400" :title="txn.btr_description ?? ''">
+                                    {{ txn.btr_description ?? '—' }}
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                                        {{ txn.btr_coin ?? '—' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 text-xs text-zinc-500">
+                                    {{ friendlySourceName(txn.btr_transactionable_type) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <Button v-if="bankAccountId !== 'all' || dateFrom || dateTo" variant="ghost" @click="clearFilters" class="text-gray-500 hover:text-red-600 transition-colors">
-                    <X class="h-4 w-4 mr-2" />
-                    Limpiar Filtros
-                </Button>
-            </div>
-        </div>
-
-        <div class="rounded-xl border border-sidebar-border bg-white shadow-sm dark:bg-gray-900 overflow-hidden flex-1 flex flex-col">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-300">
-                        <tr>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Fecha</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Banco</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Tipo</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700 text-right">Monto</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700 text-right">Saldo</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Referencia</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Descripción</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Moneda</th>
-                            <th scope="col" class="px-6 py-4 border-b dark:border-gray-700">Origen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-if="transactions.data.length === 0">
-                            <td colspan="9" class="px-6 py-12 text-center text-gray-500">
-                                <div class="flex flex-col items-center gap-3">
-                                    <BarChart3 class="w-12 h-12 text-gray-300 dark:text-gray-600" />
-                                    <span class="text-base font-medium">No hay movimientos registrados</span>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-for="txn in transactions.data" :key="txn.id" class="bg-white border-b dark:bg-gray-900 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <Calendar class="h-4 w-4 text-gray-400 shrink-0" />
-                                    <span class="text-gray-900 dark:text-white">{{ formatDate(txn.created_at) }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                                <div class="flex items-center gap-2">
-                                    <Landmark class="h-4 w-4 text-gray-400 shrink-0" />
-                                    {{ txn.bank_account?.bank_name ?? '—' }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                    :class="txn.btr_type === 'inflow'
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'"
-                                >
-                                    <ArrowUpFromLine v-if="txn.btr_type === 'inflow'" class="h-3 w-3" />
-                                    <ArrowDownFromLine v-else class="h-3 w-3" />
-                                    {{ txn.btr_type === 'inflow' ? 'Ingreso' : 'Egreso' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right font-semibold tabular-nums text-gray-900 dark:text-white">
-                                ${{ parseFloat(txn.btr_amount).toFixed(2) }}
-                            </td>
-                            <td class="px-6 py-4 text-right tabular-nums text-gray-700 dark:text-gray-300">
-                                ${{ parseFloat(txn.btr_balance).toFixed(2) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <Hash class="h-4 w-4 text-gray-400 shrink-0" />
-                                    <span class="font-mono text-xs">{{ txn.btr_reference }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 max-w-[200px] truncate" :title="txn.btr_description ?? ''">
-                                <div class="flex items-center gap-2">
-                                    <Tag class="h-4 w-4 text-gray-400 shrink-0" />
-                                    <span>{{ txn.btr_description ?? '—' }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                    {{ txn.btr_coin ?? '—' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ friendlySourceName(txn.btr_transactionable_type) }}
-                                </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div v-if="transactions.links.length > 3" class="px-6 py-4 border-t dark:border-gray-800 flex justify-center bg-gray-50 dark:bg-gray-900">
-                <div class="flex gap-1">
-                    <template v-for="(link, key) in transactions.links" :key="key">
-                        <div v-if="link.url === null" class="px-4 py-2 text-sm text-gray-400 border rounded cursor-not-allowed" v-html="link.label"></div>
-                        <Link v-else :href="link.url" class="px-4 py-2 text-sm border rounded hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors" :class="{ 'bg-primary text-primary-foreground font-bold': link.active }" v-html="link.label"></Link>
-                    </template>
+                <div v-if="transactions.links.length > 3" class="px-6 py-4 border-t border-zinc-800 flex justify-center">
+                    <div class="flex gap-1">
+                        <template v-for="(link, key) in transactions.links" :key="key">
+                            <div v-if="link.url === null" class="px-4 py-2 text-sm text-zinc-500 border border-zinc-700 rounded cursor-not-allowed" v-html="link.label"></div>
+                            <Link v-else :href="link.url" class="px-4 py-2 text-sm border border-zinc-700 rounded hover:bg-zinc-800 transition-colors text-zinc-300" :class="{ 'bg-indigo-600 text-white border-indigo-600 font-bold': link.active }" v-html="link.label"></Link>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>

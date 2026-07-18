@@ -21,6 +21,7 @@ class StoreExpenseRequest extends FormRequest
             'exp_amount' => 'required|numeric|min:0.01',
             'exp_date' => 'required|date',
             'exp_coin' => ['required', Rule::in(TypeCoin::values())],
+            'exp_valorcam' => 'nullable|numeric|min:0',
         ];
     }
 }

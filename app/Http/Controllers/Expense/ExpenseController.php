@@ -58,6 +58,12 @@ class ExpenseController extends Controller
             'coinOptions' => TypeCoin::values(),
             'bankAccounts' => BankAccount::active()->get(['id', 'bank_name', 'bank_currency', 'bank_balance']),
             'latestRate' => $this->rateService->getLatestRate(),
+            'rates' => Rate::all()->map(fn ($rate) => [
+                'rate_date' => optional($rate->rate_date)->format('Y-m-d'),
+                'rate_usd' => $rate->rate_usd,
+                'rate_cop' => $rate->rate_cop,
+                'rate_eur' => $rate->rate_eur,
+            ])->values(),
             'methods' => TransactionMethod::values(),
         ]);
     }
