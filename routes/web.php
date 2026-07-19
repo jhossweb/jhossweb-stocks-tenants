@@ -23,6 +23,7 @@ use App\Http\Controllers\Purchase\AccountPaymentController;
 use App\Http\Controllers\Purchase\AccountsPayableController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\PurchaseReturnController;
+use App\Http\Controllers\Purchase\Supplier\SupplierController;
 use App\Http\Controllers\Sales\Customer\CustomerController;
 use App\Http\Controllers\Sales\SaleOrder\SaleOrderController;
 use App\Http\Controllers\Sales\SaleReturn\SaleReturnController;
@@ -58,6 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
     Route::resource('purchases', PurchaseOrderController::class);
     Route::resource('purchase-returns', PurchaseReturnController::class);
+    Route::resource('suppliers', SupplierController::class);
 
     // Cuentas por Pagar
     Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
