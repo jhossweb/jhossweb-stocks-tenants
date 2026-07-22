@@ -44,7 +44,7 @@ class KardexController extends Controller
         $warId = $validated['warehouse_id'];
 
         $years = DB::select('
-            SELECT DISTINCT CAST(strftime(\'%Y\', fecha) AS INTEGER) as year FROM (
+            SELECT DISTINCT EXTRACT(YEAR FROM fecha)::int as year FROM (
                 SELECT po.invoice_date as fecha
                 FROM movements_purchases mp
                 JOIN purchase_orders po ON mp.mov_invoice_number = po.invoice_number
@@ -74,24 +74,24 @@ class KardexController extends Controller
         ]);
 
         $warId = $validated['warehouse_id'];
-        $year = (string) $validated['year'];
+        $year = (int) $validated['year'];
 
         $months = DB::select('
-            SELECT DISTINCT CAST(strftime(\'%m\', fecha) AS INTEGER) as month FROM (
+            SELECT DISTINCT EXTRACT(MONTH FROM fecha)::int as month FROM (
                 SELECT po.invoice_date as fecha
                 FROM movements_purchases mp
                 JOIN purchase_orders po ON mp.mov_invoice_number = po.invoice_number
-                WHERE mp.mov_pro_code = ? AND mp.mov_war_id = ? AND strftime(\'%Y\', po.invoice_date) = ?
+                WHERE mp.mov_pro_code = ? AND mp.mov_war_id = ? AND EXTRACT(YEAR FROM po.invoice_date) = ?
                 UNION
                 SELECT so.sls_date as fecha
                 FROM movements_sales ms
                 JOIN sale_orders so ON ms.mvs_number = so.sls_number
-                WHERE ms.mvs_pro_code = ? AND ms.mvs_war_id = ? AND strftime(\'%Y\', so.sls_date) = ?
+                WHERE ms.mvs_pro_code = ? AND ms.mvs_war_id = ? AND EXTRACT(YEAR FROM so.sls_date) = ?
                 UNION
                 SELECT i.inv_date as fecha
                 FROM movements_inventories mi
                 JOIN inventories i ON mi.min_inv_number = i.inv_number
-                WHERE mi.min_pro_code = ? AND mi.min_war_id = ? AND strftime(\'%Y\', i.inv_date) = ?
+                WHERE mi.min_pro_code = ? AND mi.min_war_id = ? AND EXTRACT(YEAR FROM i.inv_date) = ?
             ) AS fechas
             ORDER BY month
         ', [$proCode, $warId, $year, $proCode, $warId, $year, $proCode, $warId, $year]);
