@@ -12,7 +12,7 @@ class ExpenseKpiRepository
 
         return Expense::query()
             ->selectRaw('exp_coin, SUM(exp_amount) as total, SUM(exp_paid_amount) as paid')
-            ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(exp_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('exp_coin')
             ->pluck('total', 'exp_coin')
             ->toArray();
@@ -42,7 +42,7 @@ class ExpenseKpiRepository
     {
         return Expense::query()
             ->selectRaw('exp_coin, SUM(exp_amount) as total')
-            ->whereRaw("strftime('%Y-%m', exp_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(exp_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('exp_coin')
             ->pluck('total', 'exp_coin')
             ->toArray();
@@ -56,7 +56,7 @@ class ExpenseKpiRepository
             ->selectRaw('ec.exc_name, ec.exc_type, e.exp_coin, SUM(e.exp_amount) as total')
             ->join('expense_categories as ec', 'e.exp_category_id', '=', 'ec.id')
             ->from('expenses as e')
-            ->whereRaw("strftime('%Y-%m', e.exp_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(e.exp_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('ec.id', 'e.exp_coin')
             ->orderByDesc('total')
             ->get()

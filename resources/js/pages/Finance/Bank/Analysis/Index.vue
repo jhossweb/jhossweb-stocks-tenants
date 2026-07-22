@@ -32,11 +32,11 @@ interface Transaction {
         id: number;
         bank_name: string;
     };
-    btr_transactionable_type: string;
+    btr_transactionable_type: string | null;
     btr_transactionable?: Record<string, unknown> | null;
 }
 
-const friendlySourceName = (type: string): string => {
+const friendlySourceName = (type: string | null | undefined): string => {
     const map: Record<string, string> = {
         'App\\Models\\Expense': 'Gasto',
         'App\\Models\\AccountsPayable': 'Cuenta por Pagar',
@@ -44,6 +44,8 @@ const friendlySourceName = (type: string): string => {
         'App\\Models\\Payroll': 'Nómina',
         'App\\Models\\AccountPayments': 'Pago',
     };
+
+    if (!type) return '—';
 
     return map[type] ?? type.split('\\').pop() ?? type;
 };

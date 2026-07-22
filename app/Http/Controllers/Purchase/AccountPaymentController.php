@@ -30,7 +30,7 @@ class AccountPaymentController extends Controller
     public function create()
     {
         return Inertia::render('Finance/Payments/Create', [
-            'suppliers' => Supplier::orderBy('supplier_name')->get(['id', 'supplier_name', 'supplier_code']),
+            'suppliers' => Supplier::orderBy('supplier_name')->get(['id', 'supplier_name']),
             'bankAccounts' => BankAccount::where('bank_status', true)->get(),
             'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
             'rates' => Rate::orderBy('rate_date', 'desc')->get(),
@@ -179,7 +179,7 @@ class AccountPaymentController extends Controller
 
         return Inertia::render('Finance/Payments/Create', [
             'payment' => $payment,
-            'suppliers' => Supplier::orderBy('supplier_name')->get(['id', 'supplier_name', 'supplier_code']),
+            'suppliers' => Supplier::orderBy('supplier_name')->get(['id', 'supplier_name']),
             'bankAccounts' => BankAccount::where('bank_status', true)->get(),
             'latestRate' => Rate::orderBy('rate_date', 'desc')->first(),
             'rates' => Rate::orderBy('rate_date', 'desc')->get(),

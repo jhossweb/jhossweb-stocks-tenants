@@ -307,10 +307,10 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                     title="Seleccionar Proveedor"
                     description="Busque y seleccione el proveedor a pagar"
                     :items="suppliers"
-                    :searchFields="['supplier_name', 'supplier_code']"
+                    :searchFields="['supplier_name', 'id']"
                     :displayFields="[
                         { label: 'Nombre', key: 'supplier_name' },
-                        { label: 'Código', key: 'supplier_code' }
+                        { label: 'ID', key: 'id' }
                     ]"
                     :triggerLabel="getSupplierName(form.supplier_id)"
                     :selectedValue="form.supplier_id"

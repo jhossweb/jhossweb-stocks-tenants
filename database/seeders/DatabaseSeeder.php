@@ -136,6 +136,9 @@ class DatabaseSeeder extends Seeder
                     'btr_valorcam' => $order->invoice_valorcam,
                 ]);
 
+                $transaction->btr_transactionable()->associate($payable);
+                $transaction->save();
+
                 AccountPayments::create([
                     'apy_bank_transaction_id' => $transaction->id,
                     'apy_account_payable_id' => $payable->id,

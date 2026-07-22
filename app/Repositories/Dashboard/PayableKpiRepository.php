@@ -35,7 +35,7 @@ class PayableKpiRepository
                 $join->on('bt.btr_transactionable_id', '=', 'ap.id')
                     ->where('bt.btr_transactionable_type', '=', 'App\Models\AccountsPayable');
             })
-            ->whereRaw("strftime('%Y-%m', bt.btr_transaction_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(bt.btr_transaction_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('po.invoice_coin')
             ->pluck('total', 'invoice_coin')
             ->toArray();

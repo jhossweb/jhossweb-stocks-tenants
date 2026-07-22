@@ -11,7 +11,7 @@ class CashFlowKpiRepository
         return BankTransaction::query()
             ->selectRaw('btr_coin, SUM(btr_amount) as total')
             ->where('btr_type', 'inflow')
-            ->whereRaw("strftime('%Y-%m', btr_transaction_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(btr_transaction_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('btr_coin')
             ->pluck('total', 'btr_coin')
             ->toArray();
@@ -22,7 +22,7 @@ class CashFlowKpiRepository
         return BankTransaction::query()
             ->selectRaw('btr_coin, SUM(btr_amount) as total')
             ->where('btr_type', 'outflow')
-            ->whereRaw("strftime('%Y-%m', btr_transaction_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(btr_transaction_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('btr_coin')
             ->pluck('total', 'btr_coin')
             ->toArray();
@@ -74,7 +74,7 @@ class CashFlowKpiRepository
             ->from('bank_transactions as bt')
             ->join('bank_accounts as ba', 'bt.btr_bank_account_id', '=', 'ba.id')
             ->where('bt.btr_type', $type)
-            ->whereRaw("strftime('%Y-%m', bt.btr_transaction_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(bt.btr_transaction_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('ba.id', 'bt.btr_coin')
             ->orderByDesc('total')
             ->get()

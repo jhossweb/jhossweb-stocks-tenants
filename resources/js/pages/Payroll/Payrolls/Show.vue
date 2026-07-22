@@ -110,11 +110,13 @@ const submitPayment = () => {
     });
 };
 
-const formatType = (type: string): string => {
+const formatType = (type: string | null | undefined): string => {
     const map: Record<string, string> = {
         'App\\Models\\EmployeeLoan': 'Préstamo',
         'App\\Models\\EmployeeDamage': 'Daño',
     };
+
+    if (!type) return '—';
 
     return map[type] ?? type.split('\\').pop() ?? type;
 };

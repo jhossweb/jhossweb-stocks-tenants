@@ -35,7 +35,7 @@ class ReceivableKpiRepository
                 $join->on('bt.btr_transactionable_id', '=', 'ar.id')
                     ->where('bt.btr_transactionable_type', '=', 'App\Models\AccountsReceivable');
             })
-            ->whereRaw("strftime('%Y-%m', bt.btr_transaction_date) = ?", [$month])
+            ->whereRaw("TO_CHAR(bt.btr_transaction_date, 'YYYY-MM') = ?", [$month])
             ->groupBy('so.sls_coin')
             ->pluck('total', 'sls_coin')
             ->toArray();
