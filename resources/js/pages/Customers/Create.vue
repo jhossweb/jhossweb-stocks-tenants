@@ -9,6 +9,7 @@ const form = useForm({
     clt_phone: '',
     clt_email: '',
     clt_website: '',
+    clt_credit_days: 0,
 });
 
 const submit = () => {
@@ -83,10 +84,16 @@ const submit = () => {
                         <p v-if="form.errors.clt_address" class="text-xs text-red-500 mt-1">{{ form.errors.clt_address }}</p>
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div>
                         <label class="block text-sm font-medium text-zinc-400 mb-1.5">Sitio Web</label>
                         <Input type="text" v-model="form.clt_website" placeholder="https://ejemplo.com" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition-colors" />
                         <p v-if="form.errors.clt_website" class="text-xs text-red-500 mt-1">{{ form.errors.clt_website }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Días de Crédito</label>
+                        <Input type="number" v-model="form.clt_credit_days" min="0" max="365" placeholder="0" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition-colors" />
+                        <p v-if="form.errors.clt_credit_days" class="text-xs text-red-500 mt-1">{{ form.errors.clt_credit_days }}</p>
                     </div>
                 </div>
             </div>

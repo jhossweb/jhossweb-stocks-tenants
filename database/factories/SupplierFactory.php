@@ -24,6 +24,7 @@ class SupplierFactory extends Factory
             'supplier_email' => fake()->email(),
             'supplier_website' => fake()->url(),
             'supplier_logo' => fake()->imageUrl(),
+            'supplier_credit_days' => fake()->numberBetween(0, 90),
         ];
     }
 }

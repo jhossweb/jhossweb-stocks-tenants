@@ -18,6 +18,9 @@ readonly class PurchaseReturnDTO
         public float $invoiceIva,
         public float $invoiceTotal,
         public string $invoiceReference,
+        public string $invoicePaymentCondition,
+        public int $invoiceCreditDays,
+        public string $invoiceDueDate,
         public array $items,
     ) {}
 
@@ -37,6 +40,9 @@ readonly class PurchaseReturnDTO
             invoiceIva: (float) $data['invoice_iva'],
             invoiceTotal: (float) $data['invoice_total'],
             invoiceReference: $data['invoice_reference'],
+            invoicePaymentCondition: $data['invoice_payment_condition'] ?? 'cash',
+            invoiceCreditDays: (int) ($data['invoice_credit_days'] ?? 0),
+            invoiceDueDate: $data['invoice_due_date'] ?? $data['invoice_date'],
             items: $data['items'],
         );
     }
@@ -57,6 +63,9 @@ readonly class PurchaseReturnDTO
             'invoice_iva' => $this->invoiceIva,
             'invoice_total' => $this->invoiceTotal,
             'invoice_reference' => $this->invoiceReference,
+            'invoice_payment_condition' => $this->invoicePaymentCondition,
+            'invoice_credit_days' => $this->invoiceCreditDays,
+            'invoice_due_date' => $this->invoiceDueDate,
         ];
     }
 }

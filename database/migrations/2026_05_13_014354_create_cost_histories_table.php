@@ -24,7 +24,7 @@ return new class extends Migration
             $table->enum('cost_currency', TypeCoin::values())->default(TypeCoin::USD->value);
             $table->date('cost_date');
             $table->decimal('cost_valorcambio', 10, 4)->default(0);
-            $table->foreignId('cost_user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('cost_user_id')->nullable()->constrained('users')->cascadeOnDelete();
 
             $table->timestamps();
         });

@@ -19,7 +19,15 @@ class Customer extends Model
         'clt_email',
         'clt_website',
         'clt_logo',
+        'clt_credit_days',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'clt_credit_days' => 'integer',
+        ];
+    }
 
     public function sales()
     {

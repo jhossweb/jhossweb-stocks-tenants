@@ -22,7 +22,7 @@ class PurchaseOrderFactory extends Factory
     {
         return [
             'invoice_number' => fake()->unique()->bothify('INV-#####'),
-            'invoice_date' => fake()->date(),
+            'invoice_date' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
             'invoice_trans_type_code' => TransactionType::inRandomOrder()->first()->trans_type_code,
             'invoice_supplier_id' => Supplier::inRandomOrder()->first()->id,
             'invoice_valorcam' => fake()->randomFloat(4, 1, 10),
@@ -33,6 +33,9 @@ class PurchaseOrderFactory extends Factory
 
             'invoice_total' => fake()->randomFloat(4, 1, 10),
             'invoice_status' => fake()->randomElement(StatusPurchases::values()),
+            'invoice_payment_condition' => 'cash',
+            'invoice_credit_days' => 0,
+            'invoice_due_date' => fn (array $attrs) => $attrs['invoice_date'],
         ];
     }
 }

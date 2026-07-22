@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('rate_usd', 10, 4)->default(0);
             $table->decimal('rate_cop', 10, 4)->default(0);
             $table->decimal('rate_eur', 10, 4)->default(0);
+            $table->decimal('rate_cop_bs', 10, 4)->default(0);
 
             $table->timestamps();
         });

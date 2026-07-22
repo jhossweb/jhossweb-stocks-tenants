@@ -24,12 +24,16 @@ class SaleOrder extends Model
         'sls_total',
         'sls_status',
         'sls_reference',
+        'sls_payment_condition',
+        'sls_credit_days',
+        'sls_due_date',
     ];
 
     protected function casts(): array
     {
         return [
             'sls_date' => 'date',
+            'sls_due_date' => 'date',
         ];
     }
 

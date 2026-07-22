@@ -1,0 +1,17 @@
+services:
+  pgsql:
+    build:
+      context: ./docker/pg
+    container_name: inventary-vidrialum-pgsql
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgsql_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgsql_data:

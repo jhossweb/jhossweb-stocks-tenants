@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('exp_category_id')->constrained('expense_categories')->cascadeOnDelete();
             $table->text('exp_description');
             $table->decimal('exp_amount', 10, 2);
+            $table->decimal('exp_paid_amount', 10, 2)->default(0);
+            $table->decimal('exp_remaining_balance', 10, 2)->default(0);
             $table->date('exp_date');
             $table->enum('exp_status', ExpenseStatus::values())->default(ExpenseStatus::PENDING->value);
             $table->string('exp_coin', 10)->default(TypeCoin::COP->value);

@@ -4,6 +4,7 @@ use App\Enum\Sales\StatusSales;
 use App\Enum\TypeCoin;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -33,8 +34,25 @@ return new class extends Migration
             $table->string('sls_status', 20)->default(StatusSales::PENDING->value);
 
             $table->string('sls_reference', 50)->nullable();
+
+            $table->enum('sls_payment_condition', ['cash', 'credit'])->default('cash');
+            $table->integer('sls_credit_days')->default(0);
+            $table->date('sls_due_date');
+
             $table->timestamps();
+
         });
+
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE sale_orders ADD CONSTRAINT so_credit_days_min CHECK (sls_credit_days >= 0)');
+            DB::statement('ALTER TABLE sale_orders ADD CONSTRAINT so_credit_days_max CHECK (sls_credit_days <= 365)');
+            DB::statement('ALTER TABLE sale_orders ADD CONSTRAINT so_due_date_check CHECK (sls_due_date >= sls_date)');
+            DB::statement("ALTER TABLE sale_orders ADD CONSTRAINT so_payment_condition_check CHECK (
+                (sls_payment_condition = 'cash' AND sls_credit_days = 0)
+                OR
+                (sls_payment_condition = 'credit' AND sls_credit_days > 0 AND sls_due_date > sls_date)
+            )");
+        }
     }
 
     public function down(): void

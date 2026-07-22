@@ -39,6 +39,9 @@ const form = useForm({
     invoice_supplier_id: '',
     invoice_valorcam: 1,
     invoice_coin: 'USD',
+    invoice_payment_condition: 'cash',
+    invoice_credit_days: 0,
+    invoice_due_date: new Date().toISOString().split('T')[0],
     items: [] as any[],
     invoice_subtotal: 0,
     invoice_iva: 0,
@@ -80,8 +83,36 @@ const recalc = () => {
     );
 };
 
+const updateDueDate = () => {
+    if (!form.invoice_date) return;
+    const parts = form.invoice_date.split('-');
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    date.setDate(date.getDate() + Number(form.invoice_credit_days));
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    form.invoice_due_date = `${y}-${m}-${d}`;
+};
+
+const handleConditionChange = () => {
+    if (form.invoice_payment_condition === 'cash') {
+        form.invoice_credit_days = 0;
+    }
+    updateDueDate();
+};
+
+const handleDateChange = () => {
+    handleExchangeUpdate();
+    updateDueDate();
+};
+
 const selectSupplier = (supplier: any) => {
     form.invoice_supplier_id = supplier.id;
+    if (supplier.supplier_credit_days > 0) {
+        form.invoice_payment_condition = 'credit';
+        form.invoice_credit_days = supplier.supplier_credit_days;
+        updateDueDate();
+    }
 };
 
 const selectProduct = (index: number, product: any) => {
@@ -126,6 +157,7 @@ onMounted(() => {
     form.items.forEach(item => {
         tx.updateCostRef(form.invoice_coin, valorcam.value, item);
     });
+    updateDueDate();
 });
 
 const columns: ColumnConfig[] = [
@@ -224,7 +256,7 @@ const columns: ColumnConfig[] = [
                                     v-model="form.invoice_date"
                                     type="date"
                                     class="w-full"
-                                    @change="handleExchangeUpdate"
+                                    @change="handleDateChange"
                                 />
                             </div>
                             <div>
@@ -243,6 +275,56 @@ const columns: ColumnConfig[] = [
                                     </option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Condición de Pago</label>
+                                <select
+                                    v-model="form.invoice_payment_condition"
+                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    @change="handleConditionChange"
+                                >
+                                    <option value="cash">Contado</option>
+                                    <option value="credit">Crédito</option>
+                                </select>
+                                <p
+                                    v-if="form.errors.invoice_payment_condition"
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{ form.errors.invoice_payment_condition }}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Días Crédito</label>
+                                <Input
+                                    v-model="form.invoice_credit_days"
+                                    type="number"
+                                    min="0"
+                                    max="365"
+                                    @input="updateDueDate"
+                                />
+                                <p
+                                    v-if="form.errors.invoice_credit_days"
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{ form.errors.invoice_credit_days }}
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha Vencimiento</label>
+                            <Input
+                                v-model="form.invoice_due_date"
+                                type="date"
+                                disabled
+                            />
+                            <p
+                                v-if="form.errors.invoice_due_date"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.invoice_due_date }}
+                            </p>
                         </div>
 
                         <div class="rounded-lg border bg-muted/30 p-4">

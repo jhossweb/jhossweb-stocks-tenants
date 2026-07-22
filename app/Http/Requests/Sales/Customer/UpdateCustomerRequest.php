@@ -20,11 +20,12 @@ class UpdateCustomerRequest extends FormRequest
         $customer = $this->route('customer');
 
         return [
-            'clt_name' => ['required', 'string', 'max:100', 'unique:customers,clt_name,'.$customer->id],
+            'clt_name' => ['required', 'string', 'max:100'],
             'clt_address' => ['required', 'string', 'max:255'],
             'clt_phone' => ['required', 'string', 'max:20', 'unique:customers,clt_phone,'.$customer->id],
             'clt_email' => ['required', 'email', 'max:100', 'unique:customers,clt_email,'.$customer->id],
             'clt_website' => ['nullable', 'string', 'max:100'],
+            'clt_credit_days' => ['nullable', 'integer', 'min:0', 'max:365'],
         ];
     }
 }

@@ -61,6 +61,9 @@ test('store creates sale order and movements', function () {
         'sls_exento' => '0.00',
         'sls_iva' => '16.00',
         'sls_total' => '116.00',
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => '2026-06-15',
         'items' => [
             [
                 'mvs_pro_code' => $product->pro_code,
@@ -98,6 +101,9 @@ test('store throws exception when original sale does not exist', function () {
         'sls_exento' => '0.00',
         'sls_iva' => '16.00',
         'sls_total' => '116.00',
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => '2026-06-15',
         'items' => [],
     ]);
 
@@ -140,6 +146,9 @@ test('store throws exception when quantity exceeds available', function () {
         'sls_exento' => '0.00',
         'sls_iva' => '16.00',
         'sls_total' => '116.00',
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => '2026-06-15',
         'items' => [
             [
                 'mvs_pro_code' => $product->pro_code,

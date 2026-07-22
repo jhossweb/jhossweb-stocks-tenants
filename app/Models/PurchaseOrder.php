@@ -24,12 +24,16 @@ class PurchaseOrder extends Model
         'invoice_total',
         'invoice_status',
         'invoice_reference',
+        'invoice_payment_condition',
+        'invoice_credit_days',
+        'invoice_due_date',
     ];
 
     protected function casts(): array
     {
         return [
             'invoice_date' => 'date',
+            'invoice_due_date' => 'date',
         ];
     }
 

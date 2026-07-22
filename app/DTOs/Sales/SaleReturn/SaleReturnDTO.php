@@ -18,6 +18,9 @@ readonly class SaleReturnDTO
         public float $slsExento,
         public float $slsIva,
         public float $slsTotal,
+        public string $slsPaymentCondition,
+        public int $slsCreditDays,
+        public string $slsDueDate,
         public array $items,
     ) {}
 
@@ -37,6 +40,9 @@ readonly class SaleReturnDTO
             slsExento: (float) $data['sls_exento'],
             slsIva: (float) $data['sls_iva'],
             slsTotal: (float) $data['sls_total'],
+            slsPaymentCondition: $data['sls_payment_condition'] ?? 'cash',
+            slsCreditDays: (int) ($data['sls_credit_days'] ?? 0),
+            slsDueDate: $data['sls_due_date'] ?? $data['sls_date'],
             items: $data['items'],
         );
     }
@@ -57,6 +63,9 @@ readonly class SaleReturnDTO
             'sls_exento' => $this->slsExento,
             'sls_iva' => $this->slsIva,
             'sls_total' => $this->slsTotal,
+            'sls_payment_condition' => $this->slsPaymentCondition,
+            'sls_credit_days' => $this->slsCreditDays,
+            'sls_due_date' => $this->slsDueDate,
         ];
     }
 }

@@ -37,6 +37,9 @@ class PurchaseReturnStoreRequest extends FormRequest
             'invoice_iva' => ['required', 'numeric'],
             'invoice_total' => ['required', 'numeric'],
             'invoice_reference' => ['required', 'string', 'exists:purchase_orders,invoice_number'],
+            'invoice_payment_condition' => ['required', 'string', 'in:cash,credit'],
+            'invoice_credit_days' => ['required', 'integer', 'min:0', 'max:365'],
+            'invoice_due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.mov_pro_code' => ['required', 'exists:products,pro_code'],

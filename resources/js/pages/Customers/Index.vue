@@ -9,6 +9,7 @@ interface Customer {
     clt_phone: string;
     clt_email: string;
     clt_website: string | null;
+    clt_credit_days: number;
     created_at: string;
 }
 
@@ -46,6 +47,7 @@ const { customers } = defineProps<{
                         <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
                             <tr>
                                 <th class="px-4 py-4 text-left">Nombre</th>
+                                <th class="px-4 py-4 text-left">Días Créd.</th>
                                 <th class="px-4 py-4 text-left">Teléfono</th>
                                 <th class="px-4 py-4 text-left">Email</th>
                                 <th class="px-4 py-4 text-left">Dirección</th>
@@ -54,7 +56,7 @@ const { customers } = defineProps<{
                         </thead>
                         <tbody class="divide-y divide-zinc-800">
                             <tr v-if="customers.data.length === 0">
-                                <td colspan="5" class="px-4 py-12 text-center text-zinc-500">
+                                <td colspan="6" class="px-4 py-12 text-center text-zinc-500">
                                     <Users class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
                                     <p>No hay clientes registrados</p>
                                 </td>
@@ -62,6 +64,9 @@ const { customers } = defineProps<{
                             <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-zinc-800/30 transition-colors">
                                 <td class="px-4 py-4 font-medium text-zinc-200 whitespace-nowrap">
                                     {{ customer.clt_name }}
+                                </td>
+                                <td class="px-4 py-4 text-zinc-400 whitespace-nowrap">
+                                    <span :class="customer.clt_credit_days > 0 ? 'text-amber-400' : 'text-zinc-500'">{{ customer.clt_credit_days }} días</span>
                                 </td>
                                 <td class="px-4 py-4 text-zinc-400">{{ customer.clt_phone }}</td>
                                 <td class="px-4 py-4 text-zinc-400">{{ customer.clt_email }}</td>

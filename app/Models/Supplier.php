@@ -18,7 +18,15 @@ class Supplier extends Model
         'supplier_email',
         'supplier_website',
         'supplier_logo',
+        'supplier_credit_days',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'supplier_credit_days' => 'integer',
+        ];
+    }
 
     public function purchases()
     {

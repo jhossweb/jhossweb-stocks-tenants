@@ -13,6 +13,7 @@ const form = useForm({
     supplier_phone: supplier.supplier_phone || '',
     supplier_email: supplier.supplier_email || '',
     supplier_website: supplier.supplier_website || '',
+    supplier_credit_days: supplier.supplier_credit_days ?? 0,
 });
 
 const submit = () => {
@@ -89,10 +90,16 @@ const submit = () => {
                         <p v-if="form.errors.supplier_address" class="mt-1 text-xs text-destructive">{{ form.errors.supplier_address }}</p>
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div>
                         <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Sitio Web</label>
                         <Input type="text" v-model="form.supplier_website" placeholder="https://ejemplo.com" />
                         <p v-if="form.errors.supplier_website" class="mt-1 text-xs text-destructive">{{ form.errors.supplier_website }}</p>
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Días de Crédito</label>
+                        <Input type="number" v-model="form.supplier_credit_days" min="0" max="365" placeholder="0" />
+                        <p v-if="form.errors.supplier_credit_days" class="mt-1 text-xs text-destructive">{{ form.errors.supplier_credit_days }}</p>
                     </div>
                 </div>
             </div>

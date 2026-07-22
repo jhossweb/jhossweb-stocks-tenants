@@ -35,6 +35,9 @@ class PurchaseOrderService
         $purchase->invoice_exento = $validated['invoice_exento'];
         $purchase->invoice_iva = $validated['invoice_iva'];
         $purchase->invoice_total = $validated['invoice_total'];
+        $purchase->invoice_payment_condition = $validated['invoice_payment_condition'];
+        $purchase->invoice_credit_days = $validated['invoice_credit_days'];
+        $purchase->invoice_due_date = $validated['invoice_due_date'];
         $purchase->invoice_status = StatusPurchases::PENDING->value;
         $purchase->save();
 
@@ -79,6 +82,9 @@ class PurchaseOrderService
         $purchase->invoice_exento = $validated['invoice_exento'];
         $purchase->invoice_iva = $validated['invoice_iva'];
         $purchase->invoice_total = $validated['invoice_total'];
+        $purchase->invoice_payment_condition = $validated['invoice_payment_condition'];
+        $purchase->invoice_credit_days = $validated['invoice_credit_days'];
+        $purchase->invoice_due_date = $validated['invoice_due_date'];
         $purchase->save();
 
         $existingIds = $purchase->movements()->pluck('id')->toArray();

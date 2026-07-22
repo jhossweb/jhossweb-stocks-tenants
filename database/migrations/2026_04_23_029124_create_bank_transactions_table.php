@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('btr_reference', 50);
             $table->string('btr_description', 150)->nullable();
             $table->decimal('btr_valorcam', 15, 4)->default(0);
+            $table->decimal('btr_diferencial', 12, 4)->default(0);
+            $table->string('btr_coin', 10)->nullable();
+            $table->string('btr_method', 30)->nullable();
+            $table->date('btr_transaction_date')->nullable();
 
             $table->nullableMorphs('btr_transactionable');
 

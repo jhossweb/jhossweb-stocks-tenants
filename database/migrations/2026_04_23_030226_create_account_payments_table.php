@@ -15,10 +15,12 @@ return new class extends Migration
         Schema::create('account_payments', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('apy_bank_transaction_id')->constrained('bank_transactions')->onDelete('cascade');
+            $table->foreignId('apy_bank_transaction_id')->nullable()->constrained('bank_transactions')->onDelete('cascade');
             $table->foreignId('apy_account_payable_id')->constrained('accounts_payables')->onDelete('cascade');
             $table->decimal('apy_amount', 15, 4)->default(0);
+            $table->decimal('apy_diferencial', 12, 4)->default(0);
             $table->enum('apy_type', TypePayment::values())->default(TypePayment::PAYMENT->value);
+            $table->string('apy_invoice_reference', 50)->nullable();
 
             $table->timestamps();
         });

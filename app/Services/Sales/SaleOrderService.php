@@ -34,6 +34,9 @@ class SaleOrderService
         $sale->sls_exento = $validated['sls_exento'];
         $sale->sls_iva = $validated['sls_iva'];
         $sale->sls_total = $validated['sls_total'];
+        $sale->sls_payment_condition = $validated['sls_payment_condition'];
+        $sale->sls_credit_days = $validated['sls_credit_days'];
+        $sale->sls_due_date = $validated['sls_due_date'];
         $sale->sls_status = StatusSales::PENDING->value;
         $sale->save();
 
@@ -72,6 +75,9 @@ class SaleOrderService
         $sale->sls_exento = $validated['sls_exento'];
         $sale->sls_iva = $validated['sls_iva'];
         $sale->sls_total = $validated['sls_total'];
+        $sale->sls_payment_condition = $validated['sls_payment_condition'];
+        $sale->sls_credit_days = $validated['sls_credit_days'];
+        $sale->sls_due_date = $validated['sls_due_date'];
         $sale->save();
 
         $existingIds = $sale->movements()->pluck('id')->toArray();

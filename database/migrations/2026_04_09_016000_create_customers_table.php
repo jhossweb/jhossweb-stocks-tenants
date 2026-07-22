@@ -11,12 +11,13 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
 
-            $table->string('clt_name', 100)->unique();
+            $table->string('clt_name', 100);
             $table->string('clt_address', 255);
             $table->string('clt_phone', 20)->unique();
             $table->string('clt_email', 100)->unique();
             $table->string('clt_website', 100)->nullable();
             $table->string('clt_logo', 100)->nullable();
+            $table->integer('clt_credit_days')->default(0);
 
             $table->timestamps();
         });

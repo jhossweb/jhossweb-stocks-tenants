@@ -17,10 +17,12 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->foreignId('rec_bank_transaction_id')
+                ->nullable()
                 ->constrained('bank_transactions')
                 ->cascadeOnDelete();
 
             $table->decimal('rec_amount', 15, 4)->default(0);
+            $table->decimal('rec_diferencial', 12, 4)->default(0);
             $table->enum('rec_type', TypeReceipt::values())->default(TypeReceipt::RECEIPT->value);
 
             $table->timestamps();

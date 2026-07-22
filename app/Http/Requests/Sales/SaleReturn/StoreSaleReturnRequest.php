@@ -28,6 +28,9 @@ class StoreSaleReturnRequest extends FormRequest
             'sls_exento' => ['required', 'numeric'],
             'sls_iva' => ['required', 'numeric'],
             'sls_total' => ['required', 'numeric'],
+            'sls_payment_condition' => ['required', 'string', 'in:cash,credit'],
+            'sls_credit_days' => ['required', 'integer', 'min:0', 'max:365'],
+            'sls_due_date' => ['required', 'date', 'after_or_equal:sls_date'],
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.mvs_pro_code' => ['required', 'exists:products,pro_code'],

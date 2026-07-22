@@ -10,6 +10,7 @@ readonly class CustomerDTO
         public string $cltPhone,
         public string $cltEmail,
         public ?string $cltWebsite,
+        public int $cltCreditDays,
     ) {}
 
     public static function fromArray(array $data): self
@@ -20,6 +21,7 @@ readonly class CustomerDTO
             cltPhone: $data['clt_phone'],
             cltEmail: $data['clt_email'],
             cltWebsite: $data['clt_website'] ?? null,
+            cltCreditDays: (int) ($data['clt_credit_days'] ?? 0),
         );
     }
 
@@ -31,6 +33,7 @@ readonly class CustomerDTO
             'clt_phone' => $this->cltPhone,
             'clt_email' => $this->cltEmail,
             'clt_website' => $this->cltWebsite,
+            'clt_credit_days' => $this->cltCreditDays,
         ];
     }
 }

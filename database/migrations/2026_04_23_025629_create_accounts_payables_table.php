@@ -22,7 +22,9 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             $table->decimal('acp_total', 10, 4);
+            $table->decimal('acp_total_usd', 12, 4)->nullable();
             $table->decimal('acp_balance', 10, 4);
+            $table->decimal('acp_balance_usd', 12, 4)->nullable();
             $table->enum('acp_status', StatusPurchases::values())->default(StatusPurchases::PENDING->value);
 
             $table->timestamps();

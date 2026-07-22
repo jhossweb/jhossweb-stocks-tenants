@@ -9,6 +9,9 @@ interface Purchase {
     invoice_date: string;
     invoice_total: string;
     invoice_status: string;
+    invoice_payment_condition?: string;
+    invoice_credit_days?: number;
+    invoice_due_date?: string;
     supplier?: {
         supplier_name: string;
     };
@@ -50,6 +53,9 @@ const props = defineProps<{
                             <tr>
                                 <th class="px-4 py-4 text-left">Factura</th>
                                 <th class="px-4 py-4 text-left">Proveedor</th>
+                                <th class="px-4 py-4 text-center">Cond. Pago</th>
+                                <th class="px-4 py-4 text-center">Días Créd.</th>
+                                <th class="px-4 py-4 text-left">Vencimiento</th>
                                 <th class="px-4 py-4 text-left">Fecha</th>
                                 <th class="px-4 py-4 text-right">Total</th>
                                 <th class="px-4 py-4 text-center">Estado</th>
@@ -58,7 +64,7 @@ const props = defineProps<{
                         </thead>
                         <tbody class="divide-y divide-zinc-800">
                             <tr v-if="purchases.data.length === 0">
-                                <td colspan="6" class="px-4 py-12 text-center text-zinc-500">
+                                <td colspan="9" class="px-4 py-12 text-center text-zinc-500">
                                     <ShoppingCart class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
                                     <p>No hay compras registradas</p>
                                 </td>
@@ -66,6 +72,13 @@ const props = defineProps<{
                             <tr v-for="purchase in purchases.data" :key="purchase.id" class="hover:bg-zinc-800/30 transition-colors">
                                 <td class="px-4 py-4 font-mono text-xs">#{{ purchase.invoice_number }}</td>
                                 <td class="px-4 py-4">{{ purchase.supplier?.supplier_name ?? 'Desconocido' }}</td>
+                                <td class="px-4 py-4 text-center">
+                                    <span :class="purchase.invoice_payment_condition === 'credit' ? 'text-amber-400' : 'text-zinc-400'">{{ purchase.invoice_payment_condition === 'credit' ? 'Crédito' : 'Contado' }}</span>
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    <span :class="(purchase.invoice_credit_days ?? 0) > 0 ? 'text-amber-400' : 'text-zinc-500'">{{ purchase.invoice_credit_days ?? 0 }} días</span>
+                                </td>
+                                <td class="px-4 py-4">{{ purchase.invoice_due_date ? formatDate(purchase.invoice_due_date) : '-' }}</td>
                                 <td class="px-4 py-4">{{ formatDate(purchase.invoice_date) }}</td>
                                 <td class="px-4 py-4 text-right font-mono">${{ purchase.invoice_total }}</td>
                                 <td class="px-4 py-4 text-center">

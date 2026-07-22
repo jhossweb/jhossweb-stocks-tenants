@@ -14,6 +14,9 @@ test('fromArray creates DTO with correct values', function () {
         'sls_exento' => '10.00',
         'sls_iva' => '16.00',
         'sls_total' => '126.00',
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => '2026-06-15',
         'items' => [
             ['mvs_pro_code' => 'PROD-01', 'mvs_quantity' => 2],
         ],
@@ -45,6 +48,9 @@ test('fromArray handles optional sls_reference', function () {
         'sls_exento' => '0.00',
         'sls_iva' => '8.00',
         'sls_total' => '58.00',
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => '2026-06-15',
         'items' => [],
     ];
 
@@ -65,6 +71,9 @@ test('toArray returns correct array without items', function () {
         'sls_exento' => '20.00',
         'sls_iva' => '32.00',
         'sls_total' => '252.00',
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => '2026-06-15',
         'items' => [],
     ];
 

@@ -30,6 +30,10 @@ const latestRef = computed(() => props.latest_rate);
 
 const tx = useTransactionForm(prodRef, wareRef, ratesRef, latestRef);
 
+const slsDueDate = props.saleReturn.sls_due_date
+    ? String(props.saleReturn.sls_due_date).split(' ')[0]
+    : today();
+
 const form = useForm({
     sls_number: props.saleReturn.sls_number || '',
     sls_date: props.saleReturn.sls_date || today(),
@@ -37,6 +41,9 @@ const form = useForm({
     sls_valorcam: props.saleReturn.sls_valorcam
         || (props.latest_rate ? Number(props.latest_rate.rate_usd) : 1),
     sls_coin: props.saleReturn.sls_coin || 'USD',
+    sls_payment_condition: props.saleReturn.sls_payment_condition || 'cash',
+    sls_credit_days: Number(props.saleReturn.sls_credit_days) || 0,
+    sls_due_date: slsDueDate,
     sls_reference: props.saleReturn.sls_reference || '',
     items: (props.saleReturn.movements && props.saleReturn.movements.length > 0
         ? props.saleReturn.movements
@@ -72,9 +79,32 @@ const getWarehouseName = (id: number) => {
     return w ? w.war_name || String(w.id) : String(id);
 };
 
+const updateDueDate = () => {
+    if (!form.sls_date) return;
+    const parts = form.sls_date.split('-');
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    date.setDate(date.getDate() + Number(form.sls_credit_days));
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    form.sls_due_date = `${y}-${m}-${d}`;
+};
+
+const handleConditionChange = () => {
+    if (form.sls_payment_condition === 'cash') {
+        form.sls_credit_days = 0;
+    }
+    updateDueDate();
+};
+
 const selectCustomer = (customer: any) => {
     form.sls_customer_id = customer.id;
     fetchUnpaidSales(customer.id);
+    if (customer.clt_credit_days > 0) {
+        form.sls_payment_condition = 'credit';
+        form.sls_credit_days = customer.clt_credit_days;
+        updateDueDate();
+    }
 };
 
 const fetchUnpaidSales = async (customerId: number) => {
@@ -123,6 +153,9 @@ const fetchSaleItems = async (saleNumber: string) => {
             form.sls_valorcam = Number(sale.sls_valorcam)
                 || Number(props.latest_rate?.rate_usd)
                 || 1;
+            form.sls_payment_condition = sale.sls_payment_condition || 'cash';
+            form.sls_credit_days = Number(sale.sls_credit_days) || 0;
+            form.sls_due_date = sale.sls_due_date ? String(sale.sls_due_date).split(' ')[0] : form.sls_date;
         }
 
         if (!isInitializing.value) {
@@ -352,6 +385,56 @@ const columns: ColumnConfig[] = [
                                     </option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Condición de Pago</label>
+                                <select
+                                    v-model="form.sls_payment_condition"
+                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    @change="handleConditionChange"
+                                >
+                                    <option value="cash">Contado</option>
+                                    <option value="credit">Crédito</option>
+                                </select>
+                                <p
+                                    v-if="form.errors.sls_payment_condition"
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{ form.errors.sls_payment_condition }}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Días Crédito</label>
+                                <Input
+                                    v-model="form.sls_credit_days"
+                                    type="number"
+                                    min="0"
+                                    max="365"
+                                    @input="updateDueDate"
+                                />
+                                <p
+                                    v-if="form.errors.sls_credit_days"
+                                    class="mt-1 text-xs text-destructive"
+                                >
+                                    {{ form.errors.sls_credit_days }}
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha Vencimiento</label>
+                            <Input
+                                v-model="form.sls_due_date"
+                                type="date"
+                                disabled
+                            />
+                            <p
+                                v-if="form.errors.sls_due_date"
+                                class="mt-1 text-xs text-destructive"
+                            >
+                                {{ form.errors.sls_due_date }}
+                            </p>
                         </div>
 
                         <div class="rounded-lg border bg-muted/30 p-4">

@@ -18,7 +18,7 @@ class SaleOrderFactory extends Factory
     {
         return [
             'sls_number' => fake()->unique()->numerify('SLS-#####'),
-            'sls_date' => fake()->date(),
+            'sls_date' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
             'sls_trans_type_code' => TransactionType::inRandomOrder()->first()->trans_type_code ?? 'FACV',
             'sls_customer_id' => Customer::factory(),
             'sls_valorcam' => fake()->randomFloat(4, 1, 100),
@@ -28,6 +28,9 @@ class SaleOrderFactory extends Factory
             'sls_iva' => fake()->randomFloat(4, 0, 200),
             'sls_total' => fake()->randomFloat(4, 10, 1300),
             'sls_status' => 'pending',
+            'sls_payment_condition' => 'cash',
+            'sls_credit_days' => 0,
+            'sls_due_date' => fn (array $attrs) => $attrs['sls_date'],
         ];
     }
 

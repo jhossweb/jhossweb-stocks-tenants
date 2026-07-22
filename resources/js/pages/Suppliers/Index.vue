@@ -9,6 +9,7 @@ interface Supplier {
     supplier_phone: string;
     supplier_email: string;
     supplier_website: string | null;
+    supplier_credit_days: number;
     created_at: string;
 }
 
@@ -51,6 +52,7 @@ const { suppliers } = defineProps<{
                     <thead class="border-b bg-muted/50 text-[10px] font-bold uppercase text-muted-foreground">
                         <tr>
                             <th class="px-4 py-4 text-left">Nombre</th>
+                            <th class="px-4 py-4 text-left">Días Créd.</th>
                             <th class="px-4 py-4 text-left">Teléfono</th>
                             <th class="px-4 py-4 text-left">Email</th>
                             <th class="px-4 py-4 text-left">Dirección</th>
@@ -59,7 +61,7 @@ const { suppliers } = defineProps<{
                     </thead>
                     <tbody class="divide-y">
                         <tr v-if="suppliers.data.length === 0">
-                            <td colspan="5" class="px-4 py-12 text-center text-muted-foreground">
+                            <td colspan="6" class="px-4 py-12 text-center text-muted-foreground">
                                 <Building2 class="mx-auto mb-4 size-12 text-muted-foreground/30" />
                                 <p>No hay proveedores registrados</p>
                             </td>
@@ -67,6 +69,9 @@ const { suppliers } = defineProps<{
                         <tr v-for="supplier in suppliers.data" :key="supplier.id" class="hover:bg-muted/30 transition-colors">
                             <td class="px-4 py-4 font-medium whitespace-nowrap">
                                 {{ supplier.supplier_name }}
+                            </td>
+                            <td class="px-4 py-4 text-muted-foreground whitespace-nowrap">
+                                <span :class="supplier.supplier_credit_days > 0 ? 'text-amber-400' : 'text-zinc-500'">{{ supplier.supplier_credit_days }} días</span>
                             </td>
                             <td class="px-4 py-4 text-muted-foreground">{{ supplier.supplier_phone }}</td>
                             <td class="px-4 py-4 text-muted-foreground">{{ supplier.supplier_email }}</td>

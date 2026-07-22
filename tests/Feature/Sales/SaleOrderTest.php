@@ -111,6 +111,9 @@ test('store creates a sale with valid data', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 16.0000,
         'sls_total' => 116.0000,
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,
@@ -153,6 +156,9 @@ test('store validates unique sls_number', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 16.0000,
         'sls_total' => 116.0000,
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,
@@ -180,6 +186,9 @@ test('store validates insufficient stock', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 16.0000,
         'sls_total' => 116.0000,
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,
@@ -226,6 +235,9 @@ test('update modifies a sale', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 32.0000,
         'sls_total' => 232.0000,
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,
@@ -273,6 +285,9 @@ test('update removes old items when not in request', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 8.0000,
         'sls_total' => 58.0000,
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,

@@ -20,6 +20,7 @@ class CustomerFactory extends Factory
             'clt_phone' => fake()->unique()->phoneNumber(),
             'clt_email' => fake()->unique()->companyEmail(),
             'clt_website' => fake()->optional()->url(),
+            'clt_credit_days' => fake()->numberBetween(0, 90),
         ];
     }
 }

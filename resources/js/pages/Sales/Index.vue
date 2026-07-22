@@ -9,6 +9,9 @@ interface Sale {
     sls_date: string;
     sls_total: string;
     sls_status: string;
+    sls_payment_condition?: string;
+    sls_credit_days?: number;
+    sls_due_date?: string;
     customer?: { clt_name: string; };
     created_at: string;
 }
@@ -48,6 +51,9 @@ const props = defineProps<{
                             <tr>
                                 <th class="px-4 py-4 text-left">Factura</th>
                                 <th class="px-4 py-4 text-left">Cliente</th>
+                                <th class="px-4 py-4 text-center">Cond. Pago</th>
+                                <th class="px-4 py-4 text-center">Días Créd.</th>
+                                <th class="px-4 py-4 text-left">Vencimiento</th>
                                 <th class="px-4 py-4 text-left">Fecha</th>
                                 <th class="px-4 py-4 text-right">Total</th>
                                 <th class="px-4 py-4 text-center">Estado</th>
@@ -56,7 +62,7 @@ const props = defineProps<{
                         </thead>
                         <tbody class="divide-y divide-zinc-800">
                             <tr v-if="sales.data.length === 0">
-                                <td colspan="6" class="px-4 py-12 text-center text-zinc-500">
+                                <td colspan="9" class="px-4 py-12 text-center text-zinc-500">
                                     <ShoppingBag class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
                                     <p>No hay ventas registradas</p>
                                 </td>
@@ -64,6 +70,13 @@ const props = defineProps<{
                             <tr v-for="sale in sales.data" :key="sale.id" class="hover:bg-zinc-800/30 transition-colors">
                                 <td class="px-4 py-4 font-mono text-xs">#{{ sale.sls_number }}</td>
                                 <td class="px-4 py-4">{{ sale.customer?.clt_name ?? 'Desconocido' }}</td>
+                                <td class="px-4 py-4 text-center">
+                                    <span :class="sale.sls_payment_condition === 'credit' ? 'text-amber-400' : 'text-zinc-400'">{{ sale.sls_payment_condition === 'credit' ? 'Crédito' : 'Contado' }}</span>
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    <span :class="(sale.sls_credit_days ?? 0) > 0 ? 'text-amber-400' : 'text-zinc-500'">{{ sale.sls_credit_days ?? 0 }} días</span>
+                                </td>
+                                <td class="px-4 py-4">{{ sale.sls_due_date ? formatDate(sale.sls_due_date) : '-' }}</td>
                                 <td class="px-4 py-4">{{ formatDate(sale.sls_date) }}</td>
                                 <td class="px-4 py-4 text-right font-mono">${{ sale.sls_total }}</td>
                                 <td class="px-4 py-4 text-center">

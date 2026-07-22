@@ -18,7 +18,9 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             $table->decimal('acr_total', 10, 4);
+            $table->decimal('acr_total_usd', 12, 4)->nullable();
             $table->decimal('acr_balance', 10, 4);
+            $table->decimal('acr_balance_usd', 12, 4)->nullable();
             $table->string('acr_status', 20)->default('pending');
 
             $table->timestamps();
