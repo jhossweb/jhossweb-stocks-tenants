@@ -9,11 +9,28 @@ const props = defineProps<{
     amounts: CurrencyMap;
     trend?: TrendData;
     primaryCurrency?: string;
+    variant?: 'default' | 'success' | 'danger' | 'info';
 }>();
 
 const emit = defineEmits<{
     click: [];
 }>();
+
+const amountColor = (currency: string): string => {
+    if (props.variant === 'success') {
+return 'text-emerald-500';
+}
+
+    if (props.variant === 'danger') {
+return 'text-red-500';
+}
+
+    if (props.variant === 'info') {
+return 'text-sky-500';
+}
+
+    return currency === (props.primaryCurrency ?? 'USD') ? 'text-foreground' : 'text-muted-foreground';
+};
 
 function formatAmount(value: number | undefined): string {
     if (value === undefined || value === null) {
@@ -46,7 +63,7 @@ function currencySymbol(currency: string): string {
 
 <template>
     <Card
-        class="cursor-pointer transition-shadow hover:shadow-md"
+        class="h-full cursor-pointer transition-shadow hover:shadow-md"
         @click="emit('click')"
     >
         <CardContent class="flex flex-col gap-2">
@@ -70,7 +87,7 @@ function currencySymbol(currency: string): string {
                 :class="[
                     'font-semibold',
                     currency === (primaryCurrency ?? 'USD')
-                        ? 'text-foreground text-2xl'
+                        ? amountColor(currency) + ' text-2xl'
                         : 'text-muted-foreground text-sm',
                 ]"
             >

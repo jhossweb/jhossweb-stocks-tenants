@@ -17,6 +17,7 @@ class PurchaseOrderObserver
     public function created(PurchaseOrder $purchaseOrder): void
     {
         DashboardCacheInvalidator::payables($purchaseOrder->invoice_date?->format('Y-m'));
+        DashboardCacheInvalidator::purchases($purchaseOrder->invoice_date?->format('Y-m'));
 
         if (strtoupper($purchaseOrder->invoice_trans_type_code) !== 'FAC') {
             return;
@@ -88,6 +89,7 @@ class PurchaseOrderObserver
     public function updated(PurchaseOrder $purchaseOrder): void
     {
         DashboardCacheInvalidator::payables($purchaseOrder->invoice_date?->format('Y-m'));
+        DashboardCacheInvalidator::purchases($purchaseOrder->invoice_date?->format('Y-m'));
 
         $accountsPayable = $purchaseOrder->accountsPayable;
         if ($accountsPayable) {
@@ -124,6 +126,7 @@ class PurchaseOrderObserver
     public function deleted(PurchaseOrder $purchaseOrder): void
     {
         DashboardCacheInvalidator::payables($purchaseOrder->invoice_date?->format('Y-m'));
+        DashboardCacheInvalidator::purchases($purchaseOrder->invoice_date?->format('Y-m'));
         $purchaseOrder->accountsPayable()?->delete();
     }
 }

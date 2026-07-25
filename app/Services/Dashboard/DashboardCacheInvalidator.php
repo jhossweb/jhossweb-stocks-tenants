@@ -22,6 +22,17 @@ class DashboardCacheInvalidator
         }
     }
 
+    public static function purchases(?string $month = null): void
+    {
+        if ($month) {
+            $prev = date('Y-m', strtotime("{$month}-01 -1 month"));
+            Cache::forget("dashboard:purchases:total:{$month}");
+            Cache::forget("dashboard:purchases:total:{$prev}");
+            Cache::forget("dashboard:purchases:pending:{$month}");
+            Cache::forget("dashboard:purchases:supplier_count:{$month}");
+        }
+    }
+
     public static function products(?string $month = null): void
     {
         Cache::forget('dashboard:products:total_skus');

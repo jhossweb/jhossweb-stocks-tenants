@@ -20,7 +20,8 @@ defineOptions({
     <Head title="Confirm password" />
 
     <Form
-        v-bind="store.form()"
+        method="post"
+        :action="store().url"
         reset-on-success
         v-slot="{ errors, processing }"
     >

@@ -45,7 +45,9 @@ const friendlySourceName = (type: string | null | undefined): string => {
         'App\\Models\\AccountPayments': 'Pago',
     };
 
-    if (!type) return '—';
+    if (!type) {
+return '—';
+}
 
     return map[type] ?? type.split('\\').pop() ?? type;
 };

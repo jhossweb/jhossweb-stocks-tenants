@@ -6,6 +6,7 @@ use App\Repositories\Dashboard\CashFlowKpiRepository;
 use App\Repositories\Dashboard\ExpenseKpiRepository;
 use App\Repositories\Dashboard\PayableKpiRepository;
 use App\Repositories\Dashboard\ProductKpiRepository;
+use App\Repositories\Dashboard\PurchaseKpiRepository;
 use App\Repositories\Dashboard\ReceivableKpiRepository;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,6 +19,7 @@ class AnalyticsController extends Controller
         protected ReceivableKpiRepository $receivableKpiRepo,
         protected PayableKpiRepository $payableKpiRepo,
         protected ProductKpiRepository $productKpiRepo,
+        protected PurchaseKpiRepository $purchaseKpiRepo,
     ) {}
 
     public function show(string $type, Request $request)
@@ -30,6 +32,10 @@ class AnalyticsController extends Controller
             'receivables' => 'Analytics/Receivables',
             'payables' => 'Analytics/Payables',
             'products' => 'Analytics/Products',
+            'purchases-total' => 'Analytics/Purchases/Total',
+            'purchases-supplier' => 'Analytics/Purchases/Supplier',
+            'purchases-month' => 'Analytics/Purchases/Month',
+            'purchases-status' => 'Analytics/Purchases/Status',
         ];
 
         if (! isset($pageMap[$type])) {
@@ -72,6 +78,24 @@ class AnalyticsController extends Controller
                 'totalSkus' => $this->productKpiRepo->totalSkus(),
                 'lowStock' => $this->productKpiRepo->lowStock(),
             ],
+            'purchases-total' => [
+                'total' => $this->purchaseKpiRepo->totalByCurrency($month),
+                'trend' => $this->purchaseKpiRepo->trend($month),
+            ],
+            'purchases-supplier' => [
+                'total' => $this->purchaseKpiRepo->totalByCurrency($month),
+                'trend' => $this->purchaseKpiRepo->trend($month),
+                'supplierCount' => $this->purchaseKpiRepo->countSuppliers($month),
+            ],
+            'purchases-month' => [
+                'total' => $this->purchaseKpiRepo->totalByCurrency($month),
+                'trend' => $this->purchaseKpiRepo->trend($month),
+            ],
+            'purchases-status' => [
+                'total' => $this->purchaseKpiRepo->totalByCurrency($month),
+                'trend' => $this->purchaseKpiRepo->trend($month),
+                'pending' => $this->purchaseKpiRepo->pendingByCurrency($month),
+            ],
             default => [],
         };
     }
@@ -97,6 +121,18 @@ class AnalyticsController extends Controller
                 'topSelling' => $this->productKpiRepo->topSellingReport($month, 10),
                 'worstSelling' => $this->productKpiRepo->worstSellingReport($month, 10),
                 'lowStock' => $this->productKpiRepo->lowStock(),
+            ],
+            'purchases-total' => [
+                'purchases' => $this->purchaseKpiRepo->allPurchases($month),
+            ],
+            'purchases-supplier' => [
+                'bySupplier' => $this->purchaseKpiRepo->bySupplier($month),
+            ],
+            'purchases-month' => [
+                'byMonth' => $this->purchaseKpiRepo->byMonth(),
+            ],
+            'purchases-status' => [
+                'byStatus' => $this->purchaseKpiRepo->byStatus($month),
             ],
             default => [],
         };

@@ -56,7 +56,8 @@ onUnmounted(() => clearTwoFactorAuthData());
         />
 
         <Form
-            v-bind="SecurityController.update.form()"
+            method="put"
+            :action="SecurityController.update().url"
             :options="{
                 preserveScroll: true,
             }"
@@ -153,7 +154,8 @@ onUnmounted(() => clearTwoFactorAuthData());
                 </Button>
                 <Form
                     v-else
-                    v-bind="enable.form()"
+                    method="post"
+                    :action="enable().url"
                     @success="showSetupModal = true"
                     #default="{ processing }"
                 >
@@ -172,7 +174,7 @@ onUnmounted(() => clearTwoFactorAuthData());
             </p>
 
             <div class="relative inline">
-                <Form v-bind="disable.form()" #default="{ processing }">
+                <Form method="delete" :action="disable().url" #default="{ processing }">
                     <Button
                         variant="destructive"
                         type="submit"

@@ -27,6 +27,7 @@ const handleDelete = () => {
     if (!deletingCategory.value) {
         return;
     }
+
     router.delete(`/expense-categories/${deletingCategory.value.id}`, {
         preserveScroll: true,
         onSuccess: () => cancelDelete(),

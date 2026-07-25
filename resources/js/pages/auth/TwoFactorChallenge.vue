@@ -54,7 +54,8 @@ const code = ref<string>('');
     <div class="space-y-6">
         <template v-if="!showRecoveryInput">
             <Form
-                v-bind="store.form()"
+                method="post"
+                :action="store().url"
                 class="space-y-4"
                 reset-on-error
                 @error="code = ''"
@@ -101,11 +102,8 @@ const code = ref<string>('');
 
         <template v-else>
             <Form
-                v-bind="store.form()"
-                class="space-y-4"
-                reset-on-error
-                #default="{ errors, processing, clearErrors }"
-            >
+                method="post"
+                :action="store().url"
                 <Input
                     name="recovery_code"
                     type="text"

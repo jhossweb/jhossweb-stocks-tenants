@@ -2,8 +2,8 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import { Landmark, Calculator } from 'lucide-vue-next';
 import { ref, onMounted } from 'vue';
-import FormActions from '@/components/Form/FormActions.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
+import FormActions from '@/components/Form/FormActions.vue';
 import InputError from '@/components/InputError.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { today } from '@/composables/useDate';
@@ -37,10 +37,15 @@ const form = useForm({
 const valorcam = ref(props.latestRate ? Number(props.latestRate.rate_usd) : 1);
 
 const getBestRateForDate = (date: string): RateData | null => {
-    if (!props.rates || props.rates.length === 0) return null;
+    if (!props.rates || props.rates.length === 0) {
+return null;
+}
 
     const exact = props.rates.find(r => r.rate_date === date);
-    if (exact) return exact;
+
+    if (exact) {
+return exact;
+}
 
     const past = props.rates
         .filter(r => r.rate_date < date)
@@ -50,9 +55,18 @@ const getBestRateForDate = (date: string): RateData | null => {
 };
 
 const resolveRateValue = (coin: string, rate: RateData | LatestRate): number => {
-    if (coin === 'USD' || coin === 'BS' || coin === 'VES') return Number(rate.rate_usd);
-    if (coin === 'COP') return Number(rate.rate_cop);
-    if (coin === 'EUR') return Number(rate.rate_eur);
+    if (coin === 'USD' || coin === 'BS' || coin === 'VES') {
+return Number(rate.rate_usd);
+}
+
+    if (coin === 'COP') {
+return Number(rate.rate_cop);
+}
+
+    if (coin === 'EUR') {
+return Number(rate.rate_eur);
+}
+
     return Number(rate.rate_usd);
 };
 

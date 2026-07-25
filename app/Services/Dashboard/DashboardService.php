@@ -6,6 +6,7 @@ use App\Repositories\Dashboard\CashFlowKpiRepository;
 use App\Repositories\Dashboard\ExpenseKpiRepository;
 use App\Repositories\Dashboard\PayableKpiRepository;
 use App\Repositories\Dashboard\ProductKpiRepository;
+use App\Repositories\Dashboard\PurchaseKpiRepository;
 use App\Repositories\Dashboard\ReceivableKpiRepository;
 
 class DashboardService
@@ -16,6 +17,8 @@ class DashboardService
         protected ReceivableKpiRepository $receivableKpiRepo,
         protected PayableKpiRepository $payableKpiRepo,
         protected ProductKpiRepository $productKpiRepo,
+        protected PurchaseKpiRepository $purchaseKpiRepo,
+        protected ProfitLossService $profitLossService,
     ) {}
 
     public function getKpis(?string $month): array
@@ -37,15 +40,25 @@ class DashboardService
             return $value;
         };
 
-        // --- Expenses ---
-        $expensesTotal = $read(
-            "dashboard:expenses:total:{$month}",
-            fn () => $this->expenseKpiRepo->totalByCurrency($month),
+        // --- Expenses (Fijo / Variable) ---
+        $expensesFijo = $read(
+            "dashboard:expenses:fijo:{$month}",
+            fn () => $this->expenseKpiRepo->totalFijoByCurrency($month),
         );
 
-        $expensesPrevTotal = $read(
-            "dashboard:expenses:total:{$prevMonth}",
-            fn () => $this->expenseKpiRepo->totalByCurrency($prevMonth),
+        $expensesFijoPrev = $read(
+            "dashboard:expenses:fijo:{$prevMonth}",
+            fn () => $this->expenseKpiRepo->totalFijoByCurrency($prevMonth),
+        );
+
+        $expensesVariable = $read(
+            "dashboard:expenses:variable:{$month}",
+            fn () => $this->expenseKpiRepo->totalVariableByCurrency($month),
+        );
+
+        $expensesVariablePrev = $read(
+            "dashboard:expenses:variable:{$prevMonth}",
+            fn () => $this->expenseKpiRepo->totalVariableByCurrency($prevMonth),
         );
 
         // --- Cash Flow ---
@@ -92,15 +105,46 @@ class DashboardService
             fn () => $this->productKpiRepo->worstSelling(5, $month),
         );
 
+        // --- Profit & Loss ---
+        $profitLoss = $read(
+            "dashboard:profitloss:{$month}",
+            fn () => $this->profitLossService->getProfitLoss($month),
+        );
+
+        // --- Purchases ---
+        $purchasesTotal = $read(
+            "dashboard:purchases:total:{$month}",
+            fn () => $this->purchaseKpiRepo->totalByCurrency($month),
+        );
+
+        $purchasesPrevTotal = $read(
+            "dashboard:purchases:total:{$prevMonth}",
+            fn () => $this->purchaseKpiRepo->totalByCurrency($prevMonth),
+        );
+
+        $purchasesPending = $read(
+            "dashboard:purchases:pending:{$month}",
+            fn () => $this->purchaseKpiRepo->pendingByCurrency($month),
+        );
+
+        $purchasesSupplierCount = $read(
+            "dashboard:purchases:supplier_count:{$month}",
+            fn () => $this->purchaseKpiRepo->countSuppliers($month),
+        );
+
         // --- Compute aggregates locally (no extra queries) ---
         $cashFlowNet = $this->computeNetByCurrency($cashFlowInflow, $cashFlowOutflow);
         $prevNet = $this->computeNetByCurrency($prevInflow, $prevOutflow);
 
         return [
-            'expenses' => [
-                'total' => $expensesTotal,
-                'pending' => $read('dashboard:expenses:pending', fn () => $this->expenseKpiRepo->pendingBalance()),
-                'trend' => $this->computeTrend($expensesTotal, $expensesPrevTotal),
+            'profitLoss' => $profitLoss,
+            'expensesFijo' => [
+                'total' => $expensesFijo,
+                'trend' => $this->computeTrend($expensesFijo, $expensesFijoPrev),
+            ],
+            'expensesVariable' => [
+                'total' => $expensesVariable,
+                'trend' => $this->computeTrend($expensesVariable, $expensesVariablePrev),
             ],
             'cashFlow' => [
                 'inflow' => $cashFlowInflow,
@@ -124,7 +168,107 @@ class DashboardService
                 'topSelling' => $productsTop,
                 'worstSelling' => $productsWorst,
             ],
+            'purchases' => [
+                'total' => $purchasesTotal,
+                'trend' => $this->computeTrend($purchasesTotal, $purchasesPrevTotal),
+                'supplierCount' => $purchasesSupplierCount,
+                'pending' => $purchasesPending,
+            ],
         ];
+    }
+
+    public function getCategoryAggregates(?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+        $prevMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
+
+        $cache = new DashboardCache;
+        $cache->prefetch($month);
+
+        $read = function (string $key, callable $fallback) use ($cache) {
+            if ($cache->has($key)) {
+                return $cache->get($key);
+            }
+
+            $value = $fallback();
+            $cache->set($key, $value);
+
+            return $value;
+        };
+
+        // --- Ventas ---
+        $profitLoss = $read(
+            "dashboard:profitloss:{$month}",
+            fn () => $this->profitLossService->getProfitLoss($month),
+        );
+
+        // --- Gastos (fijo + variable combinados) ---
+        $expensesFijo = $read(
+            "dashboard:expenses:fijo:{$month}",
+            fn () => $this->expenseKpiRepo->totalFijoByCurrency($month),
+        );
+        $expensesVariable = $read(
+            "dashboard:expenses:variable:{$month}",
+            fn () => $this->expenseKpiRepo->totalVariableByCurrency($month),
+        );
+        $expensesFijoPrev = $read(
+            "dashboard:expenses:fijo:{$prevMonth}",
+            fn () => $this->expenseKpiRepo->totalFijoByCurrency($prevMonth),
+        );
+        $expensesVariablePrev = $read(
+            "dashboard:expenses:variable:{$prevMonth}",
+            fn () => $this->expenseKpiRepo->totalVariableByCurrency($prevMonth),
+        );
+
+        $gastosTotal = $this->sumByCurrency($expensesFijo, $expensesVariable);
+        $gastosPrevTotal = $this->sumByCurrency($expensesFijoPrev, $expensesVariablePrev);
+
+        // --- Finanzas ---
+        $receivablesBalance = $read(
+            'dashboard:receivables:balance',
+            fn () => $this->receivableKpiRepo->balanceByCurrency(),
+        );
+
+        // --- Compras ---
+        $purchasesTotal = $read(
+            "dashboard:purchases:total:{$month}",
+            fn () => $this->purchaseKpiRepo->totalByCurrency($month),
+        );
+
+        $purchasesPrevTotal = $read(
+            "dashboard:purchases:total:{$prevMonth}",
+            fn () => $this->purchaseKpiRepo->totalByCurrency($prevMonth),
+        );
+
+        return [
+            'ventas' => [
+                'total' => $profitLoss['revenue']['total'],
+                'trend' => $profitLoss['revenue']['trend'],
+            ],
+            'gastos' => [
+                'total' => $gastosTotal,
+                'trend' => $this->computeTrend($gastosTotal, $gastosPrevTotal),
+            ],
+            'finanzas' => [
+                'total' => collect($receivablesBalance)->map(fn ($item) => $item['balance'])->toArray(),
+            ],
+            'compras' => [
+                'total' => $purchasesTotal,
+                'trend' => $this->computeTrend($purchasesTotal, $purchasesPrevTotal),
+            ],
+        ];
+    }
+
+    private function sumByCurrency(array $a, array $b): array
+    {
+        $currencies = array_unique([...array_keys($a), ...array_keys($b)]);
+        $result = [];
+
+        foreach ($currencies as $currency) {
+            $result[$currency] = ($a[$currency] ?? 0) + ($b[$currency] ?? 0);
+        }
+
+        return $result;
     }
 
     private function computeNetByCurrency(array $inflow, array $outflow): array

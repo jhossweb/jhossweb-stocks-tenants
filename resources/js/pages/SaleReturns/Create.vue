@@ -59,7 +59,10 @@ const getWarehouseName = (id: number) => {
 };
 
 const updateDueDate = () => {
-    if (!form.sls_date) return;
+    if (!form.sls_date) {
+return;
+}
+
     const parts = form.sls_date.split('-');
     const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     date.setDate(date.getDate() + Number(form.sls_credit_days));
@@ -73,6 +76,7 @@ const handleConditionChange = () => {
     if (form.sls_payment_condition === 'cash') {
         form.sls_credit_days = 0;
     }
+
     updateDueDate();
 };
 
@@ -83,6 +87,7 @@ const selectCustomer = (customer: any) => {
     form.items = [];
     calculateTotals();
     fetchUnpaidSales(customer.id);
+
     if (customer.clt_credit_days > 0) {
         form.sls_payment_condition = 'credit';
         form.sls_credit_days = customer.clt_credit_days;

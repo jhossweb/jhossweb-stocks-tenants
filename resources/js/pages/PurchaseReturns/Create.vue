@@ -166,7 +166,10 @@ watch(selectedInvoiceId, (newVal) => {
 });
 
 const updateDueDate = () => {
-    if (!form.invoice_date) return;
+    if (!form.invoice_date) {
+return;
+}
+
     const parts = form.invoice_date.split('-');
     const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     date.setDate(date.getDate() + Number(form.invoice_credit_days));
@@ -180,11 +183,13 @@ const handleConditionChange = () => {
     if (form.invoice_payment_condition === 'cash') {
         form.invoice_credit_days = 0;
     }
+
     updateDueDate();
 };
 
 const selectSupplier = (supplier: any) => {
     form.invoice_supplier_id = supplier.id;
+
     if (supplier.supplier_credit_days > 0) {
         form.invoice_payment_condition = 'credit';
         form.invoice_credit_days = supplier.supplier_credit_days;

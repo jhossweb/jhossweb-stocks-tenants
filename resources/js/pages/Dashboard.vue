@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import {
-    Package,
-    AlertTriangle,
-} from 'lucide-vue-next';
 import { computed } from 'vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
-import { Card, CardContent } from '@/components/ui/card';
 import { dashboard } from '@/routes';
-import type { DashboardKpis } from '@/types/Dashboard';
+import type { CategoryAggregates } from '@/types/Dashboard';
 
 defineOptions({
     layout: {
@@ -22,7 +17,7 @@ defineOptions({
 });
 
 const props = defineProps<{
-    kpis: DashboardKpis;
+    categoryAggregates: CategoryAggregates;
     selectedMonth: string;
 }>();
 
@@ -47,35 +42,6 @@ const monthOptions = computed(() => {
 
     return options;
 });
-
-function formatAmount(value: number | undefined): string {
-    if (value === undefined || value === null) {
-        return '-';
-    }
-
-    return new Intl.NumberFormat('es', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-    }).format(value);
-}
-
-function getTopProduct(items: { pro_name: string; quantity: number }[]): string {
-    if (!items.length) {
-        return 'Sin ventas';
-    }
-
-    const top = items[0];
-
-    return `${top.pro_name} (${formatAmount(top.quantity)} unds)`;
-}
-
-function getLowStockAlert(count: number): string {
-    if (count === 0) {
-        return 'Sin productos con stock bajo';
-    }
-
-    return `${count} producto${count !== 1 ? 's' : ''} con stock bajo`;
-}
 </script>
 
 <template>
@@ -101,72 +67,31 @@ function getLowStockAlert(count: number): string {
 
         <div class="grid gap-4 md:grid-cols-3">
             <KpiCard
+                label="Ventas"
+                :amounts="categoryAggregates.ventas.total"
+                :trend="categoryAggregates.ventas.trend"
+                variant="success"
+                @click="goTo('/dashboard/ventas')"
+            />
+            <KpiCard
                 label="Gastos"
-                :amounts="kpis.expenses.total"
-                :trend="kpis.expenses.trend"
-                @click="goTo('/analytics/expenses')"
+                :amounts="categoryAggregates.gastos.total"
+                :trend="categoryAggregates.gastos.trend"
+                variant="danger"
+                @click="goTo('/dashboard/gastos')"
             />
             <KpiCard
-                label="Ingresos"
-                :amounts="kpis.cashFlow.inflow"
-                @click="goTo('/analytics/cash-flow')"
+                label="Compras"
+                :amounts="categoryAggregates.compras.total"
+                :trend="categoryAggregates.compras.trend"
+                @click="goTo('/dashboard/compras')"
             />
             <KpiCard
-                label="Egresos"
-                :amounts="kpis.cashFlow.outflow"
-                @click="goTo('/analytics/cash-flow')"
-            />
-            <KpiCard
-                label="Flujo Neto"
-                :amounts="kpis.cashFlow.net"
-                :trend="kpis.cashFlow.trend"
-                @click="goTo('/analytics/cash-flow')"
-            />
-            <KpiCard
-                label="CxC Clientes"
-                :amounts="kpis.receivables.balance"
-                @click="goTo('/analytics/receivables')"
-            />
-            <KpiCard
-                label="CxP Proveedores"
-                :amounts="kpis.payables.balance"
-                @click="goTo('/analytics/payables')"
+                label="Finanzas"
+                :amounts="categoryAggregates.finanzas.total"
+                variant="info"
+                @click="goTo('/dashboard/finanzas')"
             />
         </div>
-
-        <Card
-            class="cursor-pointer transition-shadow hover:shadow-md"
-            @click="goTo('/analytics/products')"
-        >
-            <CardContent class="flex flex-col gap-3">
-                <div class="flex items-center gap-2">
-                    <Package class="text-muted-foreground size-4" />
-                    <span class="text-sm font-medium">Productos</span>
-                </div>
-
-                <div class="grid gap-2 text-sm md:grid-cols-3">
-                    <div>
-                        <span class="text-muted-foreground">Total SKUs:</span>
-                        <span class="ml-1 font-semibold">{{ formatAmount(kpis.products.totalSkus) }}</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <AlertTriangle
-                            v-if="kpis.products.lowStock.length > 0"
-                            class="size-3.5 text-amber-500"
-                        />
-                        <span class="text-muted-foreground">Stock bajo:</span>
-                        <span class="ml-1 font-semibold">{{ getLowStockAlert(kpis.products.lowStock.length) }}</span>
-                    </div>
-                    <div>
-                        <span class="text-muted-foreground">Más vendido:</span>
-                        <span class="ml-1 font-semibold">{{ getTopProduct(kpis.products.topSelling) }}</span>
-                    </div>
-                    <div>
-                        <span class="text-muted-foreground">Menos vendido:</span>
-                        <span class="ml-1 font-semibold">{{ getTopProduct(kpis.products.worstSelling) }}</span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
     </div>
 </template>

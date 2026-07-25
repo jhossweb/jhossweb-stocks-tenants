@@ -18,6 +18,33 @@ class ExpenseKpiRepository
             ->toArray();
     }
 
+    public function totalFijoByCurrency(?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return $this->totalByCategoryType('fijo', $month);
+    }
+
+    public function totalVariableByCurrency(?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return $this->totalByCategoryType('variable', $month);
+    }
+
+    private function totalByCategoryType(string $type, string $month): array
+    {
+        return Expense::query()
+            ->selectRaw('e.exp_coin, SUM(e.exp_amount) as total')
+            ->from('expenses as e')
+            ->join('expense_categories as ec', 'ec.id', '=', 'e.exp_category_id')
+            ->whereRaw("TO_CHAR(e.exp_date, 'YYYY-MM') = ?", [$month])
+            ->where('ec.exc_type', $type)
+            ->groupBy('e.exp_coin')
+            ->pluck('total', 'exp_coin')
+            ->toArray();
+    }
+
     public function pendingBalance(): array
     {
         return Expense::query()

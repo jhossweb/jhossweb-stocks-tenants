@@ -48,15 +48,75 @@ export interface ProductKpis {
     worstSelling: ProductMovement[];
 }
 
+export interface ProfitLossItem {
+    total: CurrencyMap;
+    trend: TrendData;
+}
+
+export interface ProfitLossKpis {
+    revenue: ProfitLossItem;
+    cogs: ProfitLossItem;
+    grossProfit: ProfitLossItem;
+    expenses: ProfitLossItem;
+    netProfit: ProfitLossItem;
+}
+
 export interface DashboardKpis {
-    expenses: ExpenseKpis;
+    profitLoss: ProfitLossKpis;
+    expensesFijo: { total: CurrencyMap; trend: TrendData };
+    expensesVariable: { total: CurrencyMap; trend: TrendData };
     cashFlow: CashFlowKpis;
     receivables: ApArKpis;
     payables: ApArKpis;
     products: ProductKpis;
+    purchases: { total: CurrencyMap; trend: TrendData; supplierCount: number; pending: CurrencyMap };
 }
 
-export type KpiCardType = 'expenses' | 'inflow' | 'outflow' | 'net' | 'receivables' | 'payables';
+export interface CategoryAggregate {
+    total: CurrencyMap;
+    trend?: TrendData;
+}
+
+export interface CategoryAggregates {
+    ventas: CategoryAggregate;
+    gastos: CategoryAggregate;
+    finanzas: CategoryAggregate;
+    compras: CategoryAggregate;
+}
+
+export interface PurchaseItem {
+    invoice_number: string;
+    invoice_date: string;
+    supplier_name: string;
+    invoice_coin: string;
+    invoice_total: number;
+    invoice_status: string;
+}
+
+export interface SupplierPurchaseItem {
+    supplier_name: string;
+    invoice_coin: string;
+    total: number;
+}
+
+export interface MonthPurchaseItem {
+    month: string;
+    invoice_coin: string;
+    total: number;
+}
+
+export interface StatusPurchaseItem {
+    invoice_status: string;
+    invoice_coin: string;
+    total: number;
+}
+
+export interface PurchaseDetails {
+    purchases?: PurchaseItem[];
+    bySupplier?: SupplierPurchaseItem[];
+    byMonth?: MonthPurchaseItem[];
+    byStatus?: StatusPurchaseItem[];
+}
 
 // Detail Types
 export interface ExpenseCategoryItem {

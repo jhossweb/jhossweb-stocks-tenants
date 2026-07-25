@@ -116,7 +116,9 @@ const formatType = (type: string | null | undefined): string => {
         'App\\Models\\EmployeeDamage': 'Daño',
     };
 
-    if (!type) return '—';
+    if (!type) {
+return '—';
+}
 
     return map[type] ?? type.split('\\').pop() ?? type;
 };

@@ -42,7 +42,10 @@ const form = useForm({
 });
 
 const updateExchangeRate = () => {
-    if (!props.latestRate) return;
+    if (!props.latestRate) {
+return;
+}
+
     form.exp_coin = form.exp_coin;
 };
 

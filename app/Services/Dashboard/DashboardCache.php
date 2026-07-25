@@ -42,8 +42,8 @@ class DashboardCache
 
         return [
             // Current month
-            "dashboard:expenses:total:{$month}",
-            'dashboard:expenses:pending',
+            "dashboard:expenses:fijo:{$month}",
+            "dashboard:expenses:variable:{$month}",
             "dashboard:cashflow:inflow:{$month}",
             "dashboard:cashflow:outflow:{$month}",
             'dashboard:receivables:balance',
@@ -54,10 +54,17 @@ class DashboardCache
             'dashboard:products:low_stock',
             "dashboard:products:top:{$month}:5",
             "dashboard:products:worst:{$month}:5",
+            "dashboard:profitloss:{$month}",
+            "dashboard:purchases:total:{$month}",
+            "dashboard:purchases:pending:{$month}",
+            "dashboard:purchases:supplier_count:{$month}",
             // Previous month (for trend computation)
-            "dashboard:expenses:total:{$prev}",
+            "dashboard:expenses:fijo:{$prev}",
+            "dashboard:expenses:variable:{$prev}",
             "dashboard:cashflow:inflow:{$prev}",
             "dashboard:cashflow:outflow:{$prev}",
+            "dashboard:profitloss:{$prev}",
+            "dashboard:purchases:total:{$prev}",
         ];
     }
 }

@@ -45,7 +45,8 @@ const passwordInput = useTemplateRef('passwordInput');
                 </DialogTrigger>
                 <DialogContent>
                     <Form
-                        v-bind="ProfileController.destroy.form()"
+                        method="delete"
+                        :action="ProfileController.destroy().url"
                         reset-on-success
                         @error="() => passwordInput?.focus()"
                         :options="{

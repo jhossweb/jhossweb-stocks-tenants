@@ -37,7 +37,8 @@ defineProps<{
     </div>
 
     <Form
-        v-bind="store.form()"
+        method="post"
+        :action="store().url"
         :reset-on-success="['password']"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"

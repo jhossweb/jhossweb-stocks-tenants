@@ -383,6 +383,16 @@ resources/js/wayfinder/**
     - Reportes o agregaciones (kardex, totals de dashboard).
     - **NO** cachear operaciones transaccionales (crear orden, pagar, ajustar inventario).
     - Si tu caché usa el driver `database` (como en este proyecto), evalúa cambiarlo a `file` o `redis` en producción si los listados crecen mucho.
+12. **mvs_factor (movements_sales):** Relación entre `sale_orders` y `movements_sales`:
+
+    | Código | Factor | Significado |
+    |--------|--------|-------------|
+    | FACV (Factura Venta) | `-1` | Venta — reduce inventario |
+    | DEVV (Devolución Venta) | `1` | Retorno — aumenta inventario |
+    | FAC (Factura Compra) | `1` | Compra — aumenta inventario |
+    | DEVC (Devolución Compra) | `-1` | Devolución — reduce inventario |
+
+    Para COGS: INNER JOIN por `sls_number ↔ mvs_number` **y** `sls_trans_type_code ↔ mvs_trans_type_code`, filtrar `FACV` y `mvs_factor = '-1'`.
 
 ===
 
