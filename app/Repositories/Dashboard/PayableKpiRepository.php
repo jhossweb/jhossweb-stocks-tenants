@@ -3,6 +3,7 @@
 namespace App\Repositories\Dashboard;
 
 use App\Models\AccountsPayable;
+use Illuminate\Support\Facades\DB;
 
 class PayableKpiRepository
 {
@@ -43,9 +44,8 @@ class PayableKpiRepository
 
     public function bySupplier(): array
     {
-        return AccountsPayable::query()
+        return DB::table('accounts_payables as ap')
             ->selectRaw('s.supplier_name, po.invoice_coin, SUM(ap.acp_balance) as balance, SUM(ap.acp_balance_usd) as balance_usd')
-            ->from('accounts_payables as ap')
             ->join('purchase_orders as po', 'ap.acp_purchase_number', '=', 'po.invoice_number')
             ->join('suppliers as s', 'po.invoice_supplier_id', '=', 's.id')
             ->whereIn('ap.acp_status', ['pending', 'partial'])

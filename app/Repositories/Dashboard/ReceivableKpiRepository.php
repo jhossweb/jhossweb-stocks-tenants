@@ -3,6 +3,7 @@
 namespace App\Repositories\Dashboard;
 
 use App\Models\AccountsReceivable;
+use Illuminate\Support\Facades\DB;
 
 class ReceivableKpiRepository
 {
@@ -43,9 +44,8 @@ class ReceivableKpiRepository
 
     public function byCustomer(): array
     {
-        return AccountsReceivable::query()
-            ->selectRaw('c.customer_name, so.sls_coin, SUM(ar.acr_balance) as balance, SUM(ar.acr_balance_usd) as balance_usd')
-            ->from('accounts_receivable as ar')
+        return DB::table('accounts_receivable as ar')
+            ->selectRaw('c.clt_name as customer_name, so.sls_coin, SUM(ar.acr_balance) as balance, SUM(ar.acr_balance_usd) as balance_usd')
             ->join('sale_orders as so', 'ar.acr_sls_number', '=', 'so.sls_number')
             ->join('customers as c', 'so.sls_customer_id', '=', 'c.id')
             ->whereIn('ar.acr_status', ['pending', 'partial'])

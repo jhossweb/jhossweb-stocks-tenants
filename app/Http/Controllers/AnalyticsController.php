@@ -28,6 +28,8 @@ class AnalyticsController extends Controller
 
         $pageMap = [
             'expenses' => 'Analytics/Expenses',
+            'expenses-fijo' => 'Analytics/Expenses',
+            'expenses-variable' => 'Analytics/Expenses',
             'cash-flow' => 'Analytics/CashFlow',
             'receivables' => 'Analytics/Receivables',
             'payables' => 'Analytics/Payables',
@@ -49,6 +51,7 @@ class AnalyticsController extends Controller
             'summary' => $summary,
             'details' => Inertia::defer($deferred),
             'selectedMonth' => $month,
+            'analyticsType' => $type,
         ]);
     }
 
@@ -59,6 +62,16 @@ class AnalyticsController extends Controller
                 'total' => $this->expenseKpiRepo->totalByCurrency($month),
                 'pending' => $this->expenseKpiRepo->pendingBalance(),
                 'trend' => $this->expenseKpiRepo->trend($month),
+            ],
+            'expenses-fijo' => [
+                'total' => $this->expenseKpiRepo->totalFijoByCurrency($month),
+                'pending' => $this->expenseKpiRepo->pendingBalance(),
+                'trend' => $this->expenseKpiRepo->trendFijo($month),
+            ],
+            'expenses-variable' => [
+                'total' => $this->expenseKpiRepo->totalVariableByCurrency($month),
+                'pending' => $this->expenseKpiRepo->pendingBalance(),
+                'trend' => $this->expenseKpiRepo->trendVariable($month),
             ],
             'cash-flow' => [
                 'inflow' => $this->cashFlowKpiRepo->inflowByCurrency($month),
@@ -105,6 +118,12 @@ class AnalyticsController extends Controller
         return match ($type) {
             'expenses' => [
                 'byCategory' => $this->expenseKpiRepo->byCategory($month),
+            ],
+            'expenses-fijo' => [
+                'byCategory' => $this->expenseKpiRepo->byCategoryType('fijo', $month),
+            ],
+            'expenses-variable' => [
+                'byCategory' => $this->expenseKpiRepo->byCategoryType('variable', $month),
             ],
             'cash-flow' => [
                 'inflowByAccount' => $this->cashFlowKpiRepo->byAccount('inflow', $month),

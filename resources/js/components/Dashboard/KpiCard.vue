@@ -52,7 +52,7 @@ function sortedCurrencies(): [string, number][] {
 function currencySymbol(currency: string): string {
     const symbols: Record<string, string> = {
         USD: '$',
-        COP: '$',
+        COP: 'COP',
         BS: 'Bs',
         EUR: '€',
     };

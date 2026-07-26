@@ -65,6 +65,39 @@ class ExpenseKpiRepository
         return $this->computeTrend($current, $previous);
     }
 
+    public function trendFijo(string $month): array
+    {
+        return $this->trendByType('fijo', $month);
+    }
+
+    public function trendVariable(string $month): array
+    {
+        return $this->trendByType('variable', $month);
+    }
+
+    private function trendByType(string $type, string $month): array
+    {
+        $previousMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
+
+        $current = $this->totalRawByType($month, $type);
+        $previous = $this->totalRawByType($previousMonth, $type);
+
+        return $this->computeTrend($current, $previous);
+    }
+
+    private function totalRawByType(string $month, string $type): array
+    {
+        return Expense::query()
+            ->selectRaw('e.exp_coin, SUM(e.exp_amount) as total')
+            ->from('expenses as e')
+            ->join('expense_categories as ec', 'ec.id', '=', 'e.exp_category_id')
+            ->whereRaw("TO_CHAR(e.exp_date, 'YYYY-MM') = ?", [$month])
+            ->where('ec.exc_type', $type)
+            ->groupBy('e.exp_coin')
+            ->pluck('total', 'exp_coin')
+            ->toArray();
+    }
+
     private function totalRaw(string $month): array
     {
         return Expense::query()
@@ -84,6 +117,22 @@ class ExpenseKpiRepository
             ->join('expense_categories as ec', 'e.exp_category_id', '=', 'ec.id')
             ->from('expenses as e')
             ->whereRaw("TO_CHAR(e.exp_date, 'YYYY-MM') = ?", [$month])
+            ->groupBy('ec.id', 'e.exp_coin')
+            ->orderByDesc('total')
+            ->get()
+            ->toArray();
+    }
+
+    public function byCategoryType(string $type, ?string $month): array
+    {
+        $month ??= now()->format('Y-m');
+
+        return Expense::query()
+            ->selectRaw('ec.exc_name, ec.exc_type, e.exp_coin, SUM(e.exp_amount) as total')
+            ->join('expense_categories as ec', 'e.exp_category_id', '=', 'ec.id')
+            ->from('expenses as e')
+            ->whereRaw("TO_CHAR(e.exp_date, 'YYYY-MM') = ?", [$month])
+            ->where('ec.exc_type', $type)
             ->groupBy('ec.id', 'e.exp_coin')
             ->orderByDesc('total')
             ->get()

@@ -9,6 +9,7 @@ defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dashboard', href: '/dashboard' },
+            { title: 'Ventas', href: '/dashboard/ventas' },
             { title: 'Analítica de Productos', href: '/analytics/products' },
         ],
     },

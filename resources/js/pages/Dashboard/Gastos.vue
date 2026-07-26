@@ -75,14 +75,14 @@ const monthOptions = computed(() => {
                 :amounts="kpis.expensesFijo.total"
                 :trend="kpis.expensesFijo.trend"
                 variant="danger"
-                @click="goTo('/analytics/expenses')"
+                @click="goTo('/analytics/expenses-fijo')"
             />
             <KpiCard
                 label="Gastos Variables"
                 :amounts="kpis.expensesVariable.total"
                 :trend="kpis.expensesVariable.trend"
                 variant="danger"
-                @click="goTo('/analytics/expenses')"
+                @click="goTo('/analytics/expenses-variable')"
             />
         </div>
     </div>

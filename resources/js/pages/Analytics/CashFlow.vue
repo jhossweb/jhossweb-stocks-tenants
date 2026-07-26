@@ -10,6 +10,7 @@ defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dashboard', href: '/dashboard' },
+            { title: 'Finanzas', href: '/dashboard/finanzas' },
             { title: 'Flujo de Caja', href: '/analytics/cash-flow' },
         ],
     },
@@ -58,7 +59,7 @@ function formatAmount(value: number | undefined): string {
 function currencySymbol(currency: string): string {
     const symbols: Record<string, string> = {
         USD: '$',
-        COP: '$',
+        COP: 'COP',
         BS: 'Bs',
         EUR: '€',
     };

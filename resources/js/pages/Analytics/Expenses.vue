@@ -1,17 +1,30 @@
 <script setup lang="ts">
-import { Deferred, Head, router } from '@inertiajs/vue3';
+import { Deferred, Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
 import { Card, CardContent } from '@/components/ui/card';
 import type { CurrencyMap, TrendData, ExpenseDetails } from '@/types/Dashboard';
 
+const titleMap: Record<string, string> = {
+    expenses: 'Analítica de Gastos',
+    'expenses-fijo': 'Gastos Fijos',
+    'expenses-variable': 'Gastos Variables',
+};
+
+const breadcrumbMap: Record<string, string> = {
+    expenses: '/analytics/expenses',
+    'expenses-fijo': '/analytics/expenses-fijo',
+    'expenses-variable': '/analytics/expenses-variable',
+};
+
+const labelMap: Record<string, string> = {
+    expenses: 'Total Gastos',
+    'expenses-fijo': 'Total Gastos Fijos',
+    'expenses-variable': 'Total Gastos Variables',
+};
+
 defineOptions({
-    layout: {
-        breadcrumbs: [
-            { title: 'Dashboard', href: '/dashboard' },
-            { title: 'Analítica de Gastos', href: '/analytics/expenses' },
-        ],
-    },
+    layout: {},
 });
 
 const props = defineProps<{
@@ -22,7 +35,24 @@ const props = defineProps<{
     };
     details?: ExpenseDetails;
     selectedMonth: string;
+    analyticsType?: string;
 }>();
+
+const breadcrumbTitle = computed(() => titleMap[props.analyticsType ?? 'expenses'] ?? 'Analítica de Gastos');
+
+setLayoutProps({
+    breadcrumbs: [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Gastos', href: '/dashboard/gastos' },
+        {
+            title: breadcrumbTitle.value,
+            href: breadcrumbMap[props.analyticsType ?? 'expenses'] ?? '/analytics/expenses',
+        },
+    ],
+});
+
+
+const totalLabel = computed(() => labelMap[props.analyticsType ?? 'expenses'] ?? 'Total Gastos');
 
 const monthOptions = computed(() => {
     const options: { value: string; label: string }[] = [];
@@ -43,7 +73,8 @@ const selectedMonthLabel = computed(
 );
 
 function changeMonth(month: string) {
-    router.get(`/analytics/expenses`, { month }, { preserveState: true, preserveScroll: true });
+    const base = breadcrumbMap[props.analyticsType ?? 'expenses'] ?? '/analytics/expenses';
+    router.get(base, { month }, { preserveState: true, preserveScroll: true });
 }
 
 function formatAmount(value: number | undefined): string {
@@ -60,7 +91,7 @@ function formatAmount(value: number | undefined): string {
 function currencySymbol(currency: string): string {
     const symbols: Record<string, string> = {
         USD: '$',
-        COP: '$',
+        COP: 'COP',
         BS: 'Bs',
         EUR: '€',
     };
@@ -70,11 +101,11 @@ function currencySymbol(currency: string): string {
 </script>
 
 <template>
-    <Head title="Analítica de Gastos" />
+    <Head :title="breadcrumbTitle" />
 
     <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         <div class="flex items-center justify-between">
-            <h1 class="text-foreground text-xl font-semibold">Analítica de Gastos</h1>
+            <h1 class="text-foreground text-xl font-semibold">{{ breadcrumbTitle }}</h1>
             <select
                 :value="selectedMonth"
                 class="bg-background border-input rounded-lg border px-3 py-1.5 text-sm"
@@ -92,7 +123,7 @@ function currencySymbol(currency: string): string {
 
         <div class="grid gap-4 md:grid-cols-3">
             <KpiCard
-                label="Total Gastos"
+                :label="totalLabel"
                 :amounts="summary.total"
                 :trend="summary.trend"
             />
