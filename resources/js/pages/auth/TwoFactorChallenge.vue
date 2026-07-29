@@ -104,6 +104,12 @@ const code = ref<string>('');
             <Form
                 method="post"
                 :action="store().url"
+                class="space-y-4"
+                reset-on-error
+                @error="code = ''"
+                #default="{ errors, processing, clearErrors }"
+            >
+                <input type="hidden" name="code" :value="code" />
                 <Input
                     name="recovery_code"
                     type="text"

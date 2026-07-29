@@ -195,6 +195,10 @@ const mainNavItems: NavItem[] = [
                         title: 'Movimientos Bancarios',
                         href: '/bank-transaction-analysis',
                     },
+                    {
+                        title: 'Cierre de Caja',
+                        href: '/cash-closing',
+                    },
                 ],
             },
         ],

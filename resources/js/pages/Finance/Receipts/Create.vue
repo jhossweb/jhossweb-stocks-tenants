@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Save,
@@ -40,6 +40,7 @@ const props = defineProps<{
 }>();
 
 const isEditMode = computed(() => !!props.payment);
+const page = usePage();
 
 const { convertCurrency } = useCurrencyConversion();
 
@@ -146,6 +147,8 @@ const submit = () => {
         return;
     }
 
+    console.log('submit called', { totalToPay: totalToPay.value, payments: form.payments });
+
     form
         .transform((data) => ({
             ...data,
@@ -153,7 +156,9 @@ const submit = () => {
         }))
         .post(receiptRoutes.store.url(), {
             onSuccess: () => {
-                // Inertia sigue el redirect del backend automáticamente
+            },
+            onError: (errors) => {
+                console.error('Error al guardar cobro:', errors);
             },
         });
 };
@@ -396,12 +401,13 @@ const calculateConvertedBalance = (invoicePayment: any) => {
             </Button>
         </div>
 
-        <div v-if="Object.keys(form.errors).length > 0" class="rounded-xl border border-destructive/50 bg-destructive/10 p-4">
+        <div v-if="Object.keys(form.errors).length > 0 || Object.keys(page.props.errors).length > 0" class="rounded-xl border border-destructive/50 bg-destructive/10 p-4">
             <p class="mb-1 text-sm font-bold text-destructive">
                 Por favor, corrige los siguientes errores:
             </p>
             <ul class="list-inside list-disc text-xs text-destructive/80">
-                <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+                <li v-for="(error, key) in form.errors" :key="'form-'+key">{{ error }}</li>
+                <li v-for="(error, key) in page.props.errors" :key="'page-'+key">{{ error }}</li>
             </ul>
         </div>
 
@@ -587,8 +593,8 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                             <Input
                                                 type="number"
                                                 step="0.01"
-                                                v-model="invoice.amount"
-                                                @input="invoice.amount = Math.min(Number(invoice.amount), calculateConvertedBalance(invoice))"
+                                                :model-value="invoice.amount"
+                                                @update:model-value="invoice.amount = Math.min(Number($event), calculateConvertedBalance(invoice))"
                                                 class="text-right font-bold tabular-nums transition-all group-hover:border-primary/50"
                                             />
                                             <button

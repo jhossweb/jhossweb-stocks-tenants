@@ -7,6 +7,7 @@ use App\Http\Controllers\Expense\ExpenseCategoryController;
 use App\Http\Controllers\Expense\ExpenseController;
 use App\Http\Controllers\Finance\Bank\BankAccountController;
 use App\Http\Controllers\Finance\Bank\BankTransactionAnalysisController;
+use App\Http\Controllers\Finance\CashClosingController;
 use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
 use App\Http\Controllers\Finance\Cobranza\ReceiptController;
 use App\Http\Controllers\Inventory\InventoryAdjustmentController;
@@ -97,6 +98,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // -----------------------------------------------------------------------
     Route::resource('bank-accounts', BankAccountController::class);
     Route::get('bank-transaction-analysis', [BankTransactionAnalysisController::class, 'index'])->name('bank-transaction-analysis.index');
+
+    // Cierre de Caja
+    Route::prefix('cash-closing')->name('cash-closing.')->group(function () {
+        Route::get('/', [CashClosingController::class, 'index'])->name('index');
+        Route::get('/create', [CashClosingController::class, 'create'])->name('create');
+        Route::post('/', [CashClosingController::class, 'store'])->name('store');
+        Route::get('/{date}', [CashClosingController::class, 'show'])->name('show');
+    });
 
     // -----------------------------------------------------------------------
     // PRODUCTOS / INVENTARIO

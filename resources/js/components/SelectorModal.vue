@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search, Loader2, Check } from 'lucide-vue-next';
+import { Search, Loader2, Check, PlusCircle } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { 
