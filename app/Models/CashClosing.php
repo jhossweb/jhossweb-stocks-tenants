@@ -22,6 +22,8 @@ class CashClosing extends Model
         'cc_notes',
         'cc_closed_by',
         'cc_closed_at',
+        'cc_counted_details',
+        'cc_differences',
     ];
 
     protected function casts(): array
@@ -37,6 +39,8 @@ class CashClosing extends Model
             'cc_counted_amount' => 'decimal:4',
             'cc_difference' => 'decimal:4',
             'cc_closed_at' => 'datetime',
+            'cc_counted_details' => 'array',
+            'cc_differences' => 'array',
         ];
     }
 

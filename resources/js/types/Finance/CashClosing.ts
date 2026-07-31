@@ -1,5 +1,36 @@
 export type CashClosingStatus = 'balanced' | 'discrepancy'
 
+export interface ReceiptsByMethod {
+    EFECTIVO?: number
+    TRANSFERENCIA?: number
+    PAGO_MOVIL?: number
+    OTRO?: number
+    [key: string]: number | undefined
+}
+
+export interface ReceiptDetail {
+    coin: string
+    amount: number
+    method: string
+    reference: string
+    payment_date: string
+    document: string
+    customer: string
+    bank: string
+}
+
+export interface CountedDetail {
+    coin: string
+    method: string
+    counted: number
+}
+
+export interface GroupedReceipts {
+    [coin: string]: {
+        [method: string]: number
+    }
+}
+
 export interface CashClosingPreview {
     cc_date: string
     cc_opening_balance: number
@@ -7,10 +38,13 @@ export interface CashClosingPreview {
     cc_total_received: number
     cc_total_manual_inflows: number
     cc_total_manual_outflows: number
-    cc_expected_closing: number
-    cc_counted_amount: number
-    cc_difference: number
+    cc_expected_closing: number | null
+    cc_counted_amount: number | null
+    cc_difference: number | null
     cc_status: CashClosingStatus
+    receipts_by_method: ReceiptsByMethod
+    receipts_details: ReceiptDetail[]
+    grouped_receipts: GroupedReceipts
 }
 
 export interface CashMovementData {
@@ -37,15 +71,17 @@ export interface CashClosingRecord {
     cc_total_received: number
     cc_total_manual_inflows: number
     cc_total_manual_outflows: number
-    cc_expected_closing: number
-    cc_counted_amount: number
-    cc_difference: number
+    cc_expected_closing: number | null
+    cc_counted_amount: number | null
+    cc_difference: number | null
     cc_status: CashClosingStatus
     cc_notes: string | null
     cc_closed_by: number
     cc_closed_at: string
     closed_by: { id: number; name: string } | null
     movements: CashMovementRecord[]
+    cc_counted_details: CountedDetail[] | null
+    cc_differences: Record<string, number> | null
 }
 
 export interface LastClosing {

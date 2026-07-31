@@ -26,7 +26,7 @@ class BankTransactionFactory extends Factory
             'btr_reference' => fake()->bothify('REF-#####'),
             'btr_description' => fake()->sentence(),
             'btr_valorcam' => fake()->randomFloat(4, 0, 1000),
-            'btr_method' => fake()->randomElement(['EFECTIVO', 'TRANSFERENCIA', 'CHEQUE']),
+            'btr_method' => fake()->randomElement(['EFECTIVO', 'TRANSFERENCIA', 'PAGO_MOVIL']),
             'btr_transaction_date' => fake()->date(),
         ];
     }

@@ -12,6 +12,7 @@ use App\Models\Supplier;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
 use App\Services\Purchases\PurchaseOrderService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -39,7 +40,7 @@ class PurchaseOrderController extends Controller
     {
         return Inertia::render('Purchases/Create', [
             'suppliers' => Supplier::all(),
-            'products' => Product::all(),
+            'products' => $this->productCatalog(),
             'warehouses' => Warehouse::all(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
@@ -108,7 +109,7 @@ class PurchaseOrderController extends Controller
         return Inertia::render('Purchases/Edit', [
             'purchase' => $purchase,
             'suppliers' => Supplier::all(),
-            'products' => Product::all(),
+            'products' => $this->productCatalog(),
             'warehouses' => Warehouse::all(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
@@ -166,5 +167,10 @@ class PurchaseOrderController extends Controller
 
             return back()->withErrors(['error' => 'Ocurrió un error al actualizar la compra: '.$e->getMessage()]);
         }
+    }
+
+    private function productCatalog(): Collection
+    {
+        return Product::all(['pro_code', 'pro_name', 'pro_und', 'pro_iva', 'pro_conversion_factor']);
     }
 }

@@ -49,11 +49,12 @@ class CashClosingController extends Controller
     {
         $this->service->storeClosing(
             date: $request->input('cc_date'),
-            openingBalance: (float) $request->input('cc_opening_balance'),
-            countedAmount: (float) $request->input('cc_counted_amount'),
+            openingBalance: (float) ($request->input('cc_opening_balance', 0)),
             notes: $request->input('cc_notes'),
             movementsData: $request->input('movements', []),
             user: $request->user(),
+            countedDetails: $request->input('cc_counted_details', []),
+            differences: $request->input('cc_differences', []),
         );
 
         return redirect()->route('cash-closing.index')
@@ -69,8 +70,11 @@ class CashClosingController extends Controller
                 ->with('error', 'No se encontró un cierre para esta fecha.');
         }
 
+        $breakdown = $this->service->computeBreakdown($date);
+
         return Inertia::render('Finance/CashClosing/Show', [
             'closing' => $closing,
+            'breakdown' => $breakdown,
         ]);
     }
 }

@@ -52,8 +52,7 @@ class ReceiptService
                     ? ($this->rateService->getExactRateForDate($docDate) ?? $payRate)
                     : $payRate;
 
-                $rate = $this->rateService->getExactRateForDate($validated['payment_date']);
-                $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $rate);
+                $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $payRate);
 
                 $diferencial = $this->rateService->calculateDiferencial(
                     $paymentAmount,
@@ -81,21 +80,15 @@ class ReceiptService
                 $bankTransaction->btr_transactionable()->associate($acr);
                 $bankTransaction->save();
 
-                $acr->registerPayment(
+                $receipt = $acr->registerPayment(
                     $amountInDocCurrency,
                     TypeReceipt::RECEIPT->value,
                     $bankTransaction->id,
                     $amountUsd,
                 );
 
-                $receipt = $acr->payments()
-                    ->where('rec_bank_transaction_id', $bankTransaction->id)
-                    ->first();
-
-                if ($receipt) {
-                    $receipt->rec_diferencial = $diferencial;
-                    $receipt->save();
-                }
+                $receipt->rec_diferencial = $diferencial;
+                $receipt->save();
             }
         });
     }

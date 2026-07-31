@@ -86,13 +86,15 @@ function createCashClosingTestTables(): void
             $table->decimal('cc_total_received', 15, 4)->default(0);
             $table->decimal('cc_total_manual_inflows', 15, 4)->default(0);
             $table->decimal('cc_total_manual_outflows', 15, 4)->default(0);
-            $table->decimal('cc_expected_closing', 15, 4)->default(0);
-            $table->decimal('cc_counted_amount', 15, 4)->default(0);
-            $table->decimal('cc_difference', 15, 4)->default(0);
+            $table->decimal('cc_expected_closing', 15, 4)->nullable();
+            $table->decimal('cc_counted_amount', 15, 4)->nullable();
+            $table->decimal('cc_difference', 15, 4)->nullable();
             $table->string('cc_status', 20)->default('balanced');
             $table->text('cc_notes')->nullable();
             $table->foreignId('cc_closed_by')->constrained('users');
             $table->timestamp('cc_closed_at')->nullable();
+            $table->json('cc_counted_details')->nullable();
+            $table->json('cc_differences')->nullable();
             $table->timestamps();
         });
     }
@@ -233,7 +235,7 @@ test('preview calculates sales total correctly', function () {
 
     expect($preview['cc_opening_balance'])->toEqual(100.0);
     expect($preview['cc_total_sales'])->toEqual(800.0);
-    expect($preview['cc_expected_closing'])->toEqual(900.0);
+    expect($preview['cc_expected_closing'])->toBeNull();
 });
 
 test('preview excludes credit sales', function () {
@@ -288,10 +290,13 @@ test('store creates closing record with correct calculations', function () {
     $this->service->storeClosing(
         date: $date,
         openingBalance: 100,
-        countedAmount: 720,
         notes: 'Cierre del día',
         movementsData: $movements,
         user: $this->user,
+        countedDetails: [
+            ['coin' => 'USD', 'method' => 'EFECTIVO', 'counted' => 720],
+        ],
+        differences: ['USD' => 0],
     );
 
     expect(CashClosing::count())->toBe(1);
@@ -301,13 +306,17 @@ test('store creates closing record with correct calculations', function () {
     expect($record->cc_total_sales)->toEqual(600.0);
     expect($record->cc_total_manual_inflows)->toEqual(50.0);
     expect($record->cc_total_manual_outflows)->toEqual(30.0);
-    expect($record->cc_expected_closing)->toEqual(720.0);
-    expect($record->cc_counted_amount)->toEqual(720.0);
-    expect($record->cc_difference)->toEqual(0.0);
+    expect($record->cc_expected_closing)->toBeNull();
+    expect($record->cc_counted_amount)->toBeNull();
+    expect($record->cc_difference)->toBeNull();
     expect($record->cc_status)->toBe('balanced');
     expect($record->cc_notes)->toBe('Cierre del día');
     expect($record->cc_closed_by)->toBe($this->user->id);
     expect($record->cc_closed_at)->not->toBeNull();
+    expect($record->cc_counted_details)->toBeArray();
+    expect($record->cc_counted_details[0]['coin'])->toBe('USD');
+    expect($record->cc_counted_details[0]['counted'])->toEqual(720);
+    expect($record->cc_differences['USD'])->toEqual(0);
 });
 
 test('store marks discrepancy when counted differs from expected', function () {
@@ -316,15 +325,19 @@ test('store marks discrepancy when counted differs from expected', function () {
     $this->service->storeClosing(
         date: $date,
         openingBalance: 0,
-        countedAmount: 950,
         notes: null,
         movementsData: [],
         user: $this->user,
+        countedDetails: [
+            ['coin' => 'USD', 'method' => 'EFECTIVO', 'counted' => 950],
+        ],
+        differences: ['USD' => 950],
     );
 
     $record = CashClosing::first();
-    expect($record->cc_difference)->toEqual(950.0);
+    expect($record->cc_difference)->toBeNull();
     expect($record->cc_status)->toBe('discrepancy');
+    expect($record->cc_differences['USD'])->toEqual(950);
 });
 
 test('prevents duplicate closing for same date', function () {
@@ -374,10 +387,13 @@ test('store creates manual movement records', function () {
     $this->service->storeClosing(
         date: $date,
         openingBalance: 0,
-        countedAmount: 150,
         notes: null,
         movementsData: $movements,
         user: $this->user,
+        countedDetails: [
+            ['coin' => 'USD', 'method' => 'EFECTIVO', 'counted' => 150],
+        ],
+        differences: ['USD' => 0],
     );
 
     $record = CashClosing::first();
@@ -398,8 +414,8 @@ test('validate store request fails without required fields', function () {
 
     $response->assertSessionHasErrors([
         'cc_date',
-        'cc_opening_balance',
-        'cc_counted_amount',
+        'cc_counted_details',
+        'cc_differences',
     ]);
 });
 

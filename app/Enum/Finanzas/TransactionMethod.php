@@ -6,7 +6,7 @@ enum TransactionMethod: string
 {
     case CASH = 'EFECTIVO';
     case TRANSFER = 'TRANSFERENCIA';
-    case CHECK = 'CHEQUE';
+    case MOBILE_PAYMENT = 'PAGO_MOVIL';
     case OTHER = 'OTRO';
 
     public static function values(): array

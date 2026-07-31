@@ -1,25 +1,50 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { Landmark, Calculator } from 'lucide-vue-next';
-import { ref, computed, onMounted } from 'vue';
+import { computed, onMounted, shallowRef } from 'vue';
 import FormActions from '@/components/Form/FormActions.vue';
-import FormRowDelete from '@/components/Form/FormRowDelete.vue';
 import FormSection from '@/components/Form/FormSection.vue';
 import ItemsTable from '@/components/Form/ItemsTable.vue';
+import PurchaseItemRow from '@/components/Purchases/PurchaseItemRow.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
-import type { ColumnConfig } from '@/types/Transaction';
+import { today } from '@/composables/useDate';
+import type {
+    ColumnConfig,
+    LatestRate,
+    Product,
+    Rate,
+    Supplier,
+    TransactionItem,
+    Warehouse,
+} from '@/types/Transaction';
+
+interface Purchase {
+    id: number;
+    invoice_number: string;
+    invoice_date: string;
+    invoice_supplier_id: number | null;
+    invoice_valorcam: number | string;
+    invoice_coin: string;
+    invoice_subtotal: number | string;
+    invoice_exento: number | string;
+    invoice_iva: number | string;
+    invoice_total: number | string;
+    invoice_payment_condition: string;
+    invoice_credit_days: number | null;
+    invoice_due_date: string | null;
+    movements?: TransactionItem[];
+}
 
 const props = defineProps<{
-    purchase: any;
-    suppliers: any[];
-    products: any[];
-    warehouses: any[];
-    rates: any[];
+    purchase: Purchase;
+    suppliers: Supplier[];
+    products: Product[];
+    warehouses: Warehouse[];
+    rates: Rate[];
     coins: string[];
-    latest_rate: any;
-    ivas: string[];
+    latest_rate: LatestRate | null;
 }>();
 
 const prodRef = computed(() => props.products);
@@ -29,33 +54,56 @@ const latestRef = computed(() => props.latest_rate);
 
 const tx = useTransactionForm(prodRef, wareRef, ratesRef, latestRef);
 
-const valorcam = ref(Number(props.purchase.invoice_valorcam) || 1);
+const valorcam = shallowRef(Number(props.purchase.invoice_valorcam) || 1);
 
-const invoiceDueDate = props.purchase.invoice_due_date
-    ? String(props.purchase.invoice_due_date).split(' ')[0]
-    : new Date().toISOString().split('T')[0];
+let itemKeyCounter = 0;
+
+function nextItemKey(): string {
+    return `k${++itemKeyCounter}`;
+}
+
+function toDateInput(value: string | null | undefined): string {
+    if (!value) {
+        return today();
+    }
+
+    return value.includes('T') ? value.slice(0, 10) : value.split(' ')[0];
+}
+
+function createBlankItem(): TransactionItem {
+    return {
+        mov_pro_code: '',
+        mov_war_id: '',
+        mov_quantity: 1,
+        mov_unit_cost_ref: 0,
+        mov_unit_cost: 0,
+        mov_pro_iva: 0,
+        _pending: false,
+        _key: nextItemKey(),
+    };
+}
 
 const form = useForm({
     invoice_number: props.purchase.invoice_number || '',
-    invoice_date: props.purchase.invoice_date
-        ? String(props.purchase.invoice_date).split(' ')[0]
-        : new Date().toISOString().split('T')[0],
+    invoice_date: toDateInput(props.purchase.invoice_date),
     invoice_supplier_id: String(props.purchase.invoice_supplier_id || ''),
     invoice_valorcam: valorcam.value,
     invoice_coin: props.purchase.invoice_coin || 'USD',
-    invoice_payment_condition: props.purchase.invoice_payment_condition || 'cash',
+    invoice_payment_condition:
+        props.purchase.invoice_payment_condition || 'cash',
     invoice_credit_days: Number(props.purchase.invoice_credit_days) || 0,
-    invoice_due_date: invoiceDueDate,
-    items: props.purchase.purchaseItems?.map((i: any) => ({
-        mov_pro_code: i.mov_pro_code || '',
-        mov_war_id: i.mov_war_id || '',
-        mov_quantity: Number(i.mov_quantity) || 1,
-        mov_unit_cost_ref: Number(i.mov_unit_cost_ref) || 0,
-        mov_unit_cost: Number(i.mov_unit_cost) || 0,
-        mov_pro_iva: Number(i.mov_pro_iva) || 0,
-        id: i.id || undefined,
+    invoice_due_date: toDateInput(props.purchase.invoice_due_date),
+    items: (props.purchase.movements ?? []).map((item) => ({
+        mov_pro_code: item.mov_pro_code || '',
+        mov_war_id: item.mov_war_id ?? '',
+        mov_quantity: Number(item.mov_quantity) || 1,
+        mov_unit_cost_ref: Number(item.mov_unit_cost_ref) || 0,
+        mov_unit_cost: Number(item.mov_unit_cost) || 0,
+        mov_pro_iva: Number(item.mov_pro_iva) || 0,
+        id: item.id || undefined,
         _pending: false,
-    })) || [],
+        _key: nextItemKey(),
+    })) as TransactionItem[],
     invoice_subtotal: Number(props.purchase.invoice_subtotal) || 0,
     invoice_iva: Number(props.purchase.invoice_iva) || 0,
     invoice_exento: Number(props.purchase.invoice_exento) || 0,
@@ -69,16 +117,16 @@ if (form.items.length === 0) {
 const recalc = () => {
     tx.calculateTotals(
         form.items,
-        v => {
+        (v) => {
             form.invoice_subtotal = v;
         },
-        v => {
+        (v) => {
             form.invoice_iva = v;
         },
-        v => {
+        (v) => {
             form.invoice_exento = v;
         },
-        v => {
+        (v) => {
             form.invoice_total = v;
         },
     );
@@ -86,11 +134,15 @@ const recalc = () => {
 
 const updateDueDate = () => {
     if (!form.invoice_date) {
-return;
-}
+        return;
+    }
 
     const parts = form.invoice_date.split('-');
-    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    const date = new Date(
+        Number(parts[0]),
+        Number(parts[1]) - 1,
+        Number(parts[2]),
+    );
     date.setDate(date.getDate() + Number(form.invoice_credit_days));
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -111,26 +163,22 @@ const handleDateChange = () => {
     updateDueDate();
 };
 
-const selectSupplier = (supplier: any) => {
-    form.invoice_supplier_id = supplier.id;
+const selectSupplier = (supplier: Supplier) => {
+    form.invoice_supplier_id = String(supplier.id);
 
-    if (supplier.supplier_credit_days > 0) {
+    const creditDays = Number(supplier.supplier_credit_days) || 0;
+
+    if (creditDays > 0) {
         form.invoice_payment_condition = 'credit';
-        form.invoice_credit_days = supplier.supplier_credit_days;
+        form.invoice_credit_days = creditDays;
         updateDueDate();
     }
 };
 
-const selectProduct = (index: number, product: any) => {
+const selectProduct = (index: number, product: Product) => {
     const item = form.items[index];
     item.mov_pro_code = product.pro_code;
     item._pending = true;
-
-    const iva = tx.getProductIva(product.pro_code);
-
-    if (iva !== null) {
-        item.mov_pro_iva = iva;
-    }
 
     setTimeout(() => {
         item._pending = false;
@@ -157,7 +205,12 @@ const handleCostInput = (index: number) => {
 };
 
 const handleExchangeUpdate = () => {
-    tx.updateExchangeRate(form.invoice_date, form.invoice_coin, valorcam, recalc);
+    tx.updateExchangeRate(
+        form.invoice_date,
+        form.invoice_coin,
+        valorcam,
+        recalc,
+    );
 };
 
 const submit = () => {
@@ -168,23 +221,11 @@ const submit = () => {
 };
 
 onMounted(() => {
-    form.items.forEach(item => {
+    form.items.forEach((item) => {
         tx.updateCostRef(form.invoice_coin, valorcam.value, item);
     });
     updateDueDate();
 });
-
-function createBlankItem() {
-    return {
-        mov_pro_code: '',
-        mov_war_id: '',
-        mov_quantity: 1,
-        mov_unit_cost_ref: 0,
-        mov_unit_cost: 0,
-        mov_pro_iva: 0,
-        _pending: false,
-    };
-}
 
 const columns: ColumnConfig[] = [
     { key: 'product', label: 'Producto' },
@@ -218,10 +259,7 @@ const columns: ColumnConfig[] = [
                 Hay problemas con el envío:
             </p>
             <ul class="list-inside list-disc text-xs text-destructive/80">
-                <li
-                    v-for="(error, key) in form.errors"
-                    :key="key"
-                >
+                <li v-for="(error, key) in form.errors" :key="key">
                     {{ error }}
                 </li>
             </ul>
@@ -238,11 +276,11 @@ const columns: ColumnConfig[] = [
 
                     <div class="flex flex-col gap-5">
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">N° Factura</label>
-                            <Input
-                                v-model="form.invoice_number"
-                                type="text"
-                            />
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >N° Factura</label
+                            >
+                            <Input v-model="form.invoice_number" type="text" />
                             <p
                                 v-if="form.errors.invoice_number"
                                 class="mt-1 text-xs text-destructive"
@@ -252,17 +290,30 @@ const columns: ColumnConfig[] = [
                         </div>
 
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Proveedor</label>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >Proveedor</label
+                            >
                             <SelectorModal
                                 title="Seleccionar Proveedor"
                                 description="Busque y seleccione un proveedor de la lista"
                                 :items="suppliers"
-                                :search-fields="['supplier_name', 'name', 'supplier_rif', 'rif']"
+                                :search-fields="[
+                                    'supplier_name',
+                                    'name',
+                                    'supplier_rif',
+                                    'rif',
+                                ]"
                                 :display-fields="[
                                     { label: 'Nombre', key: 'supplier_name' },
                                     { label: 'RIF', key: 'supplier_rif' },
                                 ]"
-                                :trigger-label="tx.getSupplierName(suppliers, form.invoice_supplier_id)"
+                                :trigger-label="
+                                    tx.getSupplierName(
+                                        suppliers,
+                                        form.invoice_supplier_id,
+                                    )
+                                "
                                 :selected-value="form.invoice_supplier_id"
                                 @select="selectSupplier"
                             />
@@ -276,7 +327,10 @@ const columns: ColumnConfig[] = [
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha</label>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Fecha</label
+                                >
                                 <Input
                                     v-model="form.invoice_date"
                                     type="date"
@@ -284,10 +338,13 @@ const columns: ColumnConfig[] = [
                                 />
                             </div>
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Moneda</label>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Moneda</label
+                                >
                                 <select
                                     v-model="form.invoice_coin"
-                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
                                     @change="handleExchangeUpdate"
                                 >
                                     <option
@@ -303,10 +360,13 @@ const columns: ColumnConfig[] = [
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Condición de Pago</label>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Condición de Pago</label
+                                >
                                 <select
                                     v-model="form.invoice_payment_condition"
-                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
                                     @change="handleConditionChange"
                                 >
                                     <option value="cash">Contado</option>
@@ -320,7 +380,10 @@ const columns: ColumnConfig[] = [
                                 </p>
                             </div>
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Días Crédito</label>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Días Crédito</label
+                                >
                                 <Input
                                     v-model="form.invoice_credit_days"
                                     type="number"
@@ -337,7 +400,10 @@ const columns: ColumnConfig[] = [
                             </div>
                         </div>
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha Vencimiento</label>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >Fecha Vencimiento</label
+                            >
                             <Input
                                 v-model="form.invoice_due_date"
                                 type="date"
@@ -352,9 +418,15 @@ const columns: ColumnConfig[] = [
                         </div>
 
                         <div class="rounded-lg border bg-muted/30 p-4">
-                            <label class="mb-1.5 block text-xs font-bold uppercase text-muted-foreground">Tasa de Cambio</label>
+                            <label
+                                class="mb-1.5 block text-xs font-bold text-muted-foreground uppercase"
+                                >Tasa de Cambio</label
+                            >
                             <div class="mb-2 text-xs text-muted-foreground">
-                                Tasa del día: <span class="font-semibold text-primary">{{ valorcam }}</span>
+                                Tasa del día:
+                                <span class="font-semibold text-primary">{{
+                                    valorcam
+                                }}</span>
                             </div>
                             <Input
                                 v-model="valorcam"
@@ -368,24 +440,40 @@ const columns: ColumnConfig[] = [
                 </FormSection>
 
                 <!-- Totals Card -->
-                <div class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg">
-                    <Calculator class="text-primary-foreground/10 absolute -bottom-4 -right-4 size-24" />
+                <div
+                    class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg"
+                >
+                    <Calculator
+                        class="absolute -right-4 -bottom-4 size-24 text-primary-foreground/10"
+                    />
                     <div class="relative z-10 flex flex-col gap-3">
-                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                        <div
+                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
+                        >
                             <span>SUBTOTAL</span>
                             <span>{{ form.invoice_subtotal }}</span>
                         </div>
-                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                        <div
+                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
+                        >
                             <span>EXENTO</span>
                             <span>{{ form.invoice_exento }}</span>
                         </div>
-                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                        <div
+                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
+                        >
                             <span>IVA</span>
                             <span>{{ form.invoice_iva }}</span>
                         </div>
-                        <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
-                            <span class="text-sm font-bold uppercase">Total {{ form.invoice_coin }}</span>
-                            <span class="text-3xl font-black tabular-nums">{{ form.invoice_total }}</span>
+                        <div
+                            class="flex items-end justify-between border-t border-primary-foreground/10 pt-3"
+                        >
+                            <span class="text-sm font-bold uppercase"
+                                >Total {{ form.invoice_coin }}</span
+                            >
+                            <span class="text-3xl font-black tabular-nums">{{
+                                form.invoice_total
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -399,121 +487,20 @@ const columns: ColumnConfig[] = [
                     @add="addItem"
                 >
                     <TransitionGroup name="row">
-                        <tr
+                        <PurchaseItemRow
                             v-for="(item, index) in form.items"
-                            :key="index"
-                            class="hover:bg-muted/30 transition-colors"
-                        >
-                            <td class="min-w-[220px] p-3">
-                                <SelectorModal
-                                    title="Seleccionar Producto"
-                                    :items="products"
-                                    :search-fields="['pro_name', 'pro_code']"
-                                    :display-fields="[
-                                        { label: 'Código', key: 'pro_code', class: 'font-mono text-xs' },
-                                        { label: 'Nombre', key: 'pro_name' },
-                                        { label: 'Und', key: 'pro_und', class: 'font-mono text-xs text-center' },
-                                    ]"
-                                    :trigger-label="tx.getProductName(item.mov_pro_code)"
-                                    :selected-value="item.mov_pro_code"
-                                    trigger-class="bg-transparent border-none hover:bg-muted/50 w-full"
-                                    @select="(p: any) => selectProduct(index, p)"
-                                />
-                            </td>
-                            <td class="p-3">
-                                <select
-                                    v-model="item.mov_war_id"
-                                    class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                                >
-                                    <option
-                                        value=""
-                                    >
-                                        Seleccione...
-                                    </option>
-                                    <option
-                                        v-for="w in warehouses"
-                                        :key="w.id"
-                                        :value="w.id"
-                                    >
-                                        {{ w.war_name || w.id }}
-                                    </option>
-                                </select>
-                            </td>
-                            <td class="p-3 text-center">
-                                <span
-                                    v-if="item._pending"
-                                    class="bg-muted inline-block size-5 animate-pulse rounded"
-                                />
-                                <span
-                                    v-else
-                                    class="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary"
-                                >
-                                    {{ tx.getProductIvaLabel(item.mov_pro_code) }}
-                                </span>
-                            </td>
-                            <td class="p-3">
-                                <div class="flex items-center justify-center gap-1">
-                                    <input
-                                        v-model="item.mov_quantity"
-                                        type="number"
-                                        :step="tx.getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
-                                        :min="tx.getProductUnd(item.mov_pro_code) === 'und' ? 1 : 0.01"
-                                        class="border-input bg-background w-20 rounded-md border py-1.5 text-center text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                                        @input="handleQuantityInput(index)"
-                                    >
-                                    <span
-                                        v-if="item.mov_pro_code"
-                                        class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary"
-                                    >
-                                        {{ tx.getUndLabel(tx.getProductUnd(item.mov_pro_code)) }}
-                                    </span>
-                                </div>
-                                <div
-                                    v-if="item.mov_pro_code && ['mts', 'kg', 'm2'].includes(tx.getProductUnd(item.mov_pro_code)) && tx.getProductConversion(item.mov_pro_code) > 1"
-                                    class="mt-0.5 text-[10px] text-amber-500"
-                                >
-                                    ×{{ tx.getProductConversion(item.mov_pro_code) }}
-                                    {{ tx.getUndLabel(tx.getProductUnd(item.mov_pro_code)) }}
-                                </div>
-                            </td>
-                            <td class="p-3">
-                                <div class="flex items-center gap-1">
-                                    <input
-                                        v-model="item.mov_unit_cost"
-                                        type="number"
-                                        step="0.0001"
-                                        class="w-full border-none bg-transparent text-right text-sm font-bold focus:ring-0"
-                                        @input="handleCostInput(index)"
-                                    >
-                                    <span
-                                        v-if="item._pending"
-                                        class="bg-muted inline-block size-4 animate-pulse rounded"
-                                    />
-                                </div>
-                            </td>
-                            <td class="p-3 text-right">
-                                <span
-                                    v-if="item._pending"
-                                    class="bg-muted inline-block h-4 w-16 animate-pulse rounded"
-                                />
-                                <span
-                                    v-else
-                                    class="font-mono text-xs font-medium text-primary"
-                                >
-                                    {{ item.mov_unit_cost_ref }}
-                                </span>
-                            </td>
-                            <td class="p-3 text-right font-bold text-muted-foreground">
-                                <span
-                                    v-if="item._pending"
-                                    class="bg-muted inline-block h-4 w-16 animate-pulse rounded"
-                                />
-                                <span v-else>{{ tx.getItemTotal(item) }}</span>
-                            </td>
-                            <td class="p-3 text-center">
-                                <FormRowDelete @remove="removeItem(index)" />
-                            </td>
-                        </tr>
+                            :key="item._key ?? index"
+                            v-model="form.items[index]"
+                            :catalog="tx"
+                            :products="products"
+                            :warehouses="warehouses"
+                            @select-product="
+                                (p: Product) => selectProduct(index, p)
+                            "
+                            @quantity-input="handleQuantityInput(index)"
+                            @cost-input="handleCostInput(index)"
+                            @remove="removeItem(index)"
+                        />
                     </TransitionGroup>
                 </ItemsTable>
             </div>

@@ -15,7 +15,7 @@ class CashClosingService
     public function calculatePreview(string $date, float $openingBalance): array
     {
         $salesTotal = $this->repo->getCashSalesTotal($date);
-        $receivedTotal = $this->repo->getCashReceivedTotal($date);
+        $receivedTotal = $this->repo->getReceivedTotal($date);
 
         return [
             'cc_date' => $date,
@@ -24,17 +24,27 @@ class CashClosingService
             'cc_total_received' => $receivedTotal,
             'cc_total_manual_inflows' => 0,
             'cc_total_manual_outflows' => 0,
-            'cc_expected_closing' => round($openingBalance + $salesTotal + $receivedTotal, 4),
-            'cc_counted_amount' => 0,
-            'cc_difference' => 0,
+            'cc_expected_closing' => null,
+            'cc_counted_amount' => null,
+            'cc_difference' => null,
             'cc_status' => 'balanced',
+            'receipts_by_method' => $this->repo->getReceivedByMethod($date),
+            'receipts_details' => $this->repo->getReceivedDetails($date),
+            'grouped_receipts' => $this->repo->getGroupedReceipts($date),
         ];
     }
 
-    public function storeClosing(string $date, float $openingBalance, float $countedAmount, ?string $notes, array $movementsData, User $user): CashClosing
-    {
+    public function storeClosing(
+        string $date,
+        float $openingBalance,
+        ?string $notes,
+        array $movementsData,
+        User $user,
+        array $countedDetails,
+        array $differences,
+    ): CashClosing {
         $salesTotal = $this->repo->getCashSalesTotal($date);
-        $receivedTotal = $this->repo->getCashReceivedTotal($date);
+        $receivedTotal = $this->repo->getReceivedTotal($date);
 
         $manualInflows = 0;
         $manualOutflows = 0;
@@ -57,8 +67,7 @@ class CashClosingService
             ]);
         }
 
-        $expected = round($openingBalance + $salesTotal + $receivedTotal + $manualInflows - $manualOutflows, 4);
-        $difference = round($countedAmount - $expected, 4);
+        $anyDifference = collect($differences)->contains(fn ($diff) => (float) $diff !== 0.0);
 
         $closingData = [
             'cc_date' => $date,
@@ -67,15 +76,29 @@ class CashClosingService
             'cc_total_received' => $receivedTotal,
             'cc_total_manual_inflows' => $manualInflows,
             'cc_total_manual_outflows' => $manualOutflows,
-            'cc_expected_closing' => $expected,
-            'cc_counted_amount' => $countedAmount,
-            'cc_difference' => $difference,
-            'cc_status' => $difference === 0.0 ? 'balanced' : 'discrepancy',
+            'cc_expected_closing' => null,
+            'cc_counted_amount' => null,
+            'cc_difference' => null,
+            'cc_status' => $anyDifference ? 'discrepancy' : 'balanced',
             'cc_notes' => $notes,
             'cc_closed_by' => $user->id,
             'cc_closed_at' => now(),
+            'cc_counted_details' => $countedDetails,
+            'cc_differences' => $differences,
         ];
 
         return $this->repo->storeClosing($closingData, $movements);
+    }
+
+    /**
+     * @return array{receipts_by_method: array<string, float>, receipts_details: array<int, array{coin: string, amount: float, method: string, reference: string, payment_date: string, document: string, customer: string, bank: string}>, grouped_receipts: array<string, array<string, float>>}
+     */
+    public function computeBreakdown(string $date): array
+    {
+        return [
+            'receipts_by_method' => $this->repo->getReceivedByMethod($date),
+            'receipts_details' => $this->repo->getReceivedDetails($date),
+            'grouped_receipts' => $this->repo->getGroupedReceipts($date),
+        ];
     }
 }

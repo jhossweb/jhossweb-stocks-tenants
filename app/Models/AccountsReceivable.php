@@ -58,7 +58,7 @@ class AccountsReceivable extends Model
         return $this->saleOrder?->customer?->clt_name ?? 'Desconocido';
     }
 
-    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?float $amountUsd = null): void
+    public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?float $amountUsd = null): Receipt
     {
         $this->acr_balance -= $amount;
 
@@ -83,7 +83,7 @@ class AccountsReceivable extends Model
             $this->saleOrder->save();
         }
 
-        $this->payments()->create([
+        return $this->payments()->create([
             'rec_bank_transaction_id' => $bankTransactionId,
             'rec_type' => $type,
             'rec_amount' => $amount,

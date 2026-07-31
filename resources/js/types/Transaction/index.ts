@@ -7,6 +7,7 @@ export interface TransactionItem {
     mov_pro_iva: number;
     id?: number;
     _pending?: boolean;
+    _key?: string;
 }
 
 export interface TransactionTotals {
@@ -42,11 +43,12 @@ export interface Rate {
 }
 
 export interface LatestRate {
-    rate_usd: number;
-    rate_cop: number;
-    rate_eur: number;
+    rate_usd: number | string;
+    rate_cop: number | string;
+    rate_eur: number | string;
     rate_cop_bs?: number;
     rate_date?: string;
+    [key: string]: unknown;
 }
 
 export interface Warehouse {
