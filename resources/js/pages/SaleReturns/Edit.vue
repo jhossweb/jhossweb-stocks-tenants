@@ -231,7 +231,7 @@ const getItemTotal = (item: any) => {
     const baseTotal = Number(item.mvs_quantity) * Number(item.mvs_unit_price);
     const ivaRate = tx.getProductIvaRate(item.mvs_pro_code);
 
-    return (baseTotal + (baseTotal * ivaRate)).toFixed(2);
+    return (baseTotal + (baseTotal * ivaRate)).toFixed(4);
 };
 
 const submit = () => {

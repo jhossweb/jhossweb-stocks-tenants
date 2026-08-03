@@ -191,14 +191,14 @@ const deletePayment = (paymentId: number) => {
                                 <td class="px-4 py-4 font-mono text-xs">#{{ account.acp_purchase_number }}</td>
                                 <td class="px-4 py-4">{{ account.purchase_order?.supplier?.supplier_name ?? 'Desconocido' }}</td>
                                 <td class="px-4 py-4 text-right font-mono">
-                                    {{ parseFloat(account.acp_total).toFixed(2) }}
+                                    {{ parseFloat(account.acp_total).toFixed(4) }}
                                     <span v-if="account.purchase_order?.invoice_coin" class="text-[10px] text-zinc-500 ml-1">{{ account.purchase_order.invoice_coin }}</span>
                                 </td>
                                 <td class="px-4 py-4 text-right font-mono" :class="parseFloat(account.acp_balance) > 0 ? 'text-red-400' : 'text-green-400'">
-                                    {{ parseFloat(account.acp_balance).toFixed(2) }}
+                                    {{ parseFloat(account.acp_balance).toFixed(4) }}
                                     <span v-if="account.purchase_order?.invoice_coin" class="text-[10px] ml-1 opacity-60">{{ account.purchase_order.invoice_coin }}</span>
                                     <div v-if="account.acp_balance_usd && account.purchase_order?.invoice_coin !== 'USD'" class="text-[10px] text-zinc-500 font-normal">
-                                        ${{ parseFloat(account.acp_balance_usd).toFixed(2) }} USD
+                                        ${{ parseFloat(account.acp_balance_usd).toFixed(4) }} USD
                                     </div>
                                 </td>
                                 <td class="px-4 py-4 text-center">
@@ -253,7 +253,7 @@ const deletePayment = (paymentId: number) => {
                                     <div class="flex-1">
                                         <div class="flex items-center gap-2">
                                             <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
-                                                ${{ parseFloat(payment.apy_amount).toFixed(2) }}
+                                                ${{ parseFloat(payment.apy_amount).toFixed(4) }}
                                                 <span v-if="payment.bank_transaction?.btr_coin" class="text-xs font-normal text-gray-400 ml-1">{{ payment.bank_transaction.btr_coin }}</span>
                                             </h4>
                                             <span v-if="payment.apy_type === 'RETURN_CREDIT'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
@@ -279,7 +279,7 @@ const deletePayment = (paymentId: number) => {
                                             Nota: {{ payment.bank_transaction.btr_description }}
                                         </div>
                                         <div v-if="payment.bank_transaction?.btr_diferencial && parseFloat(payment.bank_transaction.btr_diferencial) !== 0" class="mt-2 text-xs font-semibold" :class="parseFloat(payment.bank_transaction.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
-                                            Diferencial: {{ parseFloat(payment.bank_transaction.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(parseFloat(payment.bank_transaction.btr_diferencial)).toFixed(2) }} USD
+                                            Diferencial: {{ parseFloat(payment.bank_transaction.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(parseFloat(payment.bank_transaction.btr_diferencial)).toFixed(4) }} USD
                                             <span class="font-normal text-gray-400">({{ parseFloat(payment.bank_transaction.btr_diferencial) > 0 ? 'Ganancia' : 'Pérdida' }})</span>
                                         </div>
                                     </div>

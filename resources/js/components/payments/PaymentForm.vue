@@ -264,10 +264,10 @@ watch(() => props.form.payment_date, () => updateExchangeRate())
             </div>
             <div class="flex items-baseline justify-between">
                 <span class="text-zinc-300 font-semibold">Total a pagar</span>
-                <span class="text-amber-400 font-black text-lg">{{ maxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
+                <span class="text-amber-400 font-black text-lg">{{ maxAmount.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }} {{ form.payment_currency }}</span>
             </div>
             <div class="text-xs text-zinc-500 text-right">
-                (equivalente a {{ Number(remainingBalance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ currency }})
+                (equivalente a {{ Number(remainingBalance).toLocaleString('en-US', { minimumFractionDigits: 4 }) }} {{ currency }})
             </div>
         </div>
 
@@ -298,15 +298,15 @@ watch(() => props.form.payment_date, () => updateExchangeRate())
             </Label>
             <Input
                 type="number"
-                step="0.01"
-                min="0.01"
+                step="0.0001"
+                min="0.0001"
                 v-model="form.amount"
                 :disabled="disableFields"
                 class="h-12 bg-zinc-950/50 border-zinc-800 rounded-xl text-right text-lg font-bold tabular-nums focus:ring-indigo-600"
                 :placeholder="remainingBalance.toString()"
             />
             <div class="flex justify-between text-xs">
-                <span class="text-zinc-500">Saldo pendiente: <strong class="text-zinc-300">{{ Number(remainingBalance).toLocaleString() }} {{ currency }}</strong></span>
+                <span class="text-zinc-500">Saldo pendiente: <strong class="text-zinc-300">{{ Number(remainingBalance).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }} {{ currency }}</strong></span>
                 <button
                     type="button"
                     @click="form.amount = maxAmount"

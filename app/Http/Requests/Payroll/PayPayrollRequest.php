@@ -65,10 +65,10 @@ class PayPayrollRequest extends FormRequest
             $amountInUSD = $netSalary / $rateOfPayCoin;
             $expectedAmount = $amountInUSD * $paymentRate;
 
-            if (abs($amount - $expectedAmount) > 0.01) {
+            if (abs($amount - $expectedAmount) > 0.0001) {
                 $validator->errors()->add('amount', sprintf(
                     'El monto debe ser igual al sueldo neto convertido (%s %s).',
-                    number_format($expectedAmount, 2),
+                    number_format($expectedAmount, 4),
                     $this->input('payment_currency')
                 ));
             }

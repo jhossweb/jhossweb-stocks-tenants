@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Purchase;
 
+use App\Enum\Finanzas\TransactionMethod;
 use App\Enum\TypeCoin;
 use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
+use App\Models\BankAccount;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Rate;
@@ -54,6 +56,8 @@ class PurchaseOrderController extends Controller
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),
             'coins' => TypeCoin::values(),
             'ivas' => TypeIva::values(),
+            'bankAccounts' => BankAccount::where('bank_status', true)->get(),
+            'methods' => TransactionMethod::values(),
         ]);
     }
 
@@ -85,9 +89,28 @@ class PurchaseOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $this->purchaseOrderService->create($validated);
+            $purchase = $this->purchaseOrderService->create($validated);
 
             DB::commit();
+
+            if ($validated['invoice_payment_condition'] === 'cash' && (float) $purchase->invoice_total > 0) {
+                $payable = $purchase->accountsPayable;
+
+                if ($payable) {
+                    return redirect()->route('purchases.create')
+                        ->with('success', 'Compra guardada exitosamente.')
+                        ->with('payment_pending', [
+                            'entity' => 'purchase',
+                            'acp_id' => $payable->id,
+                            'document_number' => $purchase->invoice_number,
+                            'amount' => (float) $purchase->invoice_total,
+                            'currency' => $purchase->invoice_coin,
+                            'date' => $purchase->invoice_date?->format('Y-m-d'),
+                            'valorcam' => (float) $purchase->invoice_valorcam,
+                            'supplier_id' => $purchase->invoice_supplier_id,
+                        ]);
+                }
+            }
 
             return redirect()->route('purchases.index')->with('success', 'Compra guardada exitosamente.');
         } catch (\Exception $e) {

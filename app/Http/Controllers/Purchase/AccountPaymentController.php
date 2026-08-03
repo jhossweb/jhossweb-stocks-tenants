@@ -13,6 +13,7 @@ use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Rate;
 use App\Models\Supplier;
+use App\Services\Dashboard\DashboardCacheInvalidator;
 use App\Services\Finance\RateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -78,7 +79,7 @@ class AccountPaymentController extends Controller
 
         if ($bankAccount->bank_balance < $totalPayment) {
             return redirect()->back()->withErrors([
-                'bank_account_id' => 'Saldo insuficiente. Saldo disponible en '.$bankAccount->bank_name.': '.number_format((float) $bankAccount->bank_balance, 2).' '.$bankAccount->bank_currency,
+                'bank_account_id' => 'Saldo insuficiente. Saldo disponible en '.$bankAccount->bank_name.': '.number_format((float) $bankAccount->bank_balance, 4).' '.$bankAccount->bank_currency,
             ]);
         }
 
@@ -90,7 +91,7 @@ class AccountPaymentController extends Controller
                 return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a pagar.']);
             }
 
-            $payRate = $this->rateService->getExactRateForDate($validated['payment_date']);
+            $payRate = $this->rateService->getBestRateForDate($validated['payment_date']);
 
             if (! $payRate) {
                 return redirect()->back()->withErrors(['payment_date' => 'No existe tasa de cambio para la fecha seleccionada.']);
@@ -116,8 +117,7 @@ class AccountPaymentController extends Controller
                     : $payRate;
 
                 // Convert payment to document currency (existing behavior)
-                $rate = $this->rateService->getExactRateForDate($validated['payment_date']);
-                $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $rate);
+                $amountInDocCurrency = round(Rate::convert($paymentAmount, $payCurrency, $docCurrency, $payRate), 4);
 
                 // Calculate differential in USD
                 $diferencial = $this->rateService->calculateDiferencial(
@@ -128,12 +128,12 @@ class AccountPaymentController extends Controller
                 );
 
                 // Convert payment to USD for balance tracking
-                $amountUsd = Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate);
+                $amountUsd = round(Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate), 4);
 
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $validated['bank_account_id'],
                     'btr_type' => 'outflow',
-                    'btr_amount' => $paymentAmount,
+                    'btr_amount' => round($paymentAmount, 4),
                     'btr_reference' => $validated['payment_reference'],
                     'btr_description' => $validated['payment_description'] ?: 'Pago a proveedor',
                     'btr_valorcam' => $valorcam,
@@ -164,6 +164,8 @@ class AccountPaymentController extends Controller
             }
 
             DB::commit();
+
+            DashboardCacheInvalidator::payables(substr($validated['payment_date'], 0, 7));
 
             return redirect()->route('accounts-payable.index')->with('success', 'Comprobante de pago generado exitosamente.');
         } catch (\Exception $e) {
@@ -207,7 +209,7 @@ class AccountPaymentController extends Controller
         $bankAccount = BankAccount::findOrFail($validated['bank_account_id']);
         $oldBankTx = $payment->bankTransaction;
         $effectiveBalance = (float) $bankAccount->bank_balance;
-        $newAmount = (float) $validated['amount'];
+        $newAmount = round((float) $validated['amount'], 4);
 
         if ($oldBankTx && (int) $oldBankTx->btr_bank_account_id === (int) $validated['bank_account_id']) {
             $effectiveBalance += (float) $oldBankTx->btr_amount;
@@ -215,7 +217,7 @@ class AccountPaymentController extends Controller
 
         if ($effectiveBalance < $newAmount) {
             return redirect()->back()->withErrors([
-                'amount' => 'Saldo insuficiente en '.$bankAccount->bank_name.'. Saldo efectivo disponible: '.number_format($effectiveBalance, 2).' '.$bankAccount->bank_currency,
+                'amount' => 'Saldo insuficiente en '.$bankAccount->bank_name.'. Saldo efectivo disponible: '.number_format($effectiveBalance, 4).' '.$bankAccount->bank_currency,
             ]);
         }
 
@@ -228,9 +230,9 @@ class AccountPaymentController extends Controller
             $acp->acp_balance += $oldAmount;
 
             // Check if new amount exceeds the available balance of the invoice
-            $newAmount = $validated['amount'];
+            $newAmount = round((float) $validated['amount'], 4);
             if ($newAmount > $acp->acp_balance) {
-                throw new \Exception('El monto no puede ser mayor a la deuda pendiente original de la factura ($'.number_format($acp->acp_balance, 2).').');
+                throw new \Exception('El monto no puede ser mayor a la deuda pendiente original de la factura ($'.number_format($acp->acp_balance, 4).').');
             }
 
             $acp->acp_balance -= $newAmount;

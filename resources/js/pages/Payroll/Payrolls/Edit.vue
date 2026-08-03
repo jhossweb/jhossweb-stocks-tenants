@@ -203,11 +203,11 @@ const submit = () => {
                                     <DollarSign class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                                     <Input
                                         type="number"
-                                        step="0.01"
+                                        step="0.0001"
                                         min="0"
                                         v-model="form.pay_base_salary"
                                         class="pl-10 h-11 bg-zinc-950/50 border-zinc-800 text-sm focus:ring-indigo-600 rounded-xl"
-                                        placeholder="0.00"
+                                        placeholder="0.0000"
                                     />
                                 </div>
                                 <span v-if="form.errors.pay_base_salary" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.pay_base_salary }}</span>
@@ -220,11 +220,11 @@ const submit = () => {
                                     <DollarSign class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                                     <Input
                                         type="number"
-                                        step="0.01"
+                                        step="0.0001"
                                         min="0"
                                         v-model="form.pay_total_deductions"
                                         class="pl-10 h-11 bg-zinc-950/50 border-zinc-800 text-sm focus:ring-indigo-600 rounded-xl"
-                                        placeholder="0.00"
+                                        placeholder="0.0000"
                                     />
                                 </div>
                                 <span v-if="form.errors.pay_total_deductions" class="text-xs text-red-500 font-bold block mt-1">{{ form.errors.pay_total_deductions }}</span>
@@ -296,7 +296,7 @@ const submit = () => {
                                     <span class="text-sm text-indigo-200 font-medium">Salario Base</span>
                                     <span class="text-lg font-black tabular-nums">
                                         {{ form.pay_coin }}
-                                        {{ Number(form.pay_base_salary || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                        {{ Number(form.pay_base_salary || 0).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                     </span>
                                 </div>
 
@@ -304,7 +304,7 @@ const submit = () => {
                                     <span class="text-sm text-indigo-200 font-medium">Deducciones</span>
                                     <span class="text-lg font-black tabular-nums">
                                         {{ form.pay_coin }}
-                                        {{ Number(form.pay_total_deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                        {{ Number(form.pay_total_deductions || 0).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                     </span>
                                 </div>
 
@@ -312,7 +312,7 @@ const submit = () => {
                                     <span class="text-sm font-black uppercase tracking-wider">Sueldo Neto</span>
                                     <span class="text-3xl font-black tabular-nums tracking-tighter">
                                         {{ form.pay_coin }}
-                                        {{ netSalary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                                        {{ netSalary.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}
                                     </span>
                                 </div>
                             </div>

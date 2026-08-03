@@ -112,7 +112,7 @@ const submit = () => {
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Monto</label>
-                    <Input type="number" step="0.01" min="0.01" v-model="form.exp_amount" class="w-full" :disabled="isPaid" />
+                    <Input type="number" step="0.0001" min="0.0001" v-model="form.exp_amount" class="w-full" :disabled="isPaid" />
                     <InputError :message="form.errors.exp_amount" />
                 </div>
 
@@ -169,7 +169,7 @@ const submit = () => {
                             <td class="px-4 py-2">{{ pmt.bank_account?.bank_name ?? '-' }}</td>
                             <td class="px-4 py-2 text-right">
                                 <span v-if="pmt.btr_diferencial && Number(pmt.btr_diferencial) !== 0" class="font-semibold" :class="Number(pmt.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
-                                    {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(2) }}
+                                    {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(4) }}
                                 </span>
                                 <span v-else class="text-gray-400">—</span>
                             </td>

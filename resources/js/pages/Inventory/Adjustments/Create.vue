@@ -269,7 +269,7 @@ const openConfirmModal = () => {
                                     </td>
                                     <td class="p-3 text-center">
                                         <span class="inline-flex items-center rounded-md bg-muted/30 px-3 py-1.5 font-mono text-sm font-bold text-muted-foreground">
-                                            {{ item.min_pro_code ? Number(getStockForProduct(item.min_pro_code)).toFixed(2) : '-' }}
+                                            {{ item.min_pro_code ? Number(getStockForProduct(item.min_pro_code)).toFixed(4) : '-' }}
                                         </span>
                                     </td>
                                     <td class="p-3">
@@ -277,8 +277,8 @@ const openConfirmModal = () => {
                                             <input
                                                 type="number"
                                                 v-model="item.min_quantity"
-                                                step="0.01"
-                                                min="0.01"
+                                                step="0.0001"
+                                                min="0.0001"
                                                 class="w-20 rounded-md border-none bg-muted/30 py-1.5 text-center focus:ring-1 focus:ring-ring"
                                             />
                                             <span v-if="item.min_pro_code" class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary">
@@ -334,8 +334,8 @@ const openConfirmModal = () => {
                             <tr v-for="(item, index) in form.items" :key="index">
                                 <td class="px-3 py-2">{{ getProductName(item.min_pro_code) }}</td>
                                 <td class="px-3 py-2">{{ getReasonName(item.min_reason_id) }}</td>
-                                <td class="px-3 py-2 text-center font-mono">{{ Number(getStockForProduct(item.min_pro_code)).toFixed(2) }}</td>
-                                <td class="px-3 py-2 text-center font-mono font-bold text-amber-500">{{ Number(item.min_quantity).toFixed(2) }}</td>
+                                <td class="px-3 py-2 text-center font-mono">{{ Number(getStockForProduct(item.min_pro_code)).toFixed(4) }}</td>
+                                <td class="px-3 py-2 text-center font-mono font-bold text-amber-500">{{ Number(item.min_quantity).toFixed(4) }}</td>
                             </tr>
                         </tbody>
                     </table>

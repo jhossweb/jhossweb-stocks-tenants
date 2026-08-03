@@ -1,10 +1,4 @@
-<script setup lang="ts">
-import { Deferred, Head, router, setLayoutProps } from '@inertiajs/vue3';
-import { computed } from 'vue';
-import KpiCard from '@/components/Dashboard/KpiCard.vue';
-import { Card, CardContent } from '@/components/ui/card';
-import type { CurrencyMap, TrendData, ExpenseDetails } from '@/types/Dashboard';
-
+<script lang="ts">
 const titleMap: Record<string, string> = {
     expenses: 'Analítica de Gastos',
     'expenses-fijo': 'Gastos Fijos',
@@ -22,9 +16,42 @@ const labelMap: Record<string, string> = {
     'expenses-fijo': 'Total Gastos Fijos',
     'expenses-variable': 'Total Gastos Variables',
 };
+</script>
+
+<script setup lang="ts">
+import { Deferred, Head } from '@inertiajs/vue3';
+import { Clock3, Receipt } from 'lucide-vue-next';
+import { computed } from 'vue';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
+import KpiCard from '@/components/Dashboard/KpiCard.vue';
+import DataTable from '@/components/DataTable/DataTable.vue';
+import type { DataTableColumn } from '@/components/DataTable/DataTable.vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    useDashboardMonth,
+    monthLabel,
+} from '@/composables/Dashboard/useDashboardMonth';
+import {
+    currencySymbol,
+    formatAmount,
+} from '@/composables/Finance/useCoinFormat';
+import type { CurrencyMap, TrendData, ExpenseDetails } from '@/types/Dashboard';
 
 defineOptions({
-    layout: {},
+    layout: (props: { analyticsType?: string }) => ({
+        breadcrumbs: [
+            { title: 'Dashboard', href: '/dashboard' },
+            { title: 'Gastos', href: '/dashboard/gastos' },
+            {
+                title:
+                    titleMap[props.analyticsType ?? 'expenses'] ??
+                    'Analítica de Gastos',
+                href:
+                    breadcrumbMap[props.analyticsType ?? 'expenses'] ??
+                    '/analytics/expenses',
+            },
+        ],
+    }),
 });
 
 const props = defineProps<{
@@ -38,148 +65,89 @@ const props = defineProps<{
     analyticsType?: string;
 }>();
 
-const breadcrumbTitle = computed(() => titleMap[props.analyticsType ?? 'expenses'] ?? 'Analítica de Gastos');
-
-setLayoutProps({
-    breadcrumbs: [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Gastos', href: '/dashboard/gastos' },
-        {
-            title: breadcrumbTitle.value,
-            href: breadcrumbMap[props.analyticsType ?? 'expenses'] ?? '/analytics/expenses',
-        },
-    ],
-});
-
-
-const totalLabel = computed(() => labelMap[props.analyticsType ?? 'expenses'] ?? 'Total Gastos');
-
-const monthOptions = computed(() => {
-    const options: { value: string; label: string }[] = [];
-    const now = new Date();
-
-    for (let i = 0; i < 12; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        const label = d.toLocaleDateString('es', { year: 'numeric', month: 'long' });
-        options.push({ value, label });
-    }
-
-    return options;
-});
-
-const selectedMonthLabel = computed(
-    () => monthOptions.value.find((o) => o.value === props.selectedMonth)?.label ?? props.selectedMonth,
+const breadcrumbTitle = computed(
+    () => titleMap[props.analyticsType ?? 'expenses'] ?? 'Analítica de Gastos',
 );
 
-function changeMonth(month: string) {
-    const base = breadcrumbMap[props.analyticsType ?? 'expenses'] ?? '/analytics/expenses';
-    router.get(base, { month }, { preserveState: true, preserveScroll: true });
-}
+const totalLabel = computed(
+    () => labelMap[props.analyticsType ?? 'expenses'] ?? 'Total Gastos',
+);
 
-function formatAmount(value: number | undefined): string {
-    if (value === undefined || value === null) {
-        return '-';
-    }
+const currentPath =
+    breadcrumbMap[props.analyticsType ?? 'expenses'] ?? '/analytics/expenses';
 
-    return new Intl.NumberFormat('es', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(value);
-}
+const { monthOptions, changeMonth } = useDashboardMonth(
+    props.selectedMonth,
+    currentPath,
+);
 
-function currencySymbol(currency: string): string {
-    const symbols: Record<string, string> = {
-        USD: '$',
-        COP: 'COP',
-        BS: 'Bs',
-        EUR: '€',
-    };
-
-    return symbols[currency] ?? currency;
-}
+const columns: DataTableColumn[] = [
+    { key: 'exc_name', label: 'Categoría' },
+    { key: 'exc_type', label: 'Tipo' },
+    { key: 'exp_coin', label: 'Moneda', align: 'right' },
+    { key: 'total', label: 'Total', align: 'right', class: 'tabular-nums' },
+];
 </script>
 
 <template>
     <Head :title="breadcrumbTitle" />
 
-    <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-foreground text-xl font-semibold">{{ breadcrumbTitle }}</h1>
-            <select
-                :value="selectedMonth"
-                class="bg-background border-input rounded-lg border px-3 py-1.5 text-sm"
-                @change="changeMonth(($event.target as HTMLSelectElement).value)"
-            >
-                <option
-                    v-for="opt in monthOptions"
-                    :key="opt.value"
-                    :value="opt.value"
-                >
-                    {{ opt.label }}
-                </option>
-            </select>
-        </div>
+    <div
+        class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 md:p-6"
+    >
+        <DashboardHeader
+            :title="breadcrumbTitle"
+            description="Desglose de gastos del período seleccionado"
+            :month="selectedMonth"
+            :month-options="monthOptions"
+            @change-month="changeMonth"
+        />
 
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-2">
             <KpiCard
                 :label="totalLabel"
                 :amounts="summary.total"
                 :trend="summary.trend"
+                variant="danger"
+                :icon="Receipt"
             />
             <KpiCard
                 label="Pendiente"
                 :amounts="summary.pending"
+                variant="danger"
+                :icon="Clock3"
             />
         </div>
 
         <Card>
-            <CardContent class="p-6">
-                <h2 class="mb-4 text-lg font-semibold">Gastos por Categoría</h2>
-
+            <CardHeader>
+                <CardTitle>Gastos por Categoría</CardTitle>
+            </CardHeader>
+            <CardContent>
                 <Deferred data="details">
                     <template #fallback>
                         <div class="flex items-center justify-center py-8">
-                            <div class="bg-muted-foreground/20 size-6 animate-pulse rounded" />
+                            <div
+                                class="size-6 animate-pulse rounded bg-muted-foreground/20"
+                            />
                         </div>
                     </template>
 
-                    <div
-                        v-if="(details?.byCategory ?? []).length === 0"
-                        class="text-muted-foreground py-8 text-center"
+                    <DataTable
+                        :columns="columns"
+                        :rows="details?.byCategory ?? []"
+                        :empty-text="
+                            'Sin gastos registrados en ' +
+                            monthLabel(selectedMonth)
+                        "
                     >
-                        Sin gastos registrados en {{ selectedMonthLabel }}
-                    </div>
-
-                    <div
-                        v-else
-                        class="overflow-x-auto"
-                    >
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b bg-muted/50">
-                                    <th class="px-4 py-2 text-left font-medium">Categoría</th>
-                                    <th class="px-4 py-2 text-left font-medium">Tipo</th>
-                                    <th class="px-4 py-2 text-right font-medium">Moneda</th>
-                                    <th class="px-4 py-2 text-right font-medium">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="(item, idx) in details?.byCategory ?? []"
-                                    :key="idx"
-                                    class="border-b last:border-0 hover:bg-muted/30"
-                                >
-                                    <td class="px-4 py-2 font-medium">{{ item.exc_name }}</td>
-                                    <td class="text-muted-foreground px-4 py-2">{{ item.exc_type }}</td>
-                                    <td class="px-4 py-2 text-right">{{ item.exp_coin }}</td>
-                                    <td class="px-4 py-2 text-right font-medium">
-                                        {{ currencySymbol(item.exp_coin) }} {{ formatAmount(item.total) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                        <template #total="{ row }">
+                            <span class="font-medium">
+                                {{ currencySymbol(row.exp_coin) }}
+                                {{ formatAmount(row.total) }}
+                            </span>
+                        </template>
+                    </DataTable>
                 </Deferred>
             </CardContent>
         </Card>

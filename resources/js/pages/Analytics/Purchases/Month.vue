@@ -1,9 +1,24 @@
 <script setup lang="ts">
-import { Deferred, Head, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Deferred, Head } from '@inertiajs/vue3';
+import { ShoppingCart } from 'lucide-vue-next';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
-import { Card, CardContent } from '@/components/ui/card';
-import type { CurrencyMap, TrendData, PurchaseDetails } from '@/types/Dashboard';
+import DataTable from '@/components/DataTable/DataTable.vue';
+import type { DataTableColumn } from '@/components/DataTable/DataTable.vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    useDashboardMonth,
+    monthLabel,
+} from '@/composables/Dashboard/useDashboardMonth';
+import {
+    currencySymbol,
+    formatAmount,
+} from '@/composables/Finance/useCoinFormat';
+import type {
+    CurrencyMap,
+    TrendData,
+    PurchaseDetails,
+} from '@/types/Dashboard';
 
 defineOptions({
     layout: {
@@ -24,72 +39,31 @@ const props = defineProps<{
     selectedMonth: string;
 }>();
 
-const monthOptions = computed(() => {
-    const options: { value: string; label: string }[] = [];
-    const now = new Date();
+const { monthOptions, changeMonth } = useDashboardMonth(
+    props.selectedMonth,
+    '/analytics/purchases-month',
+);
 
-    for (let i = 0; i < 12; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        const label = d.toLocaleDateString('es', { year: 'numeric', month: 'long' });
-        options.push({ value, label });
-    }
-
-    return options;
-});
-
-function changeMonth(month: string) {
-    router.get('/analytics/purchases-month', { month }, { preserveState: true, preserveScroll: true });
-}
-
-function formatAmount(value: number | undefined): string {
-    if (value === undefined || value === null) return '-';
-
-    return new Intl.NumberFormat('es', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(value);
-}
-
-function currencySymbol(currency: string): string {
-    const symbols: Record<string, string> = {
-        USD: '$',
-        COP: 'COP',
-        BS: 'Bs',
-        EUR: '€',
-    };
-
-    return symbols[currency] ?? currency;
-}
-
-function monthLabel(month: string): string {
-    const [year, m] = month.split('-');
-    const d = new Date(Number(year), Number(m) - 1, 1);
-
-    return d.toLocaleDateString('es', { year: 'numeric', month: 'long' });
-}
+const columns: DataTableColumn[] = [
+    { key: 'month', label: 'Mes' },
+    { key: 'invoice_coin', label: 'Moneda', align: 'right' },
+    { key: 'total', label: 'Total', align: 'right', class: 'tabular-nums' },
+];
 </script>
 
 <template>
     <Head title="Compras por Mes" />
 
-    <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-foreground text-xl font-semibold">Compras por Mes</h1>
-            <select
-                :value="selectedMonth"
-                class="bg-background border-input rounded-lg border px-3 py-1.5 text-sm"
-                @change="changeMonth(($event.target as HTMLSelectElement).value)"
-            >
-                <option
-                    v-for="opt in monthOptions"
-                    :key="opt.value"
-                    :value="opt.value"
-                >
-                    {{ opt.label }}
-                </option>
-            </select>
-        </div>
+    <div
+        class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 md:p-6"
+    >
+        <DashboardHeader
+            title="Compras por Mes"
+            description="Histórico de compras de los últimos 6 meses"
+            :month="selectedMonth"
+            :month-options="monthOptions"
+            @change-month="changeMonth"
+        />
 
         <div class="grid gap-4 md:grid-cols-3">
             <KpiCard
@@ -97,54 +71,41 @@ function monthLabel(month: string): string {
                 :amounts="summary.total"
                 :trend="summary.trend"
                 variant="success"
+                :icon="ShoppingCart"
             />
         </div>
 
         <Card>
-            <CardContent class="p-6">
-                <h2 class="mb-4 text-lg font-semibold">Últimos 6 meses</h2>
-
+            <CardHeader>
+                <CardTitle>Últimos 6 meses</CardTitle>
+            </CardHeader>
+            <CardContent>
                 <Deferred data="details">
                     <template #fallback>
                         <div class="flex items-center justify-center py-8">
-                            <div class="bg-muted-foreground/20 size-6 animate-pulse rounded" />
+                            <div
+                                class="size-6 animate-pulse rounded bg-muted-foreground/20"
+                            />
                         </div>
                     </template>
 
-                    <div
-                        v-if="(details?.byMonth ?? []).length === 0"
-                        class="text-muted-foreground py-8 text-center"
+                    <DataTable
+                        :columns="columns"
+                        :rows="details?.byMonth ?? []"
+                        empty-text="Sin datos de compras mensuales"
                     >
-                        Sin datos de compras mensuales
-                    </div>
-
-                    <div
-                        v-else
-                        class="overflow-x-auto"
-                    >
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b bg-muted/50">
-                                    <th class="px-4 py-2 text-left font-medium">Mes</th>
-                                    <th class="px-4 py-2 text-right font-medium">Moneda</th>
-                                    <th class="px-4 py-2 text-right font-medium">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="(item, idx) in details?.byMonth ?? []"
-                                    :key="idx"
-                                    class="border-b last:border-0 hover:bg-muted/30"
-                                >
-                                    <td class="px-4 py-2 font-medium">{{ monthLabel(item.month) }}</td>
-                                    <td class="px-4 py-2 text-right">{{ item.invoice_coin }}</td>
-                                    <td class="px-4 py-2 text-right font-medium">
-                                        {{ currencySymbol(item.invoice_coin) }} {{ formatAmount(item.total) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                        <template #month="{ row }">
+                            <span class="font-medium">{{
+                                monthLabel(row.month)
+                            }}</span>
+                        </template>
+                        <template #total="{ row }">
+                            <span class="font-medium">
+                                {{ currencySymbol(row.invoice_coin) }}
+                                {{ formatAmount(row.total) }}
+                            </span>
+                        </template>
+                    </DataTable>
                 </Deferred>
             </CardContent>
         </Card>

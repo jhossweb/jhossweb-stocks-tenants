@@ -156,7 +156,7 @@ onMounted(() => {
 
                         <div>
                             <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Monto</label>
-                            <Input type="number" step="0.01" min="0.01" v-model="form.exp_amount" class="w-full" placeholder="0.00" />
+                            <Input type="number" step="0.0001" min="0.0001" v-model="form.exp_amount" class="w-full" placeholder="0.0000" />
                             <InputError :message="form.errors.exp_amount" />
                         </div>
 
@@ -196,11 +196,11 @@ onMounted(() => {
                     <div class="relative z-10 flex flex-col gap-3">
                         <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
                             <span>MONTO</span>
-                            <span class="font-bold">{{ amountFormatted().toFixed(2) }}</span>
+                            <span class="font-bold">{{ amountFormatted().toFixed(4) }}</span>
                         </div>
                         <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
                             <span class="text-sm font-bold uppercase">Total {{ form.exp_coin }}</span>
-                            <span class="text-3xl font-black tabular-nums">{{ amountFormatted().toFixed(2) }}</span>
+                            <span class="text-3xl font-black tabular-nums">{{ amountFormatted().toFixed(4) }}</span>
                         </div>
                     </div>
                 </div>

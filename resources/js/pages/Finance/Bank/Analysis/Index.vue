@@ -193,10 +193,10 @@ const clearFilters = () => {
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-right font-mono tabular-nums text-zinc-200">
-                                    ${{ parseFloat(txn.btr_amount).toFixed(2) }}
+                                    ${{ parseFloat(txn.btr_amount).toFixed(4) }}
                                 </td>
                                 <td class="px-4 py-4 text-right font-mono tabular-nums text-zinc-400">
-                                    ${{ parseFloat(txn.btr_balance).toFixed(2) }}
+                                    ${{ parseFloat(txn.btr_balance).toFixed(4) }}
                                 </td>
                                 <td class="px-4 py-4 font-mono text-xs text-zinc-300">
                                     {{ txn.btr_reference }}

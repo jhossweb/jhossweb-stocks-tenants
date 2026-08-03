@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { Landmark, Calculator } from 'lucide-vue-next';
-import { computed, onMounted, shallowRef } from 'vue';
+import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import FormActions from '@/components/Form/FormActions.vue';
 import FormSection from '@/components/Form/FormSection.vue';
 import ItemsTable from '@/components/Form/ItemsTable.vue';
+import DocumentPaymentModal from '@/components/payments/DocumentPaymentModal.vue';
 import PurchaseItemRow from '@/components/Purchases/PurchaseItemRow.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
 import { today } from '@/composables/useDate';
+import type { PaymentPending } from '@/types/Finance/DocumentPayment';
 import type {
     ColumnConfig,
     LatestRate,
@@ -27,6 +29,8 @@ const props = defineProps<{
     rates: Rate[];
     coins: string[];
     latest_rate: LatestRate | null;
+    bankAccounts: any[];
+    methods: string[];
 }>();
 
 const prodRef = computed(() => props.products);
@@ -193,6 +197,42 @@ onMounted(() => {
     });
     updateDueDate();
 });
+
+const page = usePage();
+
+const showPaymentModal = ref(false);
+const pendingPayment = ref<PaymentPending | null>(null);
+
+const resetPurchaseForm = () => {
+    form.reset();
+    form.items = [];
+    form.items.push(createBlankItem());
+    recalc();
+};
+
+const pendingEntityName = computed(() => {
+    if (!pendingPayment.value || pendingPayment.value.entity !== 'purchase') {
+        return '';
+    }
+
+    const supplier = props.suppliers.find(
+        (s) => String(s.id) === String(pendingPayment.value?.supplier_id),
+    );
+
+    return supplier?.supplier_name || '';
+});
+
+watch(
+    () => (page.props.flash as any)?.payment_pending,
+    (pending: PaymentPending | undefined) => {
+        if (pending) {
+            pendingPayment.value = pending;
+            resetPurchaseForm();
+            showPaymentModal.value = true;
+        }
+    },
+    { immediate: true },
+);
 
 const columns: ColumnConfig[] = [
     { key: 'product', label: 'Producto' },
@@ -477,6 +517,18 @@ const columns: ColumnConfig[] = [
                 </ItemsTable>
             </div>
         </div>
+
+        <DocumentPaymentModal
+            v-model:open="showPaymentModal"
+            :pending="pendingPayment"
+            :bank-accounts="props.bankAccounts"
+            :latest-rate="props.latest_rate"
+            :rates="props.rates"
+            :methods="props.methods"
+            :currencies="props.coins"
+            :entity-name="pendingEntityName"
+            @paid="showPaymentModal = false"
+        />
     </div>
 </template>
 

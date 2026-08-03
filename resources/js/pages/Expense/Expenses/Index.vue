@@ -247,7 +247,7 @@ const handleDelete = () => {
                 <div v-if="estimatedDiferencial !== 0 && payForm.payment_currency !== payingExpense.exp_coin" class="flex justify-between text-sm pt-1 border-t border-zinc-800">
                     <span class="text-zinc-400">Diferencial estimado:</span>
                     <span class="font-semibold" :class="estimatedDiferencial > 0 ? 'text-green-400' : 'text-orange-400'">
-                        {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
+                        {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(4) }} USD
                         <span class="text-[10px] font-normal opacity-60">({{ estimatedDiferencial > 0 ? 'Ganancia' : 'Pérdida' }})</span>
                     </span>
                 </div>
@@ -302,7 +302,7 @@ const handleDelete = () => {
                         <div class="flex justify-between items-start mb-2">
                             <div class="flex-1">
                                 <h4 class="font-semibold text-lg text-gray-900 dark:text-white">
-                                    {{ Number(pmt.btr_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                                    {{ Number(pmt.btr_amount).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}
                                     <span class="text-xs font-normal text-gray-400 ml-1">{{ pmt.btr_coin }}</span>
                                 </h4>
 
@@ -338,7 +338,7 @@ const handleDelete = () => {
                                 </div>
 
                                 <div v-if="pmt.btr_diferencial && Number(pmt.btr_diferencial) !== 0" class="mt-2 text-xs font-semibold" :class="Number(pmt.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
-                                    Diferencial: {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(2) }} USD
+                                    Diferencial: {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(4) }} USD
                                     <span class="font-normal text-gray-400">({{ Number(pmt.btr_diferencial) > 0 ? 'Ganancia' : 'Pérdida' }})</span>
                                 </div>
                             </div>

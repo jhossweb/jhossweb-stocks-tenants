@@ -128,7 +128,8 @@ test('store creates a sale with valid data', function () {
 
     $this->post(route('sales.store'), $data)
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('sales.index'));
+        ->assertRedirect(route('sales.create'))
+        ->assertSessionHas('payment_pending');
 
     expect(SaleOrder::where('sls_number', 'SLS-001')->exists())->toBeTrue();
     expect(SaleOrder::where('sls_number', 'SLS-001')->first()->sls_trans_type_code)->toBe('FACV');

@@ -138,7 +138,7 @@ export function useTransactionForm(
         const base = qty * cost;
         const ivaRate = getProductIvaRate(item.mov_pro_code);
 
-        return (base + base * ivaRate).toFixed(2);
+        return (base + base * ivaRate).toFixed(4);
     };
 
     const calculateTotals = <T extends { mov_pro_code: string; mov_quantity: number | string; mov_unit_cost: number | string; mov_pro_iva: number }>(

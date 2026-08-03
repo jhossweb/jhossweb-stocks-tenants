@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head } from '@inertiajs/vue3';
+import {
+    CalendarRange,
+    ClipboardList,
+    ShoppingCart,
+    Users,
+} from 'lucide-vue-next';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
+import StatCard from '@/components/Dashboard/StatCard.vue';
+import { useDashboardMonth } from '@/composables/Dashboard/useDashboardMonth';
 import { dashboard } from '@/routes';
 import type { DashboardKpis } from '@/types/Dashboard';
 
@@ -25,61 +33,39 @@ const props = defineProps<{
     selectedMonth: string;
 }>();
 
-function goTo(path: string) {
-    router.get(path, { month: props.selectedMonth }, { preserveScroll: true });
-}
-
-function changeMonth(month: string) {
-    router.get('/dashboard/compras', { month }, { preserveState: true, preserveScroll: true });
-}
-
-const monthOptions = computed(() => {
-    const options: { value: string; label: string }[] = [];
-    const now = new Date();
-
-    for (let i = 0; i < 12; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        const label = d.toLocaleDateString('es', { year: 'numeric', month: 'long' });
-        options.push({ value, label });
-    }
-
-    return options;
-});
+const { monthOptions, goTo, changeMonth } = useDashboardMonth(
+    props.selectedMonth,
+    '/dashboard/compras',
+);
 </script>
 
 <template>
     <Head title="Compras - Dashboard" />
 
-    <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-foreground text-xl font-semibold">Compras</h1>
-            <select
-                :value="selectedMonth"
-                class="bg-background border-input rounded-lg border px-3 py-1.5 text-sm"
-                @change="changeMonth(($event.target as HTMLSelectElement).value)"
-            >
-                <option
-                    v-for="opt in monthOptions"
-                    :key="opt.value"
-                    :value="opt.value"
-                >
-                    {{ opt.label }}
-                </option>
-            </select>
-        </div>
+    <div
+        class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 md:p-6"
+    >
+        <DashboardHeader
+            title="Compras"
+            description="Movimiento de compras y proveedores del período seleccionado"
+            :month="selectedMonth"
+            :month-options="monthOptions"
+            @change-month="changeMonth"
+        />
 
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
                 label="Compras Totales"
                 :amounts="kpis.purchases.total"
                 :trend="kpis.purchases.trend"
                 variant="success"
+                :icon="ShoppingCart"
                 @click="goTo('/analytics/purchases-total')"
             />
-            <KpiCard
+            <StatCard
                 label="Proveedores Activos"
-                :amounts="{ Proveedores: kpis.purchases.supplierCount } as any"
+                :value="kpis.purchases.supplierCount"
+                :icon="Users"
                 @click="goTo('/analytics/purchases-supplier')"
             />
             <KpiCard
@@ -87,12 +73,14 @@ const monthOptions = computed(() => {
                 :amounts="kpis.purchases.total"
                 :trend="kpis.purchases.trend"
                 variant="info"
+                :icon="CalendarRange"
                 @click="goTo('/analytics/purchases-month')"
             />
             <KpiCard
                 label="Compras por Estado"
                 :amounts="kpis.purchases.pending"
                 variant="danger"
+                :icon="ClipboardList"
                 @click="goTo('/analytics/purchases-status')"
             />
         </div>

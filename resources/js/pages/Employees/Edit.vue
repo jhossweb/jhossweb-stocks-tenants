@@ -132,7 +132,7 @@ const submit = () => {
                 <!-- Salario Base -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Salario Base</label>
-                    <Input type="number" step="0.01" min="0" v-model="form.emp_base_salary" class="w-full" />
+                    <Input type="number" step="0.0001" min="0" v-model="form.emp_base_salary" class="w-full" />
                     <InputError :message="form.errors.emp_base_salary" />
                 </div>
 

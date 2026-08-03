@@ -34,7 +34,7 @@ class BankAccount extends Model
      */
     public function getFormattedBalanceAttribute(): string
     {
-        return number_format($this->bank_balance, 2).' '.$this->bank_currency;
+        return number_format($this->bank_balance, 4).' '.$this->bank_currency;
     }
 
     public function bankTransactions()

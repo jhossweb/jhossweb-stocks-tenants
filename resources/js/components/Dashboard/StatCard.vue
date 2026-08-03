@@ -1,0 +1,136 @@
+<script setup lang="ts">
+import { ChevronRight } from 'lucide-vue-next';
+import type { Component } from 'vue';
+import { computed, useAttrs } from 'vue';
+import { Card, CardContent } from '@/components/ui/card';
+
+const props = defineProps<{
+    label: string;
+    value: number;
+    description?: string;
+    variant?: 'default' | 'success' | 'danger' | 'info';
+    icon?: Component;
+}>();
+
+const attrs = useAttrs();
+
+const clickable = computed(() => Boolean(attrs.onClick));
+
+const cardClass = computed(() => [
+    'h-full',
+    clickable.value
+        ? 'group cursor-pointer transition-[box-shadow,transform] hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
+        : '',
+]);
+
+const tone = computed(() => {
+    switch (props.variant) {
+        case 'success':
+            return {
+                value: 'text-emerald-600 dark:text-emerald-400',
+                tile: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+            };
+        case 'danger':
+            return {
+                value: 'text-red-600 dark:text-red-400',
+                tile: 'bg-red-500/10 text-red-600 dark:text-red-400',
+            };
+        case 'info':
+            return {
+                value: 'text-sky-600 dark:text-sky-400',
+                tile: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
+            };
+        default:
+            return {
+                value: 'text-foreground',
+                tile: 'bg-muted text-muted-foreground',
+            };
+    }
+});
+
+function formatCount(value: number): string {
+    return new Intl.NumberFormat('es', {
+        maximumFractionDigits: 0,
+    }).format(value);
+}
+
+function handleActivation() {
+    if (!clickable.value) {
+        return;
+    }
+
+    const handler = attrs.onClick;
+
+    if (Array.isArray(handler)) {
+        handler.forEach((listener) => listener?.());
+    } else if (typeof handler === 'function') {
+        handler();
+    }
+}
+
+function onKeydown(event: KeyboardEvent) {
+    if (!clickable.value) {
+        return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        handleActivation();
+    }
+}
+</script>
+
+<template>
+    <Card
+        :role="clickable ? 'button' : undefined"
+        :tabindex="clickable ? 0 : undefined"
+        :aria-label="clickable ? 'Ver detalle de ' + label : undefined"
+        :class="cardClass"
+        @keydown="onKeydown"
+    >
+        <CardContent class="flex h-full flex-col gap-3">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div
+                        v-if="icon"
+                        class="flex size-9 shrink-0 items-center justify-center rounded-lg"
+                        :class="tone.tile"
+                    >
+                        <component
+                            :is="icon"
+                            class="size-4"
+                            aria-hidden="true"
+                        />
+                    </div>
+                    <span
+                        class="truncate text-sm font-medium tracking-wide text-muted-foreground uppercase"
+                    >
+                        {{ label }}
+                    </span>
+                </div>
+            </div>
+
+            <div
+                class="text-2xl font-semibold tracking-tight tabular-nums"
+                :class="tone.value"
+            >
+                {{ formatCount(value) }}
+            </div>
+
+            <p v-if="description" class="text-sm text-muted-foreground">
+                {{ description }}
+            </p>
+
+            <div
+                v-if="clickable"
+                class="mt-auto flex items-center gap-1 pt-1 text-xs font-medium text-muted-foreground"
+            >
+                Ver detalle
+                <ChevronRight
+                    class="size-3.5 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                />
+            </div>
+        </CardContent>
+    </Card>
+</template>

@@ -183,7 +183,7 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
                     <div class="relative z-10 flex flex-col gap-3">
                         <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
                             <span>{{ totalLabel }}</span>
-                            <span>{{ totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                            <span>{{ totalAmount.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}</span>
                         </div>
                         <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
                             <span>Tasa Aplicada</span>
@@ -199,10 +199,10 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
                             </div>
                             <div class="flex justify-between">
                                 <span>Total a pagar</span>
-                                <span class="font-bold">{{ totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
+                                <span class="font-bold">{{ totalAmount.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }} {{ form.payment_currency }}</span>
                             </div>
                             <div class="text-xs text-right text-primary-foreground/70">
-                                (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
+                                (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 4 }) }} {{ originalCurrency }})
                             </div>
                         </div>
 
@@ -216,7 +216,7 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
                                     class="text-sm font-bold"
                                     :class="estimatedDiferencial > 0 ? 'text-green-300' : 'text-orange-300'"
                                 >
-                                    {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
+                                    {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(4) }} USD
                                 </span>
                             </div>
                             <div class="text-xs text-right text-primary-foreground/70">
@@ -226,7 +226,7 @@ watch(() => props.form.payment_currency, () => updateExchangeRate(), { immediate
 
                         <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
                             <span class="text-sm font-bold uppercase">Total {{ totalCurrency }}</span>
-                            <span class="text-3xl font-black tabular-nums">{{ totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                            <span class="text-3xl font-black tabular-nums">{{ totalAmount.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}</span>
                         </div>
                     </div>
                 </div>

@@ -60,10 +60,10 @@ class AccountsReceivable extends Model
 
     public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?float $amountUsd = null): Receipt
     {
-        $this->acr_balance -= $amount;
+        $this->acr_balance = round($this->acr_balance - $amount, 4);
 
         if ($amountUsd !== null && $this->acr_balance_usd !== null) {
-            $this->acr_balance_usd -= $amountUsd;
+            $this->acr_balance_usd = round($this->acr_balance_usd - $amountUsd, 4);
         }
 
         if ($this->acr_balance <= 0) {
@@ -92,10 +92,10 @@ class AccountsReceivable extends Model
 
     public function reversePayment(Receipt $receipt): void
     {
-        $this->acr_balance += $receipt->rec_amount;
+        $this->acr_balance = round($this->acr_balance + $receipt->rec_amount, 4);
 
         if (isset($this->acr_balance_usd) && $receipt->bankTransaction) {
-            $this->acr_balance_usd += (float) $receipt->bankTransaction->btr_diferencial;
+            $this->acr_balance_usd = round($this->acr_balance_usd + (float) $receipt->bankTransaction->btr_diferencial, 4);
             $paymentUsd = (float) $receipt->rec_amount;
             $payCoin = $receipt->bankTransaction->btr_coin?->value ?? $receipt->bankTransaction->btr_coin;
             if ($payCoin && strtoupper($payCoin) !== 'USD') {
@@ -108,7 +108,7 @@ class AccountsReceivable extends Model
                     };
                 }
             }
-            $this->acr_balance_usd += $paymentUsd;
+            $this->acr_balance_usd += round($paymentUsd, 4);
         }
 
         if ($this->acr_balance >= $this->acr_total) {

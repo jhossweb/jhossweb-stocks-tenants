@@ -369,14 +369,14 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                     <div class="flex flex-col gap-1">
                                         <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
                                             <span class="text-[10px] text-zinc-600">{{ invoice.currency }}</span>
-                                            {{ Number(invoice.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                            {{ Number(invoice.balance).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                         </div>
                                         <div
                                             v-if="invoice.currency !== form.payment_currency"
                                             class="flex items-center gap-1 font-mono text-[11px] text-amber-400 font-bold"
                                         >
                                             <span class="text-[10px] text-amber-600">≈ {{ form.payment_currency }}</span>
-                                            {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                            {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                         </div>
                                     </div>
                                 </td>
@@ -384,7 +384,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                     <div class="relative">
                                         <Input
                                             type="number"
-                                            step="0.01"
+                                            step="0.0001"
                                             v-model="invoice.amount"
                                             @input="invoice.amount = Math.min(Number(invoice.amount), calculateConvertedBalance(invoice))"
                                             class="text-right h-10 bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/50 rounded-lg text-sm font-black tabular-nums transition-all focus:ring-indigo-600"

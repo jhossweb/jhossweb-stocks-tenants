@@ -266,7 +266,7 @@ const submit = () => {
                                 <Input 
                                     id="rate_cop" 
                                     type="number" 
-                                    step="0.01" 
+                                    step="0.0001" 
                                     v-model="form.rate_cop" 
                                     class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 font-mono"
                                     required

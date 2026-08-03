@@ -9,6 +9,7 @@ use App\Models\BankTransaction;
 use App\Models\Rate;
 use App\Models\Receipt;
 use App\Repositories\Finance\Cobranza\ReceiptRepository;
+use App\Services\Dashboard\DashboardCacheInvalidator;
 use App\Services\Finance\RateService;
 use Illuminate\Support\Facades\DB;
 
@@ -21,7 +22,7 @@ class ReceiptService
 
     public function processPayments(array $validated): void
     {
-        $payRate = $this->rateService->getExactRateForDate($validated['payment_date']);
+        $payRate = $this->rateService->getBestRateForDate($validated['payment_date']);
 
         if (! $payRate) {
             throw new \RuntimeException('No existe tasa de cambio para la fecha seleccionada.');
@@ -52,7 +53,7 @@ class ReceiptService
                     ? ($this->rateService->getExactRateForDate($docDate) ?? $payRate)
                     : $payRate;
 
-                $amountInDocCurrency = Rate::convert($paymentAmount, $payCurrency, $docCurrency, $payRate);
+                $amountInDocCurrency = round(Rate::convert($paymentAmount, $payCurrency, $docCurrency, $payRate), 4);
 
                 $diferencial = $this->rateService->calculateDiferencial(
                     $paymentAmount,
@@ -61,12 +62,12 @@ class ReceiptService
                     $docRate,
                 );
 
-                $amountUsd = Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate);
+                $amountUsd = round(Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate), 4);
 
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $validated['bank_account_id'],
                     'btr_type' => 'inflow',
-                    'btr_amount' => $paymentAmount,
+                    'btr_amount' => round($paymentAmount, 4),
                     'btr_reference' => $validated['payment_reference'],
                     'btr_description' => $validated['payment_description'] ?: 'Cobro a cliente',
                     'btr_valorcam' => $valorcam,
@@ -91,6 +92,8 @@ class ReceiptService
                 $receipt->save();
             }
         });
+
+        DashboardCacheInvalidator::receivables(substr($validated['payment_date'], 0, 7));
     }
 
     public function updatePayment(Receipt $payment, array $validated): void
@@ -100,9 +103,9 @@ class ReceiptService
         $oldAmount = $payment->rec_amount;
         $acr->acr_balance += $oldAmount;
 
-        $newAmount = (float) $validated['amount'];
+        $newAmount = round((float) $validated['amount'], 4);
         if ($newAmount > $acr->acr_balance) {
-            throw new \RuntimeException('El monto no puede ser mayor a la deuda pendiente de la factura ($'.number_format($acr->acr_balance, 2).').');
+            throw new \RuntimeException('El monto no puede ser mayor a la deuda pendiente de la factura ($'.number_format($acr->acr_balance, 4).').');
         }
 
         DB::transaction(function () use ($payment, $acr, $newAmount, $oldAmount, $validated) {

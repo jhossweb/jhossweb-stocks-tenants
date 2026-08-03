@@ -104,13 +104,13 @@ const submit = () => {
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Monto del Daño</label>
-                    <Input type="number" step="0.01" min="0" v-model="form.eda_amount" class="w-full" />
+                    <Input type="number" step="0.0001" min="0" v-model="form.eda_amount" class="w-full" />
                     <InputError :message="form.errors.eda_amount" />
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Saldo Pendiente</label>
-                    <Input type="number" step="0.01" min="0" v-model="form.eda_remaining_balance" class="w-full" />
+                    <Input type="number" step="0.0001" min="0" v-model="form.eda_remaining_balance" class="w-full" />
                     <InputError :message="form.errors.eda_remaining_balance" />
                 </div>
 

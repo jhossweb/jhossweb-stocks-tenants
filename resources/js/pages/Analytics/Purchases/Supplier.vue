@@ -1,16 +1,36 @@
 <script setup lang="ts">
-import { Deferred, Head, router } from '@inertiajs/vue3';
+import { Deferred, Head } from '@inertiajs/vue3';
+import { Search, ShoppingCart, Users } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
-import { Card, CardContent } from '@/components/ui/card';
-import type { CurrencyMap, TrendData, PurchaseDetails } from '@/types/Dashboard';
+import StatCard from '@/components/Dashboard/StatCard.vue';
+import DataTable from '@/components/DataTable/DataTable.vue';
+import type { DataTableColumn } from '@/components/DataTable/DataTable.vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    useDashboardMonth,
+    monthLabel,
+} from '@/composables/Dashboard/useDashboardMonth';
+import {
+    currencySymbol,
+    formatAmount,
+} from '@/composables/Finance/useCoinFormat';
+import type {
+    CurrencyMap,
+    TrendData,
+    PurchaseDetails,
+} from '@/types/Dashboard';
 
 defineOptions({
     layout: {
         breadcrumbs: [
             { title: 'Dashboard', href: '/dashboard' },
             { title: 'Compras', href: '/dashboard/compras' },
-            { title: 'Compras por Proveedor', href: '/analytics/purchases-supplier' },
+            {
+                title: 'Compras por Proveedor',
+                href: '/analytics/purchases-supplier',
+            },
         ],
     },
 });
@@ -25,81 +45,45 @@ const props = defineProps<{
     selectedMonth: string;
 }>();
 
+const { monthOptions, changeMonth } = useDashboardMonth(
+    props.selectedMonth,
+    '/analytics/purchases-supplier',
+);
+
 const filter = ref('');
 
 const filteredSuppliers = computed(() => {
     const items = props.details?.bySupplier ?? [];
 
-    if (!filter.value) return items;
+    if (!filter.value) {
+        return items;
+    }
 
-    return items.filter((i) =>
-        i.supplier_name.toLowerCase().includes(filter.value.toLowerCase()),
+    return items.filter((item) =>
+        item.supplier_name.toLowerCase().includes(filter.value.toLowerCase()),
     );
 });
 
-const monthOptions = computed(() => {
-    const options: { value: string; label: string }[] = [];
-    const now = new Date();
-
-    for (let i = 0; i < 12; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        const label = d.toLocaleDateString('es', { year: 'numeric', month: 'long' });
-        options.push({ value, label });
-    }
-
-    return options;
-});
-
-const selectedMonthLabel = computed(
-    () => monthOptions.value.find((o) => o.value === props.selectedMonth)?.label ?? props.selectedMonth,
-);
-
-function changeMonth(month: string) {
-    router.get('/analytics/purchases-supplier', { month }, { preserveState: true, preserveScroll: true });
-}
-
-function formatAmount(value: number | undefined): string {
-    if (value === undefined || value === null) return '-';
-
-    return new Intl.NumberFormat('es', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(value);
-}
-
-function currencySymbol(currency: string): string {
-    const symbols: Record<string, string> = {
-        USD: '$',
-        COP: 'COP',
-        BS: 'Bs',
-        EUR: '€',
-    };
-
-    return symbols[currency] ?? currency;
-}
+const columns: DataTableColumn[] = [
+    { key: 'supplier_name', label: 'Proveedor' },
+    { key: 'invoice_coin', label: 'Moneda', align: 'right' },
+    { key: 'total', label: 'Total', align: 'right', class: 'tabular-nums' },
+];
 </script>
 
 <template>
     <Head title="Compras por Proveedor" />
 
-    <div class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div class="flex items-center justify-between">
-            <h1 class="text-foreground text-xl font-semibold">Compras por Proveedor</h1>
-            <select
-                :value="selectedMonth"
-                class="bg-background border-input rounded-lg border px-3 py-1.5 text-sm"
-                @change="changeMonth(($event.target as HTMLSelectElement).value)"
-            >
-                <option
-                    v-for="opt in monthOptions"
-                    :key="opt.value"
-                    :value="opt.value"
-                >
-                    {{ opt.label }}
-                </option>
-            </select>
-        </div>
+    <div
+        class="flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 md:p-6"
+    >
+        <DashboardHeader
+            title="Compras por Proveedor"
+            description="Desglose de compras por proveedor en el período seleccionado"
+            :month="selectedMonth"
+            :month-options="monthOptions"
+            @change-month="changeMonth"
+        />
 
         <div class="grid gap-4 md:grid-cols-3">
             <KpiCard
@@ -107,66 +91,61 @@ function currencySymbol(currency: string): string {
                 :amounts="summary.total"
                 :trend="summary.trend"
                 variant="success"
+                :icon="ShoppingCart"
             />
-            <KpiCard
+            <StatCard
                 label="Proveedores Activos"
-                :amounts="{ Proveedores: summary.supplierCount } as any"
+                :value="summary.supplierCount"
+                :icon="Users"
             />
         </div>
 
         <Card>
-            <CardContent class="p-6">
-                <div class="mb-4 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold">Desglose por Proveedor</h2>
-                    <input
-                        v-model="filter"
-                        type="text"
-                        placeholder="Buscar proveedor..."
-                        class="border-input bg-background w-64 rounded-lg border px-3 py-1.5 text-sm"
-                    />
+            <CardHeader>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <CardTitle>Desglose por Proveedor</CardTitle>
+                    <div class="relative">
+                        <Search
+                            class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+                            aria-hidden="true"
+                        />
+                        <input
+                            v-model="filter"
+                            type="text"
+                            placeholder="Buscar proveedor..."
+                            aria-label="Buscar proveedor"
+                            class="h-8 w-56 rounded-lg border border-input bg-background py-1.5 pr-3 pl-8 text-sm text-foreground shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        />
+                    </div>
                 </div>
-
+            </CardHeader>
+            <CardContent>
                 <Deferred data="details">
                     <template #fallback>
                         <div class="flex items-center justify-center py-8">
-                            <div class="bg-muted-foreground/20 size-6 animate-pulse rounded" />
+                            <div
+                                class="size-6 animate-pulse rounded bg-muted-foreground/20"
+                            />
                         </div>
                     </template>
 
-                    <div
-                        v-if="filteredSuppliers.length === 0"
-                        class="text-muted-foreground py-8 text-center"
+                    <DataTable
+                        :columns="columns"
+                        :rows="filteredSuppliers"
+                        :empty-text="
+                            details?.bySupplier?.length
+                                ? 'Ningún proveedor coincide con el filtro'
+                                : 'Sin compras registradas en ' +
+                                  monthLabel(selectedMonth)
+                        "
                     >
-                        {{ details?.bySupplier?.length ? 'Ningún proveedor coincide con el filtro' : 'Sin compras registradas en ' + selectedMonthLabel }}
-                    </div>
-
-                    <div
-                        v-else
-                        class="overflow-x-auto"
-                    >
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b bg-muted/50">
-                                    <th class="px-4 py-2 text-left font-medium">Proveedor</th>
-                                    <th class="px-4 py-2 text-right font-medium">Moneda</th>
-                                    <th class="px-4 py-2 text-right font-medium">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="(item, idx) in filteredSuppliers"
-                                    :key="idx"
-                                    class="border-b last:border-0 hover:bg-muted/30"
-                                >
-                                    <td class="px-4 py-2 font-medium">{{ item.supplier_name }}</td>
-                                    <td class="px-4 py-2 text-right">{{ item.invoice_coin }}</td>
-                                    <td class="px-4 py-2 text-right font-medium">
-                                        {{ currencySymbol(item.invoice_coin) }} {{ formatAmount(item.total) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                        <template #total="{ row }">
+                            <span class="font-medium">
+                                {{ currencySymbol(row.invoice_coin) }}
+                                {{ formatAmount(row.total) }}
+                            </span>
+                        </template>
+                    </DataTable>
                 </Deferred>
             </CardContent>
         </Card>

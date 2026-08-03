@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Sales\SaleOrder;
 
+use App\Enum\Finanzas\TransactionMethod;
 use App\Enum\Inventary\ProType;
 use App\Enum\TypeCoin;
 use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Http\Requests\Sales\UpdateSaleRequest;
+use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Rate;
@@ -103,6 +105,8 @@ class SaleOrderController extends Controller
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),
             'coins' => TypeCoin::values(),
             'ivas' => TypeIva::values(),
+            'bankAccounts' => BankAccount::where('bank_status', true)->get(),
+            'methods' => TransactionMethod::values(),
         ]);
     }
 
@@ -113,9 +117,28 @@ class SaleOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $this->saleOrderService->create($validated);
+            $sale = $this->saleOrderService->create($validated);
 
             DB::commit();
+
+            if ($validated['sls_payment_condition'] === 'cash' && (float) $sale->sls_total > 0) {
+                $receivable = $sale->accountsReceivable;
+
+                if ($receivable) {
+                    return redirect()->route('sales.create')
+                        ->with('success', 'Venta guardada exitosamente.')
+                        ->with('payment_pending', [
+                            'entity' => 'sale',
+                            'acr_id' => $receivable->id,
+                            'document_number' => $sale->sls_number,
+                            'amount' => (float) $sale->sls_total,
+                            'currency' => $sale->sls_coin,
+                            'date' => $sale->sls_date?->format('Y-m-d'),
+                            'valorcam' => (float) $sale->sls_valorcam,
+                            'customer_id' => $sale->sls_customer_id,
+                        ]);
+                }
+            }
 
             return redirect()->route('sales.index')->with('success', 'Venta guardada exitosamente.');
         } catch (\Exception $e) {

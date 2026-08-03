@@ -28,7 +28,7 @@ export function coinDecimals(coin: string): number {
         return 4;
     }
 
-    return 2;
+    return 4;
 }
 
 export function coinStep(coin: string): string {
@@ -36,11 +36,7 @@ export function coinStep(coin: string): string {
         return '1';
     }
 
-    if (coin === 'USD') {
-        return '0.0001';
-    }
-
-    return '0.01';
+    return '0.0001';
 }
 
 export function roundToCoinPrecision(coin: string, value: number): number {
@@ -53,8 +49,8 @@ export function currencySymbol(coin: string): string {
 
 export function formatAmount(value: number): string {
     return new Intl.NumberFormat('es', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4,
     }).format(value);
 }
 

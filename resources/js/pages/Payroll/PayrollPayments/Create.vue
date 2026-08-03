@@ -305,14 +305,14 @@ const calculateConvertedBalance = (payment: any) => {
                                     <div class="flex flex-col gap-1">
                                         <div class="flex items-center gap-1 font-mono text-zinc-400 font-bold">
                                             <span class="text-[10px] text-zinc-600">{{ payrollItem.currency }}</span>
-                                            {{ Number(payrollItem.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                            {{ Number(payrollItem.balance).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                         </div>
                                         <div
                                             v-if="payrollItem.currency !== form.payment_currency"
                                             class="flex items-center gap-1 font-mono text-[11px] text-amber-400 font-bold"
                                         >
                                             <span class="text-[10px] text-amber-600">≈ {{ form.payment_currency }}</span>
-                                            {{ calculateConvertedBalance(payrollItem).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                            {{ calculateConvertedBalance(payrollItem).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                         </div>
                                     </div>
                                 </td>
@@ -320,7 +320,7 @@ const calculateConvertedBalance = (payment: any) => {
                                     <div class="relative">
                                         <Input
                                             type="number"
-                                            step="0.01"
+                                            step="0.0001"
                                             v-model="payrollItem.amount"
                                             @input="payrollItem.amount = Math.min(Number(payrollItem.amount), calculateConvertedBalance(payrollItem))"
                                             class="text-right h-10 bg-zinc-950 border-zinc-800 group-hover:border-indigo-500/50 rounded-lg text-sm font-black tabular-nums transition-all focus:ring-indigo-600"

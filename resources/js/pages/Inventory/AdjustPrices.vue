@@ -118,7 +118,7 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-        minimumFractionDigits: 2,
+        minimumFractionDigits: 4,
         maximumFractionDigits: 4
     }).format(value);
 };
@@ -214,7 +214,7 @@ const hasChanges = computed(() => {
                                             v-model.number="adj.new_utility"
                                             @input="calculatePrice(adj)"
                                             class="w-24 text-center h-8 bg-zinc-800 border-zinc-700 text-zinc-100"
-                                            step="0.01"
+                                            step="0.0001"
                                         />
                                     </div>
                                 </td>

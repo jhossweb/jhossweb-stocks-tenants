@@ -478,7 +478,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                     <div class="relative z-10 flex flex-col gap-3">
                         <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
                             <span>Total a Liquidar</span>
-                            <span>{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                            <span>{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}</span>
                         </div>
                         <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
                             <span>Tasa Aplicada</span>
@@ -494,10 +494,10 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                             </div>
                             <div class="flex justify-between">
                                 <span>Total a pagar</span>
-                                <span class="font-bold">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }} {{ form.payment_currency }}</span>
+                                <span class="font-bold">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }} {{ form.payment_currency }}</span>
                             </div>
                             <div class="text-xs text-right text-primary-foreground/70">
-                                (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ originalCurrency }})
+                                (equivalente a {{ originalTotal.toLocaleString('en-US', { minimumFractionDigits: 4 }) }} {{ originalCurrency }})
                             </div>
                         </div>
 
@@ -511,7 +511,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                     class="text-sm font-bold"
                                     :class="estimatedDiferencial > 0 ? 'text-green-300' : 'text-orange-300'"
                                 >
-                                    {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(2) }} USD
+                                    {{ estimatedDiferencial > 0 ? '+' : '' }}${{ Math.abs(estimatedDiferencial).toFixed(4) }} USD
                                 </span>
                             </div>
                             <div class="text-xs text-right text-primary-foreground/70">
@@ -521,7 +521,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
 
                         <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
                             <span class="text-sm font-bold uppercase">Total {{ form.payment_currency }}</span>
-                            <span class="text-3xl font-black tabular-nums">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+                            <span class="text-3xl font-black tabular-nums">{{ totalInPaymentCurrency.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}</span>
                         </div>
                     </div>
                 </div>
@@ -577,14 +577,14 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                         <div class="flex flex-col gap-1">
                                             <div class="flex items-center gap-1 font-mono font-bold text-muted-foreground">
                                                 <span class="text-[10px] text-muted-foreground/60">{{ invoice.currency }}</span>
-                                                {{ Number(invoice.balance).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                                {{ Number(invoice.balance).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                             </div>
                                             <div
                                                 v-if="invoice.currency !== form.payment_currency"
                                                 class="flex items-center gap-1 font-mono text-[11px] text-primary font-bold"
                                             >
                                                 <span class="text-[10px] text-primary/60">≈ {{ form.payment_currency }}</span>
-                                                {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                                                {{ calculateConvertedBalance(invoice).toLocaleString('en-US', { minimumFractionDigits: 4 }) }}
                                             </div>
                                         </div>
                                     </td>
@@ -592,7 +592,7 @@ const calculateConvertedBalance = (invoicePayment: any) => {
                                         <div class="relative">
                                             <Input
                                                 type="number"
-                                                step="0.01"
+                                                step="0.0001"
                                                 :model-value="invoice.amount"
                                                 @update:model-value="invoice.amount = Math.min(Number($event), calculateConvertedBalance(invoice))"
                                                 class="text-right font-bold tabular-nums transition-all group-hover:border-primary/50"

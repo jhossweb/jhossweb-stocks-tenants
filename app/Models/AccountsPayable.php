@@ -63,10 +63,10 @@ class AccountsPayable extends Model
      */
     public function registerPayment(float $amount, string $type, ?int $bankTransactionId = null, ?string $invoiceReference = null, ?float $amountUsd = null): void
     {
-        $this->acp_balance -= $amount;
+        $this->acp_balance = round($this->acp_balance - $amount, 4);
 
         if ($amountUsd !== null && $this->acp_balance_usd !== null) {
-            $this->acp_balance_usd -= $amountUsd;
+            $this->acp_balance_usd = round($this->acp_balance_usd - $amountUsd, 4);
         }
 
         if ($this->acp_balance <= 0) {
@@ -99,7 +99,7 @@ class AccountsPayable extends Model
      */
     public function reversePayment(AccountPayments $payment): void
     {
-        $this->acp_balance += $payment->apy_amount;
+        $this->acp_balance = round($this->acp_balance + $payment->apy_amount, 4);
 
         if (isset($this->acp_balance_usd) && $payment->bankTransaction) {
             $paymentUsd = (float) $payment->apy_amount;
@@ -111,7 +111,7 @@ class AccountsPayable extends Model
                     default => (float) $payment->apy_amount / (float) $payment->bankTransaction->btr_valorcam,
                 };
             }
-            $this->acp_balance_usd += $paymentUsd;
+            $this->acp_balance_usd += round($paymentUsd, 4);
         }
 
         $this->acp_status = match (true) {

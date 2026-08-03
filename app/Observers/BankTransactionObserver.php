@@ -33,8 +33,8 @@ class BankTransactionObserver
             if (! $account || $account->bank_balance < $bankTransaction->btr_amount) {
                 throw new \RuntimeException(
                     'Saldo insuficiente en la cuenta bancaria. '
-                    .'Saldo actual: '.number_format((float) ($account?->bank_balance ?? 0), 2)
-                    .', requiere: '.number_format((float) $bankTransaction->btr_amount, 2)
+                    .'Saldo actual: '.number_format((float) ($account?->bank_balance ?? 0), 4)
+                    .', requiere: '.number_format((float) $bankTransaction->btr_amount, 4)
                 );
             }
         }
