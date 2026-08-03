@@ -30,24 +30,6 @@ export interface ApArKpis {
     paid?: CurrencyMap;
 }
 
-export interface LowStockItem {
-    pro_name: string;
-    stk_cant: number;
-    pro_cant_min: number;
-}
-
-export interface ProductMovement {
-    pro_name: string;
-    quantity: number;
-}
-
-export interface ProductKpis {
-    totalSkus: number;
-    lowStock: LowStockItem[];
-    topSelling: ProductMovement[];
-    worstSelling: ProductMovement[];
-}
-
 export interface ProfitLossItem {
     total: CurrencyMap;
     trend: TrendData;
@@ -68,8 +50,20 @@ export interface DashboardKpis {
     cashFlow: CashFlowKpis;
     receivables: ApArKpis;
     payables: ApArKpis;
-    products: ProductKpis;
-    purchases: { total: CurrencyMap; trend: TrendData; supplierCount: number; pending: CurrencyMap };
+    purchases: {
+        total: CurrencyMap;
+        trend: TrendData;
+        supplierCount: number;
+        pending: CurrencyMap;
+    };
+}
+
+export interface SalesByDay {
+    date: string;
+    count: number;
+    usd: number;
+    cop: number;
+    bs: number;
 }
 
 export interface CategoryAggregate {
@@ -172,16 +166,9 @@ export interface PayableDetails {
     bySupplier: SupplierBalanceItem[];
 }
 
-export interface ProductDetails {
-    topSelling: ProductMovement[];
-    worstSelling: ProductMovement[];
-    lowStock: LowStockItem[];
-}
-
 export interface AnalyticsSummary {
     expenses?: ExpenseKpis;
     cashFlow?: CashFlowKpis;
     receivables?: ApArKpis;
     payables?: ApArKpis;
-    products?: Pick<ProductKpis, 'totalSkus' | 'lowStock'>;
 }

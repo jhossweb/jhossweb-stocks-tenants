@@ -32,19 +32,4 @@ class DashboardCacheInvalidator
             Cache::forget("dashboard:purchases:supplier_count:{$month}");
         }
     }
-
-    public static function products(?string $month = null): void
-    {
-        Cache::forget('dashboard:products:total_skus');
-        Cache::forget('dashboard:products:low_stock');
-        if ($month) {
-            $prev = date('Y-m', strtotime("{$month}-01 -1 month"));
-            foreach ([$month, $prev] as $m) {
-                Cache::forget("dashboard:products:top:{$m}:5");
-                Cache::forget("dashboard:products:worst:{$m}:5");
-                Cache::forget("dashboard:products:top:{$m}:10");
-                Cache::forget("dashboard:products:worst:{$m}:10");
-            }
-        }
-    }
 }

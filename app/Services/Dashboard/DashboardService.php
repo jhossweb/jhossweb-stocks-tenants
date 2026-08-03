@@ -5,9 +5,9 @@ namespace App\Services\Dashboard;
 use App\Repositories\Dashboard\CashFlowKpiRepository;
 use App\Repositories\Dashboard\ExpenseKpiRepository;
 use App\Repositories\Dashboard\PayableKpiRepository;
-use App\Repositories\Dashboard\ProductKpiRepository;
 use App\Repositories\Dashboard\PurchaseKpiRepository;
 use App\Repositories\Dashboard\ReceivableKpiRepository;
+use App\Repositories\Dashboard\SalesKpiRepository;
 
 class DashboardService
 {
@@ -16,8 +16,8 @@ class DashboardService
         protected CashFlowKpiRepository $cashFlowKpiRepo,
         protected ReceivableKpiRepository $receivableKpiRepo,
         protected PayableKpiRepository $payableKpiRepo,
-        protected ProductKpiRepository $productKpiRepo,
         protected PurchaseKpiRepository $purchaseKpiRepo,
+        protected SalesKpiRepository $salesKpiRepo,
         protected ProfitLossService $profitLossService,
     ) {}
 
@@ -94,17 +94,6 @@ class DashboardService
             fn () => $this->payableKpiRepo->balanceByCurrency(),
         );
 
-        // --- Products ---
-        $productsTop = $read(
-            "dashboard:products:top:{$month}:5",
-            fn () => $this->productKpiRepo->topSelling(5, $month),
-        );
-
-        $productsWorst = $read(
-            "dashboard:products:worst:{$month}:5",
-            fn () => $this->productKpiRepo->worstSelling(5, $month),
-        );
-
         // --- Profit & Loss ---
         $profitLoss = $read(
             "dashboard:profitloss:{$month}",
@@ -162,12 +151,6 @@ class DashboardService
                 'balance_usd' => collect($payablesBalance)->map(fn ($item) => $item['balance_usd'])->toArray(),
                 'paid' => $read("dashboard:payables:paid:{$month}", fn () => $this->payableKpiRepo->paidByCurrency($month)),
             ],
-            'products' => [
-                'totalSkus' => $read('dashboard:products:total_skus', fn () => $this->productKpiRepo->totalSkus()),
-                'lowStock' => $read('dashboard:products:low_stock', fn () => $this->productKpiRepo->lowStock()),
-                'topSelling' => $productsTop,
-                'worstSelling' => $productsWorst,
-            ],
             'purchases' => [
                 'total' => $purchasesTotal,
                 'trend' => $this->computeTrend($purchasesTotal, $purchasesPrevTotal),
@@ -196,11 +179,8 @@ class DashboardService
             return $value;
         };
 
-        // --- Ventas ---
-        $profitLoss = $read(
-            "dashboard:profitloss:{$month}",
-            fn () => $this->profitLossService->getProfitLoss($month),
-        );
+        // --- Ventas (del día actual) ---
+        $ventasHoy = $this->salesKpiRepo->todayByCurrency();
 
         // --- Gastos (fijo + variable combinados) ---
         $expensesFijo = $read(
@@ -242,8 +222,7 @@ class DashboardService
 
         return [
             'ventas' => [
-                'total' => $profitLoss['revenue']['total'],
-                'trend' => $profitLoss['revenue']['trend'],
+                'total' => $ventasHoy,
             ],
             'gastos' => [
                 'total' => $gastosTotal,

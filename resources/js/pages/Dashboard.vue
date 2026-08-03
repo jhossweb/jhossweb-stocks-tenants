@@ -45,12 +45,11 @@ const { monthOptions, goTo, changeMonth } = useDashboardMonth(
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
-                label="Ventas"
+                label="Ventas diarias"
                 :amounts="categoryAggregates.ventas.total"
-                :trend="categoryAggregates.ventas.trend"
                 variant="success"
                 :icon="TrendingUp"
-                @click="goTo('/dashboard/ventas')"
+                @click="goTo('/dashboard/ventas-diarias')"
             />
             <KpiCard
                 label="Gastos"

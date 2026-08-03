@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Repositories\Dashboard\CashFlowKpiRepository;
 use App\Repositories\Dashboard\ExpenseKpiRepository;
 use App\Repositories\Dashboard\PayableKpiRepository;
-use App\Repositories\Dashboard\ProductKpiRepository;
 use App\Repositories\Dashboard\PurchaseKpiRepository;
 use App\Repositories\Dashboard\ReceivableKpiRepository;
 use Illuminate\Http\Request;
@@ -18,7 +17,6 @@ class AnalyticsController extends Controller
         protected CashFlowKpiRepository $cashFlowKpiRepo,
         protected ReceivableKpiRepository $receivableKpiRepo,
         protected PayableKpiRepository $payableKpiRepo,
-        protected ProductKpiRepository $productKpiRepo,
         protected PurchaseKpiRepository $purchaseKpiRepo,
     ) {}
 
@@ -33,7 +31,6 @@ class AnalyticsController extends Controller
             'cash-flow' => 'Analytics/CashFlow',
             'receivables' => 'Analytics/Receivables',
             'payables' => 'Analytics/Payables',
-            'products' => 'Analytics/Products',
             'purchases-total' => 'Analytics/Purchases/Total',
             'purchases-supplier' => 'Analytics/Purchases/Supplier',
             'purchases-month' => 'Analytics/Purchases/Month',
@@ -87,10 +84,6 @@ class AnalyticsController extends Controller
                 'balance' => $this->payableKpiRepo->balanceByCurrency(),
                 'paid' => $this->payableKpiRepo->paidByCurrency($month),
             ],
-            'products' => [
-                'totalSkus' => $this->productKpiRepo->totalSkus(),
-                'lowStock' => $this->productKpiRepo->lowStock(),
-            ],
             'purchases-total' => [
                 'total' => $this->purchaseKpiRepo->totalByCurrency($month),
                 'trend' => $this->purchaseKpiRepo->trend($month),
@@ -135,11 +128,6 @@ class AnalyticsController extends Controller
             ],
             'payables' => [
                 'bySupplier' => $this->payableKpiRepo->bySupplier(),
-            ],
-            'products' => [
-                'topSelling' => $this->productKpiRepo->topSellingReport($month, 10),
-                'worstSelling' => $this->productKpiRepo->worstSellingReport($month, 10),
-                'lowStock' => $this->productKpiRepo->lowStock(),
             ],
             'purchases-total' => [
                 'purchases' => $this->purchaseKpiRepo->allPurchases($month),

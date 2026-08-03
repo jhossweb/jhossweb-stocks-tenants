@@ -20,6 +20,7 @@ use App\Observers\RateObserver;
 use App\Observers\Sales\MovSalesObserver;
 use App\Observers\Sales\SaleOrderObserver;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -41,6 +42,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->registerSqliteDateFunctions();
+
         MovementsPurchase::observe(MovPurchasesObserver::class);
         MovementsPurchase::observe(CostHistoryObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);
@@ -75,5 +78,41 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    /**
+     * Emula TO_CHAR de PostgreSQL en SQLite para consultas por fecha.
+     */
+    protected function registerSqliteDateFunctions(): void
+    {
+        $connection = DB::connection();
+
+        if (! $connection instanceof SQLiteConnection) {
+            return;
+        }
+
+        $connection->getPdo()->sqliteCreateFunction('TO_CHAR', function ($value, $format) {
+            if ($value === null) {
+                return null;
+            }
+
+            $date = new CarbonImmutable((string) $value);
+
+            $replacements = [
+                'YYYY-MM' => $date->format('Y-m'),
+                'YYYY' => $date->format('Y'),
+                'YY' => $date->format('y'),
+                'MM' => $date->format('m'),
+                'MON' => strtoupper($date->format('M')),
+                'Mon' => $date->format('M'),
+                'DD' => $date->format('d'),
+                'HH24' => $date->format('H'),
+                'HH' => $date->format('H'),
+                'MI' => $date->format('i'),
+                'SS' => $date->format('s'),
+            ];
+
+            return strtr((string) $format, $replacements);
+        });
     }
 }

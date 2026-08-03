@@ -4,15 +4,12 @@ namespace App\Observers\Inventory;
 
 use App\Models\MovementInventory;
 use App\Models\Product;
-use App\Services\Dashboard\DashboardCacheInvalidator;
 use DB;
 
 class MovInventoryObserver
 {
     public function created(MovementInventory $movement): void
     {
-        DashboardCacheInvalidator::products();
-
         $transType = strtolower((string) $movement->min_trans_type_code);
         if ($transType !== 'inv') {
             return;
@@ -35,8 +32,6 @@ class MovInventoryObserver
 
     public function updated(MovementInventory $movement): void
     {
-        DashboardCacheInvalidator::products();
-
         $oldCant = (float) $movement->getOriginal('min_quantity');
         $oldFactor = (int) $movement->getOriginal('min_factor');
         $oldWareId = $movement->getOriginal('min_war_id');
@@ -74,8 +69,6 @@ class MovInventoryObserver
 
     public function deleted(MovementInventory $movement): void
     {
-        DashboardCacheInvalidator::products();
-
         $transType = strtolower((string) $movement->min_trans_type_code);
         if ($transType !== 'inv') {
             return;
