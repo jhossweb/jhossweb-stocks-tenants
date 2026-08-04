@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { CalendarDays, TrendingUp } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
 import DataTable from '@/components/DataTable/DataTable.vue';
@@ -19,7 +19,7 @@ import { useDashboardMonth } from '@/composables/Dashboard/useDashboardMonth';
 import { formatCoinValue } from '@/composables/Finance/useCoinFormat';
 import { formatDate, today as todayIso } from '@/composables/useDate';
 import { dashboard } from '@/routes';
-import type { CurrencyMap, SalesByDay } from '@/types/Dashboard';
+import type { CurrencyMap, SalesPage } from '@/types/Dashboard';
 
 defineOptions({
     layout: {
@@ -37,7 +37,7 @@ defineOptions({
 });
 
 const props = defineProps<{
-    daily: SalesByDay[];
+    sales: SalesPage;
     today: CurrencyMap;
     selectedMonth: string;
     from: string;
@@ -85,29 +85,40 @@ watch([dateFrom, dateTo], () => {
     }, 300);
 });
 
-const totals = computed(() =>
-    props.daily.reduce(
-        (acc, day) => ({
-            count: acc.count + day.count,
-            usd: acc.usd + day.usd,
-            cop: acc.cop + day.cop,
-            bs: acc.bs + day.bs,
-        }),
-        { count: 0, usd: 0, cop: 0, bs: 0 },
-    ),
-);
-
 function resetToToday(): void {
     dateFrom.value = todayIso();
     dateTo.value = todayIso();
 }
 
+function paymentConditionLabel(condition: string): string {
+    return condition === 'credit' ? 'Crédito' : 'Contado';
+}
+
+function statusClass(status: string): string {
+    switch (status) {
+        case 'paid':
+            return 'bg-green-900/30 text-green-400';
+        case 'partial':
+            return 'bg-blue-900/30 text-blue-400';
+        case 'pending':
+            return 'bg-red-900/30 text-red-400';
+        default:
+            return 'bg-zinc-700/30 text-zinc-400';
+    }
+}
+
+function linkLabel(label: string): string {
+    return label.replaceAll('&laquo;', '«').replaceAll('&raquo;', '»');
+}
+
 const columns: DataTableColumn[] = [
-    { key: 'date', label: 'Fecha' },
-    { key: 'count', label: 'Nº Ventas', align: 'center' },
-    { key: 'usd', label: 'Total USD', align: 'right' },
-    { key: 'cop', label: 'Total COP', align: 'right' },
-    { key: 'bs', label: 'Total BS', align: 'right' },
+    { key: 'sls_date', label: 'Fecha' },
+    { key: 'sls_number', label: 'Nº Factura' },
+    { key: 'customer', label: 'Cliente' },
+    { key: 'sls_payment_condition', label: 'Condición', align: 'center' },
+    { key: 'sls_coin', label: 'Moneda', align: 'center' },
+    { key: 'sls_total', label: 'Total', align: 'right' },
+    { key: 'sls_status', label: 'Estado', align: 'center' },
 ];
 </script>
 
@@ -119,7 +130,7 @@ const columns: DataTableColumn[] = [
     >
         <DashboardHeader
             title="Ventas por día"
-            description="Venta del período seleccionado, desglosada por moneda"
+            description="Ventas del período seleccionado, desglosadas por factura"
             :month="selectedMonth"
             :month-options="monthOptions"
             @change-month="changeMonth"
@@ -166,53 +177,109 @@ const columns: DataTableColumn[] = [
 
         <Card>
             <CardHeader>
-                <CardTitle>Ventas por día</CardTitle>
+                <CardTitle>Ventas</CardTitle>
             </CardHeader>
             <CardContent>
                 <DataTable
                     :columns="columns"
-                    :rows="daily"
+                    :rows="sales.data"
                     :empty-text="'Sin ventas en el período seleccionado'"
                 >
-                    <template #date="{ row }">
-                        <span class="font-medium tabular-nums">
-                            {{ formatDate(row.date) }}
+                    <template #sls_date="{ row }">
+                        <span
+                            class="font-medium whitespace-nowrap tabular-nums"
+                        >
+                            {{ formatDate(row.sls_date) }}
                         </span>
                     </template>
-                    <template #count="{ row }">
-                        <span class="tabular-nums">{{ row.count }}</span>
-                    </template>
-                    <template #usd="{ row }">
-                        <span class="tabular-nums">
-                            {{ formatCoinValue(row.usd, 'USD') }}
+                    <template #sls_number="{ row }">
+                        <span class="whitespace-nowrap tabular-nums">
+                            {{ row.sls_number }}
                         </span>
                     </template>
-                    <template #cop="{ row }">
-                        <span class="tabular-nums">
-                            {{ formatCoinValue(row.cop, 'COP') }}
+                    <template #customer="{ row }">
+                        <span class="text-muted-foreground">
+                            {{ row.customer?.clt_name ?? '—' }}
                         </span>
                     </template>
-                    <template #bs="{ row }">
-                        <span class="tabular-nums">
-                            {{ formatCoinValue(row.bs, 'BS') }}
+                    <template #sls_payment_condition="{ row }">
+                        <span
+                            :class="
+                                row.sls_payment_condition === 'credit'
+                                    ? 'text-amber-400'
+                                    : 'text-muted-foreground'
+                            "
+                        >
+                            {{
+                                paymentConditionLabel(row.sls_payment_condition)
+                            }}
+                        </span>
+                    </template>
+                    <template #sls_coin="{ row }">
+                        <span
+                            class="rounded-full bg-muted px-2 py-0.5 text-xs font-medium"
+                        >
+                            {{ row.sls_coin }}
+                        </span>
+                    </template>
+                    <template #sls_total="{ row }">
+                        <span class="whitespace-nowrap tabular-nums">
+                            {{
+                                formatCoinValue(
+                                    Number(row.sls_total),
+                                    row.sls_coin,
+                                )
+                            }}
+                        </span>
+                    </template>
+                    <template #sls_status="{ row }">
+                        <span
+                            class="rounded-full px-2 py-0.5 text-xs"
+                            :class="statusClass(row.sls_status)"
+                        >
+                            {{ row.sls_status.toUpperCase() }}
                         </span>
                     </template>
                 </DataTable>
             </CardContent>
             <CardFooter
-                v-if="daily.length > 0"
-                class="flex flex-wrap items-center justify-end gap-x-6 gap-y-2 border-t text-sm"
+                v-if="sales.total > 0"
+                class="flex flex-wrap items-center justify-between gap-4 border-t"
             >
-                <span class="font-medium text-foreground">Total</span>
-                <span class="text-muted-foreground">
-                    {{ formatCoinValue(totals.usd, 'USD') }}
-                </span>
-                <span class="text-muted-foreground">
-                    {{ formatCoinValue(totals.cop, 'COP') }}
-                </span>
-                <span class="text-muted-foreground">
-                    {{ formatCoinValue(totals.bs, 'BS') }}
-                </span>
+                <p class="text-sm text-muted-foreground">
+                    Mostrando
+                    <span class="font-medium text-foreground">
+                        {{ sales.from }}-{{ sales.to }}
+                    </span>
+                    de
+                    <span class="font-medium text-foreground">
+                        {{ sales.total }}
+                    </span>
+                    ventas
+                </p>
+
+                <div v-if="sales.last_page > 1" class="flex gap-1">
+                    <template v-for="(link, key) in sales.links" :key="key">
+                        <div
+                            v-if="link.url === null"
+                            class="cursor-not-allowed rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground/50"
+                        >
+                            {{ linkLabel(link.label) }}
+                        </div>
+                        <Link
+                            v-else
+                            :href="link.url"
+                            class="rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+                            :class="{
+                                'border-primary bg-primary font-semibold text-primary-foreground hover:bg-primary':
+                                    link.active,
+                            }"
+                            preserve-scroll
+                        >
+                            {{ linkLabel(link.label) }}
+                        </Link>
+                    </template>
+                </div>
             </CardFooter>
         </Card>
     </div>

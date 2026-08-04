@@ -58,12 +58,32 @@ export interface DashboardKpis {
     };
 }
 
-export interface SalesByDay {
-    date: string;
-    count: number;
-    usd: number;
-    cop: number;
-    bs: number;
+export interface SaleOrderRow {
+    id: number;
+    sls_number: string;
+    sls_date: string;
+    sls_coin: string;
+    sls_total: number;
+    sls_status: string;
+    sls_payment_condition: string;
+    customer?: { clt_name: string } | null;
+}
+
+export interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface SalesPage {
+    data: SaleOrderRow[];
+    links: PaginationLink[];
+    current_page: number;
+    from: number | null;
+    last_page: number;
+    per_page: number;
+    to: number | null;
+    total: number;
 }
 
 export interface CategoryAggregate {

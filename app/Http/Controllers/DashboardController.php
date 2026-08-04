@@ -31,7 +31,7 @@ class DashboardController extends Controller
         $to = $request->input('to', date('Y-m-t', strtotime("{$month}-01")));
 
         return Inertia::render('Dashboard/VentasDiarias', [
-            'daily' => $this->salesKpiRepository->dailyBetween($from, $to),
+            'sales' => $this->salesKpiRepository->paginateSales($from, $to, 15),
             'today' => $this->salesKpiRepository->todayByCurrency(),
             'selectedMonth' => $month,
             'from' => $from,

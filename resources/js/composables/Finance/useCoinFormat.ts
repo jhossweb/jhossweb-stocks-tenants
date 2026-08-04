@@ -15,7 +15,7 @@ export const methodLabels: Record<string, string> = {
 const currencySymbols: Record<string, string> = {
     USD: '$',
     BS: 'Bs ',
-    COP: '$ ',
+    COP: 'COP ',
     EUR: '€ ',
 };
 
