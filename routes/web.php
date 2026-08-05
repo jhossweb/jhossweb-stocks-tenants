@@ -26,6 +26,7 @@ use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Purchase\PurchaseReturnController;
 use App\Http\Controllers\Purchase\Supplier\SupplierController;
 use App\Http\Controllers\Sales\Customer\CustomerController;
+use App\Http\Controllers\Sales\Quote\QuoteController;
 use App\Http\Controllers\Sales\SaleOrder\SaleOrderController;
 use App\Http\Controllers\Sales\SaleReturn\SaleReturnController;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +83,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('sales', SaleOrderController::class);
     Route::resource('sale-returns', SaleReturnController::class);
     Route::resource('customers', CustomerController::class);
+    Route::resource('quotes', QuoteController::class);
+    Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
 
     // Cuentas por Cobrar
     Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');

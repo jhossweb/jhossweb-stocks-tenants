@@ -15,5 +15,6 @@ class TransactionType extends Model
         'trans_type_code',
         'trans_type_description',
         'trans_type_factor',
+        'trans_last_number',
     ];
 }

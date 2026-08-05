@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
                 'payment_pending' => $request->session()->get('payment_pending'),
+                'quote_availability' => $request->session()->get('quote_availability'),
             ],
         ];
     }

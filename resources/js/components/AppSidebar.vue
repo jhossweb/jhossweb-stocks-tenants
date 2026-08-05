@@ -133,6 +133,10 @@ const mainNavItems: NavItem[] = [
                         href: '/sales',
                     },
                     {
+                        title: 'Cotizaciones',
+                        href: '/quotes',
+                    },
+                    {
                         title: 'Devoluciones de Ventas',
                         href: '/sale-returns',
                     },

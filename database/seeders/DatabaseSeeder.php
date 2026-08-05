@@ -78,6 +78,15 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        TransactionType::create(
+            [
+                'trans_type_code' => 'COT',
+                'trans_type_description' => 'COTIZACION',
+                'trans_type_factor' => '0',
+                'trans_last_number' => 1,
+            ]
+        );
+
         AdjustmentReason::create([
             'adjr_code' => 'MERMA',
             'adjr_name' => 'Merma',
