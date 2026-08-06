@@ -86,6 +86,29 @@ export interface SalesPage {
     total: number;
 }
 
+export interface PurchaseOrderRow {
+    id: number;
+    invoice_number: string;
+    invoice_date: string;
+    invoice_supplier_id: number;
+    invoice_coin: string;
+    invoice_total: number;
+    invoice_status: string;
+    invoice_payment_condition: string;
+    supplier?: { supplier_name: string } | null;
+}
+
+export interface PurchasesPage {
+    data: PurchaseOrderRow[];
+    links: PaginationLink[];
+    current_page: number;
+    from: number | null;
+    last_page: number;
+    per_page: number;
+    to: number | null;
+    total: number;
+}
+
 export interface CategoryAggregate {
     total: CurrencyMap;
     trend?: TrendData;

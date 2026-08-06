@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\Dashboard\PurchaseKpiRepository;
 use App\Repositories\Dashboard\SalesKpiRepository;
 use App\Services\Dashboard\DashboardService;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ class DashboardController extends Controller
     public function __construct(
         protected DashboardService $dashboardService,
         protected SalesKpiRepository $salesKpiRepository,
+        protected PurchaseKpiRepository $purchaseKpiRepository,
     ) {}
 
     public function index(Request $request)
@@ -66,6 +68,21 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard/Compras', [
             'kpis' => $this->dashboardService->getKpis($month),
             'selectedMonth' => $month,
+        ]);
+    }
+
+    public function comprasDiarias(Request $request)
+    {
+        $month = $request->input('month', now()->format('Y-m'));
+        $from = $request->input('from', "{$month}-01");
+        $to = $request->input('to', date('Y-m-t', strtotime("{$month}-01")));
+
+        return Inertia::render('Dashboard/ComprasDiarias', [
+            'purchases' => $this->purchaseKpiRepository->paginatePurchases($from, $to, 15),
+            'today' => $this->purchaseKpiRepository->todayByCurrency(),
+            'selectedMonth' => $month,
+            'from' => $from,
+            'to' => $to,
         ]);
     }
 }

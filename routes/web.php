@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/gastos', [DashboardController::class, 'gastos'])->name('dashboard.gastos');
     Route::get('dashboard/finanzas', [DashboardController::class, 'finanzas'])->name('dashboard.finanzas');
     Route::get('dashboard/compras', [DashboardController::class, 'compras'])->name('dashboard.compras');
+    Route::get('dashboard/compras-diarias', [DashboardController::class, 'comprasDiarias'])->name('dashboard.compras-diarias');
 
     // -----------------------------------------------------------------------
     // ANALYTICS

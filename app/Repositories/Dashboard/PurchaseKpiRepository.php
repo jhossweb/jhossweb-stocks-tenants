@@ -3,9 +3,66 @@
 namespace App\Repositories\Dashboard;
 
 use App\Models\PurchaseOrder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseKpiRepository
 {
+    private const ACTIVE_STATUSES = ['pending', 'partial', 'paid'];
+
+    public function todayByCurrency(): array
+    {
+        $sumFor = function (string $date): array {
+            return DB::table('purchase_orders')
+                ->selectRaw('invoice_coin, SUM(invoice_total) as total')
+                ->whereDate('invoice_date', $date)
+                ->whereIn('invoice_status', self::ACTIVE_STATUSES)
+                ->groupBy('invoice_coin')
+                ->pluck('total', 'invoice_coin')
+                ->map(fn ($total) => (float) $total)
+                ->toArray();
+        };
+
+        $today = $sumFor(now()->toDateString());
+
+        if ($today !== []) {
+            return $today;
+        }
+
+        $lastDate = DB::table('purchase_orders')
+            ->whereDate('invoice_date', '<=', now()->toDateString())
+            ->whereIn('invoice_status', self::ACTIVE_STATUSES)
+            ->max('invoice_date');
+
+        if ($lastDate === null) {
+            return [];
+        }
+
+        return $sumFor(substr((string) $lastDate, 0, 10));
+    }
+
+    public function paginatePurchases(string $from, string $to, int $perPage = 15): LengthAwarePaginator
+    {
+        return PurchaseOrder::query()
+            ->select([
+                'id',
+                'invoice_number',
+                'invoice_date',
+                'invoice_supplier_id',
+                'invoice_coin',
+                'invoice_total',
+                'invoice_status',
+                'invoice_payment_condition',
+            ])
+            ->with(['supplier:id,supplier_name'])
+            ->whereIn('invoice_status', self::ACTIVE_STATUSES)
+            ->whereBetween('invoice_date', [$from, $to])
+            ->orderByDesc('invoice_date')
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
     public function totalByCurrency(?string $month): array
     {
         $month ??= now()->format('Y-m');

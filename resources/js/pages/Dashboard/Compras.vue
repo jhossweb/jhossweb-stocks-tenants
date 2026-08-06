@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import {
-    CalendarRange,
-    ClipboardList,
-    ShoppingCart,
-    Users,
-} from 'lucide-vue-next';
+import { CalendarDays, CalendarRange } from 'lucide-vue-next';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
-import StatCard from '@/components/Dashboard/StatCard.vue';
 import { useDashboardMonth } from '@/composables/Dashboard/useDashboardMonth';
 import { dashboard } from '@/routes';
 import type { DashboardKpis } from '@/types/Dashboard';
@@ -55,20 +49,6 @@ const { monthOptions, goTo, changeMonth } = useDashboardMonth(
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
-                label="Compras Totales"
-                :amounts="kpis.purchases.total"
-                :trend="kpis.purchases.trend"
-                variant="success"
-                :icon="ShoppingCart"
-                @click="goTo('/analytics/purchases-total')"
-            />
-            <StatCard
-                label="Proveedores Activos"
-                :value="kpis.purchases.supplierCount"
-                :icon="Users"
-                @click="goTo('/analytics/purchases-supplier')"
-            />
-            <KpiCard
                 label="Compras por Mes"
                 :amounts="kpis.purchases.total"
                 :trend="kpis.purchases.trend"
@@ -77,11 +57,11 @@ const { monthOptions, goTo, changeMonth } = useDashboardMonth(
                 @click="goTo('/analytics/purchases-month')"
             />
             <KpiCard
-                label="Compras por Estado"
-                :amounts="kpis.purchases.pending"
-                variant="danger"
-                :icon="ClipboardList"
-                @click="goTo('/analytics/purchases-status')"
+                label="Compras diarias"
+                :amounts="kpis.purchases.total"
+                variant="info"
+                :icon="CalendarDays"
+                @click="goTo('/dashboard/compras-diarias')"
             />
         </div>
     </div>
