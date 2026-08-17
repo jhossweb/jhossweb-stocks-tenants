@@ -53,6 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/finanzas', [DashboardController::class, 'finanzas'])->name('dashboard.finanzas');
     Route::get('dashboard/compras', [DashboardController::class, 'compras'])->name('dashboard.compras');
     Route::get('dashboard/compras-diarias', [DashboardController::class, 'comprasDiarias'])->name('dashboard.compras-diarias');
+    Route::get('dashboard/inventario', [DashboardController::class, 'inventario'])->name('dashboard.inventario');
+    Route::get('dashboard/inventario/existencia-almacen', [DashboardController::class, 'inventarioExistencia'])->name('dashboard.inventario.existencia');
+    Route::get('dashboard/inventario/valor-inventario', [DashboardController::class, 'inventarioValor'])->name('dashboard.inventario.valor');
 
     // -----------------------------------------------------------------------
     // ANALYTICS
@@ -72,8 +75,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
 
     // Pagos a Proveedores
+    Route::get('payments', [AccountPaymentController::class, 'index'])->name('payments.index');
     Route::get('payments/create', [AccountPaymentController::class, 'create'])->name('payments.create');
     Route::post('payments', [AccountPaymentController::class, 'store'])->name('payments.store');
+    Route::get('payments/{payment}', [AccountPaymentController::class, 'show'])->name('payments.show');
     Route::get('payments/{payment}/edit', [AccountPaymentController::class, 'edit'])->name('payments.edit');
     Route::put('payments/{payment}', [AccountPaymentController::class, 'update'])->name('payments.update');
     Route::delete('payments/{payment}', [AccountPaymentController::class, 'destroy'])->name('payments.destroy');
@@ -82,17 +87,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // VENTAS
     // -----------------------------------------------------------------------
     Route::resource('sales', SaleOrderController::class);
+    Route::get('sales/{sale}/pdf', [SaleOrderController::class, 'exportPdf'])->name('sales.pdf');
     Route::resource('sale-returns', SaleReturnController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('quotes', QuoteController::class);
     Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
+    Route::get('quotes/{quote}/pdf', [QuoteController::class, 'exportPdf'])->name('quotes.pdf');
 
     // Cuentas por Cobrar
     Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');
+    Route::get('accounts-receivable/client/{customer}/pdf', [AccountsReceivableController::class, 'exportPdf'])->name('accounts-receivable.statement');
 
     // Recibos / Cobranzas
+    Route::get('receipts', [ReceiptController::class, 'index'])->name('receipts.index');
     Route::get('receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
     Route::post('receipts', [ReceiptController::class, 'store'])->name('receipts.store');
+    Route::get('receipts/{receipt}', [ReceiptController::class, 'show'])->name('receipts.show');
     Route::get('receipts/{receipt}/edit', [ReceiptController::class, 'edit'])->name('receipts.edit');
     Route::put('receipts/{receipt}', [ReceiptController::class, 'update'])->name('receipts.update');
     Route::delete('receipts/{receipt}', [ReceiptController::class, 'destroy'])->name('receipts.destroy');

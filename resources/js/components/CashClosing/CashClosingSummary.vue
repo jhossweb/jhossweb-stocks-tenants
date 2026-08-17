@@ -6,6 +6,7 @@ const props = defineProps<{
     openingBalance: number;
     totalSales: number;
     totalReceived: number;
+    totalVueltos: number;
     inflows: number;
     outflows: number;
 }>();
@@ -25,6 +26,11 @@ const rows = computed(() => [
         label: '+ Cobros / Abonos recibidos',
         value: props.totalReceived,
         tone: 'in' as const,
+    },
+    {
+        label: '- Vueltos entregados',
+        value: props.totalVueltos,
+        tone: 'out' as const,
     },
     { label: '+ Ingresos manuales', value: props.inflows, tone: 'in' as const },
     {

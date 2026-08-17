@@ -3,35 +3,36 @@
 namespace App\Http\Controllers\Finance\Cobranza;
 
 use App\Http\Controllers\Controller;
-use App\Models\AccountsReceivable;
+use App\Models\Customer;
+use App\Reports\Finance\AccountsReceivableStatementReport;
+use App\Repositories\Sales\AccountsReceivable\AccountsReceivableRepository;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class AccountsReceivableController extends Controller
 {
+    public function __construct(
+        protected AccountsReceivableRepository $receivableRepository,
+        protected AccountsReceivableStatementReport $statementReport,
+    ) {}
+
     public function index(Request $request)
     {
-        $query = AccountsReceivable::with(['saleOrder.customer', 'payments.bankTransaction'])
-            ->orderBy('created_at', 'desc');
+        $accountsReceivable = $this->receivableRepository->creditPending(
+            search: $request->string('search')->toString() ?: null,
+            due: $request->string('due')->toString() ?: null,
+        );
 
-        if ($request->has('status')) {
-            $query->status($request->status);
-        }
-
-        if ($request->has('search')) {
-            $query->whereHas('saleOrder', function ($q) use ($request) {
-                $q->where('sls_number', 'like', "%{$request->search}%")
-                    ->orWhereHas('customer', function ($sq) use ($request) {
-                        $sq->where('clt_name', 'like', "%{$request->search}%");
-                    });
-            });
-        }
-
-        $accountsReceivable = $query->paginate(10)->withQueryString();
+        $accountsReceivable->each(fn ($account) => $account->saleOrder?->append('days_remaining'));
 
         return Inertia::render('Sales/AccountsReceivable/Index', [
             'accountsReceivable' => $accountsReceivable,
-            'filters' => $request->only(['status', 'search']),
+            'filters' => $request->only(['search', 'due']),
         ]);
+    }
+
+    public function exportPdf(Customer $customer)
+    {
+        return $this->statementReport->download($customer);
     }
 }

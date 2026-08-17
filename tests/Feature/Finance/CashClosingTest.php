@@ -1,7 +1,11 @@
 <?php
 
+use App\Models\AccountsReceivable;
+use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use App\Models\CashClosing;
 use App\Models\Customer;
+use App\Models\Receipt;
 use App\Models\SaleOrder;
 use App\Models\User;
 use App\Repositories\Finance\CashClosingRepository;
@@ -38,6 +42,8 @@ function createCashClosingTestTables(): void
     if (! Schema::hasTable('customers')) {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
+            $table->string('clt_code', 20)->nullable();
+            $table->string('clt_cedula', 20)->nullable();
             $table->string('clt_name', 150);
             $table->string('clt_address', 200)->nullable();
             $table->string('clt_phone', 30)->nullable();
@@ -443,4 +449,86 @@ test('findClosingByDate returns null for non-existent date', function () {
     $result = $repo->findClosingByDate('2099-01-01');
 
     expect($result)->toBeNull();
+});
+
+test('preview and breakdown include vueltos and net grouped totals', function () {
+    $date = now()->format('Y-m-d');
+
+    $customer = Customer::factory()->create(['clt_name' => 'Cliente Vuelto']);
+
+    createCashSale('VUELTO-001', $date, $customer->id, 82, 'paid');
+
+    $bank = BankAccount::factory()->create([
+        'bank_name' => 'Caja Principal',
+        'bank_account_number' => 'CAJA-001',
+        'bank_type' => 'CORRIENTE',
+        'bank_currency' => 'USD',
+        'bank_balance' => 500,
+        'bank_status' => true,
+    ]);
+
+    $acr = AccountsReceivable::create([
+        'acr_sls_number' => 'VUELTO-001',
+        'acr_total' => 82,
+        'acr_balance' => 0,
+        'acr_status' => 'paid',
+    ]);
+
+    $inflow = BankTransaction::create([
+        'btr_bank_account_id' => $bank->id,
+        'btr_type' => 'inflow',
+        'btr_amount' => 116,
+        'btr_balance' => 0,
+        'btr_reference' => 'REF-VUELTO-001',
+        'btr_description' => 'Cobro a cliente',
+        'btr_valorcam' => 1,
+        'btr_diferencial' => 0,
+        'btr_coin' => 'USD',
+        'btr_method' => 'EFECTIVO',
+        'btr_transaction_date' => $date,
+    ]);
+    $inflow->btr_transactionable()->associate($acr);
+    $inflow->save();
+
+    Receipt::create([
+        'rec_account_receivable_id' => $acr->id,
+        'rec_bank_transaction_id' => $inflow->id,
+        'rec_type' => 'RECEIPT',
+        'rec_amount' => 116,
+        'rec_diferencial' => 0,
+    ]);
+
+    $vuelto = BankTransaction::create([
+        'btr_bank_account_id' => $bank->id,
+        'btr_type' => BankTransaction::TYPE_OUTFLOW,
+        'btr_amount' => 34,
+        'btr_balance' => 0,
+        'btr_reference' => 'REF-VUELTO-001',
+        'btr_description' => BankTransaction::VUELTO_DESCRIPTION,
+        'btr_valorcam' => 1,
+        'btr_diferencial' => 0,
+        'btr_coin' => 'USD',
+        'btr_method' => 'EFECTIVO',
+        'btr_transaction_date' => $date,
+    ]);
+    $vuelto->btr_transactionable()->associate($acr);
+    $vuelto->save();
+
+    $preview = $this->service->calculatePreview($date, 0);
+
+    expect($preview['vuelto_total'])->toEqual(34.0);
+    expect($preview['vuelto_details'])->toHaveCount(1);
+    expect($preview['vuelto_details'][0]['amount'])->toEqual(34.0);
+    expect($preview['vuelto_details'][0]['coin'])->toBe('USD');
+    expect($preview['vuelto_details'][0]['method'])->toBe('EFECTIVO');
+    expect($preview['vuelto_details'][0]['customer'])->toBe('Cliente Vuelto');
+    expect($preview['vuelto_details'][0]['document'])->toBe('VUELTO-001');
+    expect($preview['grouped_vueltos']['USD']['EFECTIVO'])->toEqual(34.0);
+    expect($preview['grouped_receipts']['USD']['EFECTIVO'])->toEqual(116.0);
+
+    $breakdown = $this->service->computeBreakdown($date);
+
+    expect($breakdown['vuelto_total'])->toEqual(34.0);
+    expect($breakdown['vuelto_details'])->toHaveCount(1);
+    expect($breakdown['grouped_vueltos']['USD']['EFECTIVO'])->toEqual(34.0);
 });

@@ -22,29 +22,46 @@ class ReceiptService
 
     public function processPayments(array $validated): void
     {
-        $payRate = $this->rateService->getBestRateForDate($validated['payment_date']);
-
-        if (! $payRate) {
-            throw new \RuntimeException('No existe tasa de cambio para la fecha seleccionada.');
-        }
-
-        $activePayments = array_filter($validated['payments'], fn ($p) => (float) $p['amount'] > 0);
+        $activePayments = array_values(array_filter(
+            $validated['payments'],
+            fn ($p) => (float) $p['amount'] > 0
+        ));
 
         if (empty($activePayments)) {
             throw new \RuntimeException('Debe ingresar al menos un monto a cobrar.');
         }
 
-        $valorcam = $this->rateService->resolveRateForCoin(
-            $validated['payment_date'],
-            $validated['payment_currency'],
-        );
+        DB::transaction(function () use ($activePayments, $validated) {
+            $applyVuelto = (bool) ($validated['apply_vuelto'] ?? false);
+            $remainingBalance = null;
+            $excessInDoc = 0.0;
+            $lastActivePayment = null;
+            $lastDocCurrency = 'USD';
+            $lastPayRate = null;
 
-        DB::transaction(function () use ($activePayments, $validated, $payRate, $valorcam) {
             foreach ($activePayments as $paymentData) {
+                $payDate = $paymentData['payment_date'] ?? $validated['payment_date'];
+                $payCurrency = $paymentData['payment_currency'] ?? $validated['payment_currency'];
+                $bankId = $paymentData['bank_account_id'] ?? $validated['bank_account_id'];
+                $payMethod = $paymentData['payment_method'] ?? $validated['payment_method'];
+                $payReference = $paymentData['payment_reference'] ?? $validated['payment_reference'];
+                $payDescription = $paymentData['payment_description']
+                    ?? $validated['payment_description']
+                    ?? null;
+
+                $payRate = $this->rateService->getBestRateForDate($payDate);
+
+                if (! $payRate) {
+                    throw new \RuntimeException('No existe tasa de cambio para la fecha seleccionada.');
+                }
+
                 $acr = AccountsReceivable::with('saleOrder')->findOrFail($paymentData['acr_id']);
 
+                if ($remainingBalance === null) {
+                    $remainingBalance = (float) $acr->acr_balance;
+                }
+
                 $paymentAmount = (float) $paymentData['amount'];
-                $payCurrency = $validated['payment_currency'];
                 $docCurrency = $acr->saleOrder->sls_coin ?? 'USD';
 
                 $docDate = $acr->saleOrder->sls_date?->format('Y-m-d')
@@ -55,34 +72,43 @@ class ReceiptService
 
                 $amountInDocCurrency = round(Rate::convert($paymentAmount, $payCurrency, $docCurrency, $payRate), 4);
 
+                $appliedInDoc = $amountInDocCurrency;
+                if ($applyVuelto && $remainingBalance > 0) {
+                    $appliedInDoc = min($amountInDocCurrency, $remainingBalance);
+                    $excessInDoc += round($amountInDocCurrency - $appliedInDoc, 4);
+                    $remainingBalance = round($remainingBalance - $appliedInDoc, 4);
+                }
+
                 $diferencial = $this->rateService->calculateDiferencial(
-                    $paymentAmount,
+                    $appliedInDoc,
                     $payCurrency,
                     $payRate,
                     $docRate,
                 );
 
-                $amountUsd = round(Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate), 4);
+                $amountUsd = round(Rate::convert($appliedInDoc, $payCurrency, 'USD', $payRate), 4);
+
+                $valorcam = $this->rateService->resolveRateForCoin($payDate, $payCurrency);
 
                 $bankTransaction = BankTransaction::create([
-                    'btr_bank_account_id' => $validated['bank_account_id'],
+                    'btr_bank_account_id' => $bankId,
                     'btr_type' => 'inflow',
-                    'btr_amount' => round($paymentAmount, 4),
-                    'btr_reference' => $validated['payment_reference'],
-                    'btr_description' => $validated['payment_description'] ?: 'Cobro a cliente',
+                    'btr_amount' => round($appliedInDoc, 4),
+                    'btr_reference' => $payReference,
+                    'btr_description' => $payDescription ?: 'Cobro a cliente',
                     'btr_valorcam' => $valorcam,
                     'btr_diferencial' => $diferencial,
                     'btr_balance' => 0,
-                    'btr_method' => $validated['payment_method'],
-                    'btr_transaction_date' => $validated['payment_date'],
-                    'btr_coin' => $validated['payment_currency'],
+                    'btr_method' => $payMethod,
+                    'btr_transaction_date' => $payDate,
+                    'btr_coin' => $payCurrency,
                 ]);
 
                 $bankTransaction->btr_transactionable()->associate($acr);
                 $bankTransaction->save();
 
                 $receipt = $acr->registerPayment(
-                    $amountInDocCurrency,
+                    $appliedInDoc,
                     TypeReceipt::RECEIPT->value,
                     $bankTransaction->id,
                     $amountUsd,
@@ -90,10 +116,78 @@ class ReceiptService
 
                 $receipt->rec_diferencial = $diferencial;
                 $receipt->save();
+
+                $lastActivePayment = $paymentData;
+                $lastDocCurrency = $docCurrency;
+                $lastPayRate = $payRate;
+            }
+
+            if ($applyVuelto && $lastActivePayment) {
+                $vueltos = array_filter(
+                    $validated['vueltos'] ?? [],
+                    fn (array $v): bool => (float) ($v['amount'] ?? 0) > 0
+                        && ! empty($v['currency'])
+                        && ! empty($v['bank_account_id']),
+                );
+
+                if (! empty($vueltos)) {
+                    foreach ($vueltos as $vuelto) {
+                        $this->registerVuelto(
+                            (float) $vuelto['amount'],
+                            $vuelto['currency'],
+                            (int) $vuelto['bank_account_id'],
+                            $validated,
+                            $lastActivePayment,
+                        );
+                    }
+                } elseif ($excessInDoc > 0) {
+                    $payCurrency = $lastActivePayment['payment_currency']
+                        ?? $validated['payment_currency'];
+                    $vueltoBankId = (int) ($lastActivePayment['bank_account_id']
+                        ?? $validated['bank_account_id']);
+
+                    $amount = $lastPayRate
+                        ? round(Rate::convert($excessInDoc, $lastDocCurrency, $payCurrency, $lastPayRate), 4)
+                        : round($excessInDoc, 4);
+
+                    $this->registerVuelto($amount, $payCurrency, $vueltoBankId, $validated, $lastActivePayment);
+                }
             }
         });
 
         DashboardCacheInvalidator::receivables(substr($validated['payment_date'], 0, 7));
+    }
+
+    /**
+     * Registers the change given back to the customer as an outflow bank
+     * transaction linked to the same receivable.
+     *
+     * @param  array<string, mixed>  $paymentData  Last active payment (fallback metadata).
+     * @param  array<string, mixed>  $validated  Top-level validated payload.
+     */
+    private function registerVuelto(float $amount, string $currency, int $bankId, array $validated, array $paymentData): void
+    {
+        $acr = AccountsReceivable::findOrFail($paymentData['acr_id']);
+        $payDate = $paymentData['payment_date'] ?? $validated['payment_date'];
+
+        $valorcam = $this->rateService->resolveRateForCoin($payDate, $currency);
+
+        $bankTransaction = BankTransaction::create([
+            'btr_bank_account_id' => $bankId,
+            'btr_type' => BankTransaction::TYPE_OUTFLOW,
+            'btr_amount' => round($amount, 4),
+            'btr_reference' => $paymentData['payment_reference'] ?? $validated['payment_reference'],
+            'btr_description' => BankTransaction::VUELTO_DESCRIPTION,
+            'btr_valorcam' => $valorcam,
+            'btr_diferencial' => 0,
+            'btr_balance' => 0,
+            'btr_method' => $paymentData['payment_method'] ?? $validated['payment_method'],
+            'btr_transaction_date' => $payDate,
+            'btr_coin' => $currency,
+        ]);
+
+        $bankTransaction->btr_transactionable()->associate($acr);
+        $bankTransaction->save();
     }
 
     public function updatePayment(Receipt $payment, array $validated): void

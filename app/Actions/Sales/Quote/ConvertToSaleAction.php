@@ -61,9 +61,9 @@ class ConvertToSaleAction
         $sale->sls_exento = $quote->sls_exento;
         $sale->sls_iva = $quote->sls_iva;
         $sale->sls_total = $quote->sls_total;
-        $sale->sls_payment_condition = 'cash';
-        $sale->sls_credit_days = 0;
-        $sale->sls_due_date = $quote->sls_date;
+        $sale->sls_payment_condition = $data['sls_payment_condition'];
+        $sale->sls_credit_days = $data['sls_credit_days'] ?? 0;
+        $sale->sls_due_date = $data['sls_due_date'] ?? $quote->sls_date;
         $sale->sls_reference = $quote->sls_number;
         $sale->sls_status = StatusSales::PENDING->value;
         $sale->save();

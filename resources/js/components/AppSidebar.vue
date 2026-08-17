@@ -178,11 +178,11 @@ const mainNavItems: NavItem[] = [
                 items: [
                     {
                         title: 'Pagos',
-                        href: '/payments/create',
+                        href: '/payments',
                     },
                     {
                         title: 'Cobranza',
-                        href: '/receipts/create',
+                        href: '/receipts',
                     },
                     {
                         title: 'Pago Nómina',

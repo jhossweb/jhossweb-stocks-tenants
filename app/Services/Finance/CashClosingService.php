@@ -31,6 +31,9 @@ class CashClosingService
             'receipts_by_method' => $this->repo->getReceivedByMethod($date),
             'receipts_details' => $this->repo->getReceivedDetails($date),
             'grouped_receipts' => $this->repo->getGroupedReceipts($date),
+            'vuelto_total' => $this->repo->getVueltoTotal($date),
+            'vuelto_details' => $this->repo->getVueltoDetails($date),
+            'grouped_vueltos' => $this->repo->getGroupedVueltos($date),
         ];
     }
 
@@ -91,7 +94,7 @@ class CashClosingService
     }
 
     /**
-     * @return array{receipts_by_method: array<string, float>, receipts_details: array<int, array{coin: string, amount: float, method: string, reference: string, payment_date: string, document: string, customer: string, bank: string}>, grouped_receipts: array<string, array<string, float>>}
+     * @return array{receipts_by_method: array<string, float>, receipts_details: array<int, array{coin: string, amount: float, method: string, reference: string, payment_date: string, document: string, customer: string, bank: string}>, grouped_receipts: array<string, array<string, float>>, vuelto_total: float, vuelto_details: array<int, array{coin: string, amount: float, method: string, reference: string, payment_date: string, document: string, customer: string, bank: string}>, grouped_vueltos: array<string, array<string, float>>}
      */
     public function computeBreakdown(string $date): array
     {
@@ -99,6 +102,9 @@ class CashClosingService
             'receipts_by_method' => $this->repo->getReceivedByMethod($date),
             'receipts_details' => $this->repo->getReceivedDetails($date),
             'grouped_receipts' => $this->repo->getGroupedReceipts($date),
+            'vuelto_total' => $this->repo->getVueltoTotal($date),
+            'vuelto_details' => $this->repo->getVueltoDetails($date),
+            'grouped_vueltos' => $this->repo->getGroupedVueltos($date),
         ];
     }
 }

@@ -19,9 +19,20 @@ export function useCashCount(preview: Ref<CashClosingPreview | undefined>) {
             }
 
             const rows: CountedDetail[] = [];
+            const receipts = preview.value?.grouped_receipts ?? {};
+            const vueltos = preview.value?.grouped_vueltos ?? {};
+            const coins = new Set([
+                ...Object.keys(receipts),
+                ...Object.keys(vueltos),
+            ]);
 
-            for (const [coin, methods] of Object.entries(grouped)) {
-                for (const method of Object.keys(methods)) {
+            for (const coin of coins) {
+                const methods = new Set([
+                    ...Object.keys(receipts[coin] ?? {}),
+                    ...Object.keys(vueltos[coin] ?? {}),
+                ]);
+
+                for (const method of methods) {
                     rows.push({ coin, method, counted: 0 });
                 }
             }
@@ -48,13 +59,19 @@ export function useCashCount(preview: Ref<CashClosingPreview | undefined>) {
             return totals;
         }
 
-        for (const [coin, methods] of Object.entries(
-            preview.value.grouped_receipts,
-        )) {
+        const receipts = preview.value.grouped_receipts;
+        const vueltos = preview.value.grouped_vueltos ?? {};
+        const coins = new Set([...Object.keys(receipts), ...Object.keys(vueltos)]);
+
+        for (const coin of coins) {
             let sum = 0;
 
-            for (const total of Object.values(methods)) {
+            for (const total of Object.values(receipts[coin] ?? {})) {
                 sum += total;
+            }
+
+            for (const total of Object.values(vueltos[coin] ?? {})) {
+                sum -= total;
             }
 
             totals[coin] = sum;

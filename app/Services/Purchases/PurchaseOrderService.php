@@ -13,6 +13,7 @@ class PurchaseOrderService
 {
     public function __construct(
         protected RateService $rateService,
+        protected PurchasePaymentService $paymentService,
     ) {}
 
     public function create(array $validated): PurchaseOrder
@@ -59,6 +60,27 @@ class PurchaseOrderService
             $movement->mov_unit_cost = $item['mov_unit_cost'];
             $movement->mov_unit_cost_ref = $item['mov_unit_cost_ref'];
             $movement->save();
+        }
+
+        return $purchase;
+    }
+
+    /**
+     * Create a purchase and, if its payment condition is "cash", register the
+     * payment in the same atomic transaction.
+     */
+    public function createWithPayment(array $validated): PurchaseOrder
+    {
+        $purchase = $this->create($validated);
+
+        if ($validated['invoice_payment_condition'] === 'cash') {
+            $payable = $purchase->accountsPayable;
+
+            if (! $payable) {
+                throw new \RuntimeException('No se pudo generar la cuenta por pagar de la compra.');
+            }
+
+            $this->paymentService->pay($this->buildPaymentPayload($validated, $payable->id));
         }
 
         return $purchase;
@@ -123,5 +145,50 @@ class PurchaseOrderService
         }
 
         return $purchase;
+    }
+
+    /**
+     * Update a purchase and, when its payment condition is "cash" and there is
+     * an outstanding balance, register the payment in the same transaction.
+     */
+    public function updateWithPayment(PurchaseOrder $purchase, array $validated): PurchaseOrder
+    {
+        $wasPendingCash = $purchase->invoice_payment_condition === 'cash'
+            && $purchase->accountsPayable
+            && (float) $purchase->accountsPayable->acp_balance > 0;
+
+        $this->update($purchase, $validated);
+
+        if ($wasPendingCash && $validated['invoice_payment_condition'] === 'cash' && isset($validated['payment'])) {
+            $payable = $purchase->accountsPayable;
+
+            if (! $payable) {
+                throw new \RuntimeException('No se pudo generar la cuenta por pagar de la compra.');
+            }
+
+            $this->paymentService->pay($this->buildPaymentPayload($validated, $payable->id));
+        }
+
+        return $purchase;
+    }
+
+    /**
+     * Builds the payment payload for PurchasePaymentService from the validated request.
+     */
+    private function buildPaymentPayload(array $validated, int $payableId): array
+    {
+        return [
+            'payment_date' => $validated['payment']['payment_date'] ?? now()->toDateString(),
+            'payments' => array_map(fn (array $p): array => [
+                'acp_id' => $payableId,
+                'amount' => $p['payment_amount'],
+                'payment_currency' => $p['payment_currency'],
+                'payment_rate' => $p['payment_rate'],
+                'payment_method' => $p['payment_method'],
+                'payment_reference' => $p['payment_reference'],
+                'payment_description' => $p['payment_description'] ?? null,
+                'bank_account_id' => $p['bank_account_id'],
+            ], $validated['payment']['payments']),
+        ];
     }
 }

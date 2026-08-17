@@ -38,6 +38,13 @@ class AccountsReceivable extends Model
         return $this->morphMany(BankTransaction::class, 'btr_transactionable');
     }
 
+    public function vueltoTransactions()
+    {
+        return $this->bankTransactions()
+            ->where('btr_type', BankTransaction::TYPE_OUTFLOW)
+            ->where('btr_description', BankTransaction::VUELTO_DESCRIPTION);
+    }
+
     public function scopeStatus($query, $status)
     {
         return $query->where('acr_status', $status);

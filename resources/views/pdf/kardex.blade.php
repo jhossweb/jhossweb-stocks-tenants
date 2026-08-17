@@ -1,27 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Kardex - {{ $product->pro_name }}</title>
+@extends('pdf.layout')
+
+@section('title', 'Kardex - '.$product->pro_name)
+
+@push('styles')
     <style>
-        body {
-            font-family: 'DejaVu Sans', sans-serif;
-            font-size: 10px;
-            color: #1f2937;
-            margin: 20px;
-        }
-        h1 {
-            font-size: 18px;
-            margin-bottom: 5px;
-            color: #111827;
-        }
-        .subtitle {
-            font-size: 11px;
-            color: #6b7280;
-            margin-bottom: 20px;
-        }
         .info-grid {
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             padding: 10px;
             background: #f9fafb;
             border: 1px solid #e5e7eb;
@@ -39,43 +23,8 @@
             font-weight: 600;
             width: 120px;
         }
-        table.data {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        table.data th {
-            background: #f3f4f6;
-            padding: 6px 8px;
-            text-align: left;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #6b7280;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        table.data th.right {
-            text-align: right;
-        }
-        table.data td {
-            padding: 5px 8px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 10px;
-        }
-        table.data td.right {
-            text-align: right;
-        }
         table.data tr.initial-row {
             background: #f9fafb;
-            font-weight: 600;
-        }
-        table.data tr:nth-child(even) {
-            background: #fafafa;
-        }
-        .badge {
-            padding: 1px 6px;
-            border-radius: 3px;
-            font-size: 9px;
             font-weight: 600;
         }
         .badge-compra {
@@ -102,18 +51,14 @@
         .text-muted {
             color: #9ca3af;
         }
-        .footer {
-            margin-top: 30px;
-            font-size: 8px;
-            color: #9ca3af;
-            text-align: center;
-        }
     </style>
-</head>
-<body>
-    <h1>Kardex de Inventario</h1>
-    <p class="subtitle">{{ $product->pro_name }} ({{ $product->pro_code }})</p>
+@endpush
 
+@section('brand-sub', $product->pro_name.' ('.$product->pro_code.')')
+@section('doc-title', 'Kardex de Inventario')
+@section('doc-number', $product->pro_code)
+
+@section('content')
     <div class="info-grid">
         <table>
             <tr>
@@ -202,9 +147,6 @@
             @endforeach
         </tbody>
     </table>
+@endsection
 
-    <div class="footer">
-        Generado el {{ date('d/m/Y H:i') }} — Sistema de Inventario Vidrialum
-    </div>
-</body>
-</html>
+@section('footer', 'Sistema de Inventario '.$company.' — '.date('d/m/Y H:i'))

@@ -66,4 +66,19 @@ class SaleOrder extends Model
     {
         return $this->hasManyThrough(MovementsSale::class, SaleOrder::class, 'sls_reference', 'mvs_number', 'sls_number', 'mvs_number');
     }
+
+    public function getDaysRemainingAttribute(): int
+    {
+        $due = $this->sls_due_date;
+
+        if (! $due) {
+            $due = $this->sls_date?->copy()->addDays((int) $this->sls_credit_days);
+        }
+
+        if (! $due) {
+            return 0;
+        }
+
+        return (int) $due->startOfDay()->diffInDays(now()->startOfDay(), false);
+    }
 }

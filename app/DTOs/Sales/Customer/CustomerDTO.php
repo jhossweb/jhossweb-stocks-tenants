@@ -11,6 +11,8 @@ readonly class CustomerDTO
         public string $cltEmail,
         public ?string $cltWebsite,
         public int $cltCreditDays,
+        public ?string $cltCode = null,
+        public ?string $cltCedula = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -22,12 +24,16 @@ readonly class CustomerDTO
             cltEmail: $data['clt_email'],
             cltWebsite: $data['clt_website'] ?? null,
             cltCreditDays: (int) ($data['clt_credit_days'] ?? 0),
+            cltCode: $data['clt_code'] ?? null,
+            cltCedula: $data['clt_cedula'] ?? null,
         );
     }
 
     public function toArray(): array
     {
         return [
+            'clt_code' => $this->cltCode,
+            'clt_cedula' => $this->cltCedula,
             'clt_name' => $this->cltName,
             'clt_address' => $this->cltAddress,
             'clt_phone' => $this->cltPhone,

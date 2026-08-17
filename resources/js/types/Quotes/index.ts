@@ -10,7 +10,7 @@ export interface Quote {
     sls_iva: string;
     sls_total: string;
     sls_quote_status: QuoteStatusValue;
-    customer?: { id: number; clt_name?: string };
+    customer?: QuoteCustomer;
     created_at: string;
 }
 
@@ -52,6 +52,7 @@ export interface QuoteProduct {
 export interface QuoteCustomer {
     id: number;
     clt_name?: string;
+    clt_credit_days?: number;
     [key: string]: unknown;
 }
 
@@ -84,4 +85,30 @@ export interface QuoteStockMissingItem {
 export interface QuoteAvailability {
     ok: boolean;
     missing: QuoteStockMissingItem[];
+}
+
+export interface QuoteSaleItem {
+    mvs_pro_code: string;
+    mvs_war_id: string | number;
+    mvs_quantity: number;
+    mvs_unit_price: number;
+    mvs_unit_price_ref: number;
+    mvs_pro_iva: number;
+}
+
+export interface QuoteSalePreset {
+    sls_number: string;
+    sls_date: string;
+    sls_customer_id: string | number;
+    sls_valorcam: string | number;
+    sls_coin: string;
+    sls_subtotal: number;
+    sls_exento: number;
+    sls_iva: number;
+    sls_total: number;
+    sls_payment_condition: 'cash' | 'credit';
+    sls_credit_days: number;
+    sls_due_date: string;
+    sls_reference: string;
+    items: QuoteSaleItem[];
 }

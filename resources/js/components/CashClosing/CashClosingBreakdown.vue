@@ -9,6 +9,7 @@ import type { ReceiptDetail } from '@/types/Finance/CashClosing';
 
 const props = defineProps<{
     details: ReceiptDetail[];
+    tone?: 'in' | 'out';
 }>();
 
 const grouped = computed(() => {
@@ -118,9 +119,15 @@ function formatDate(dateStr: string): string {
                                 {{ item.bank || '-' }}
                             </td>
                             <td
-                                class="px-3 py-3 text-right font-mono text-base font-semibold text-green-400 tabular-nums"
+                                class="px-3 py-3 text-right font-mono text-base font-semibold tabular-nums"
+                                :class="
+                                    props.tone === 'out'
+                                        ? 'text-red-400'
+                                        : 'text-green-400'
+                                "
                             >
-                                {{ formatCoinAmount(item.amount, item.coin) }}
+                                {{ props.tone === 'out' ? '- ' : ''
+                                }}{{ formatCoinAmount(item.amount, item.coin) }}
                             </td>
                         </tr>
                     </template>

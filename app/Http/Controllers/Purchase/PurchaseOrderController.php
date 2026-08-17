@@ -6,6 +6,8 @@ use App\Enum\Finanzas\TransactionMethod;
 use App\Enum\TypeCoin;
 use App\Enum\TypeIva;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Purchase\StorePurchaseRequest;
+use App\Http\Requests\Purchase\UpdatePurchaseRequest;
 use App\Models\BankAccount;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
@@ -15,9 +17,7 @@ use App\Models\TransactionType;
 use App\Models\Warehouse;
 use App\Services\Purchases\PurchaseOrderService;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class PurchaseOrderController extends Controller
@@ -51,6 +51,7 @@ class PurchaseOrderController extends Controller
                     'rate_usd' => $rate->rate_usd,
                     'rate_cop' => $rate->rate_cop,
                     'rate_eur' => $rate->rate_eur,
+                    'rate_cop_bs' => $rate->rate_cop_bs,
                 ];
             }),
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),
@@ -61,56 +62,16 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StorePurchaseRequest $request)
     {
-        $validated = $request->validate([
-            'invoice_number' => 'required|string|max:50|unique:purchase_orders,invoice_number',
-            'invoice_date' => 'required|date',
-            'invoice_supplier_id' => 'required|exists:suppliers,id',
-            'invoice_valorcam' => 'required|numeric',
-            'invoice_coin' => 'required|string',
-            'invoice_subtotal' => 'required|numeric',
-            'invoice_exento' => 'required|numeric',
-            'invoice_iva' => 'required|numeric',
-            'invoice_total' => 'required|numeric',
-            'invoice_payment_condition' => ['required', 'string', 'in:cash,credit'],
-            'invoice_credit_days' => ['required', 'integer', 'min:0', 'max:365'],
-            'invoice_due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
-
-            'items' => 'required|array|min:1',
-            'items.*.mov_pro_code' => 'required|exists:products,pro_code',
-            'items.*.mov_war_id' => 'required|exists:warehouses,id',
-            'items.*.mov_quantity' => 'required|numeric|min:0.01',
-            'items.*.mov_unit_cost' => 'required|numeric|min:0',
-            'items.*.mov_unit_cost_ref' => 'required|numeric|min:0',
-            'items.*.mov_pro_iva' => 'required|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         try {
             DB::beginTransaction();
 
-            $purchase = $this->purchaseOrderService->create($validated);
+            $purchase = $this->purchaseOrderService->createWithPayment($validated);
 
             DB::commit();
-
-            if ($validated['invoice_payment_condition'] === 'cash' && (float) $purchase->invoice_total > 0) {
-                $payable = $purchase->accountsPayable;
-
-                if ($payable) {
-                    return redirect()->route('purchases.create')
-                        ->with('success', 'Compra guardada exitosamente.')
-                        ->with('payment_pending', [
-                            'entity' => 'purchase',
-                            'acp_id' => $payable->id,
-                            'document_number' => $purchase->invoice_number,
-                            'amount' => (float) $purchase->invoice_total,
-                            'currency' => $purchase->invoice_coin,
-                            'date' => $purchase->invoice_date?->format('Y-m-d'),
-                            'valorcam' => (float) $purchase->invoice_valorcam,
-                            'supplier_id' => $purchase->invoice_supplier_id,
-                        ]);
-                }
-            }
 
             return redirect()->route('purchases.index')->with('success', 'Compra guardada exitosamente.');
         } catch (\Exception $e) {
@@ -127,7 +88,7 @@ class PurchaseOrderController extends Controller
 
     public function edit($id)
     {
-        $purchase = PurchaseOrder::with(['movements', 'supplier', 'transactionType'])->findOrFail($id);
+        $purchase = PurchaseOrder::with(['movements', 'supplier', 'transactionType', 'accountsPayable'])->findOrFail($id);
 
         return Inertia::render('Purchases/Edit', [
             'purchase' => $purchase,
@@ -141,46 +102,26 @@ class PurchaseOrderController extends Controller
                     'rate_usd' => $rate->rate_usd,
                     'rate_cop' => $rate->rate_cop,
                     'rate_eur' => $rate->rate_eur,
+                    'rate_cop_bs' => $rate->rate_cop_bs,
                 ];
             }),
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),
             'coins' => TypeCoin::values(),
             'ivas' => TypeIva::values(),
+            'bankAccounts' => BankAccount::where('bank_status', true)->get(),
+            'methods' => TransactionMethod::values(),
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdatePurchaseRequest $request, $id)
     {
         $purchase = PurchaseOrder::findOrFail($id);
-
-        $validated = $request->validate([
-            'invoice_number' => ['required', 'string', 'max:50', Rule::unique('purchase_orders', 'invoice_number')->ignore($purchase->id)],
-            'invoice_date' => 'required|date',
-            'invoice_supplier_id' => 'required|exists:suppliers,id',
-            'invoice_valorcam' => 'required|numeric',
-            'invoice_coin' => 'required|string',
-            'invoice_subtotal' => 'required|numeric',
-            'invoice_exento' => 'required|numeric',
-            'invoice_iva' => 'required|numeric',
-            'invoice_total' => 'required|numeric',
-            'invoice_payment_condition' => ['required', 'string', 'in:cash,credit'],
-            'invoice_credit_days' => ['required', 'integer', 'min:0', 'max:365'],
-            'invoice_due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
-
-            'items' => 'required|array|min:1',
-            'items.*.id' => 'nullable|exists:movements_purchases,id',
-            'items.*.mov_pro_code' => 'required|exists:products,pro_code',
-            'items.*.mov_war_id' => 'required|exists:warehouses,id',
-            'items.*.mov_quantity' => 'required|numeric|min:0.01',
-            'items.*.mov_unit_cost' => 'required|numeric|min:0',
-            'items.*.mov_unit_cost_ref' => 'required|numeric|min:0',
-            'items.*.mov_pro_iva' => 'required|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         try {
             DB::beginTransaction();
 
-            $this->purchaseOrderService->update($purchase, $validated);
+            $this->purchaseOrderService->updateWithPayment($purchase, $validated);
 
             DB::commit();
 

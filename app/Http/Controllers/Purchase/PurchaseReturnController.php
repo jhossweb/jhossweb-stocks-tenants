@@ -47,6 +47,7 @@ class PurchaseReturnController extends Controller
                     'rate_usd' => $rate->rate_usd,
                     'rate_cop' => $rate->rate_cop,
                     'rate_eur' => $rate->rate_eur,
+                    'rate_cop_bs' => $rate->rate_cop_bs,
                 ];
             }),
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),
@@ -88,6 +89,7 @@ class PurchaseReturnController extends Controller
                     'rate_usd' => $rate->rate_usd,
                     'rate_cop' => $rate->rate_cop,
                     'rate_eur' => $rate->rate_eur,
+                    'rate_cop_bs' => $rate->rate_cop_bs,
                 ];
             }),
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),

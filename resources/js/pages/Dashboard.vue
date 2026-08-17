@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { Receipt, ShoppingCart, TrendingUp, Wallet } from 'lucide-vue-next';
+import {
+    Boxes,
+    Receipt,
+    ShoppingCart,
+    TrendingUp,
+    Wallet,
+} from 'lucide-vue-next';
 import DashboardHeader from '@/components/Dashboard/DashboardHeader.vue';
 import KpiCard from '@/components/Dashboard/KpiCard.vue';
 import { useDashboardMonth } from '@/composables/Dashboard/useDashboardMonth';
@@ -43,7 +49,7 @@ const { monthOptions, goTo, changeMonth } = useDashboardMonth(
             @change-month="changeMonth"
         />
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <KpiCard
                 label="Ventas diarias"
                 :amounts="categoryAggregates.ventas.total"
@@ -72,6 +78,12 @@ const { monthOptions, goTo, changeMonth } = useDashboardMonth(
                 variant="info"
                 :icon="Wallet"
                 @click="goTo('/dashboard/finanzas')"
+            />
+            <KpiCard
+                label="Inventario"
+                :amounts="categoryAggregates.inventario.total"
+                :icon="Boxes"
+                @click="goTo('/dashboard/inventario')"
             />
         </div>
     </div>

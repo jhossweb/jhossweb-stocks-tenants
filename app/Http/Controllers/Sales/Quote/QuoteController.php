@@ -16,6 +16,7 @@ use App\Models\Customer;
 use App\Models\Rate;
 use App\Models\SaleOrder;
 use App\Models\Warehouse;
+use App\Reports\Sales\QuotePdfReport;
 use App\Repositories\Sales\Quote\QuoteRepository;
 use App\Services\Sales\Quote\QuoteService;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,7 @@ class QuoteController extends Controller
         protected QuoteService $quoteService,
         protected ConvertToSaleAction $convertToSale,
         protected ValidateQuoteStockAction $validateStock,
+        protected QuotePdfReport $quotePdfReport,
     ) {}
 
     public function index()
@@ -99,6 +101,15 @@ class QuoteController extends Controller
         }
     }
 
+    public function exportPdf(SaleOrder $quote)
+    {
+        if ($quote->sls_trans_type_code !== 'COT') {
+            abort(404);
+        }
+
+        return $this->quotePdfReport->download($quote);
+    }
+
     public function destroy(SaleOrder $quote)
     {
         if ($quote->sls_trans_type_code !== 'COT') {
@@ -125,6 +136,13 @@ class QuoteController extends Controller
     {
         if ($quote->sls_trans_type_code !== 'COT') {
             abort(404);
+        }
+
+        if ($request->validated('sls_payment_condition') === 'cash') {
+            return redirect()->route('sales.create', [
+                'from_quote' => $quote->id,
+                'sls_number' => $request->validated('sls_number'),
+            ]);
         }
 
         try {
@@ -163,6 +181,7 @@ class QuoteController extends Controller
                     'rate_usd' => $rate->rate_usd,
                     'rate_cop' => $rate->rate_cop,
                     'rate_eur' => $rate->rate_eur,
+                    'rate_cop_bs' => $rate->rate_cop_bs,
                 ];
             }),
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),

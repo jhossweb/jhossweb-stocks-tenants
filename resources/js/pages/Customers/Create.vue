@@ -4,6 +4,8 @@ import { ArrowLeft, Save, Loader2, User } from 'lucide-vue-next';
 import Input from '@/components/ui/input/Input.vue';
 
 const form = useForm({
+    clt_code: '',
+    clt_cedula: '',
     clt_name: '',
     clt_address: '',
     clt_phone: '',
@@ -60,6 +62,18 @@ const submit = () => {
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Código</label>
+                        <Input type="text" v-model="form.clt_code" placeholder="C-001" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition-colors" />
+                        <p v-if="form.errors.clt_code" class="text-xs text-red-500 mt-1">{{ form.errors.clt_code }}</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-400 mb-1.5">Cédula</label>
+                        <Input type="text" v-model="form.clt_cedula" placeholder="12345678" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition-colors" />
+                        <p v-if="form.errors.clt_cedula" class="text-xs text-red-500 mt-1">{{ form.errors.clt_cedula }}</p>
+                    </div>
+
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-zinc-400 mb-1.5">Nombre *</label>
                         <Input type="text" v-model="form.clt_name" placeholder="Nombre del cliente" class="w-full bg-zinc-950 border-zinc-800 text-zinc-200 rounded-lg focus:ring-indigo-600 focus:border-indigo-600 sm:text-sm transition-colors" />

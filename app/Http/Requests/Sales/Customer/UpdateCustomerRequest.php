@@ -20,6 +20,8 @@ class UpdateCustomerRequest extends FormRequest
         $customer = $this->route('customer');
 
         return [
+            'clt_code' => ['nullable', 'string', 'max:50', 'unique:customers,clt_code,'.$customer->id],
+            'clt_cedula' => ['nullable', 'string', 'max:20'],
             'clt_name' => ['required', 'string', 'max:100'],
             'clt_address' => ['required', 'string', 'max:255'],
             'clt_phone' => ['required', 'string', 'max:20', 'unique:customers,clt_phone,'.$customer->id],

@@ -14,6 +14,7 @@ use App\Models\Rate;
 use App\Models\Receipt;
 use App\Repositories\Finance\Cobranza\ReceiptRepository;
 use App\Services\Finance\Cobranza\ReceiptService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
@@ -23,6 +24,34 @@ class ReceiptController extends Controller
         protected ReceiptService $receiptService,
         protected ReceiptRepository $receiptRepo,
     ) {}
+
+    public function index(Request $request)
+    {
+        $receipts = $this->receiptRepo->history(
+            search: $request->string('search')->toString() ?: null,
+        );
+
+        return Inertia::render('Finance/Receipts/Index', [
+            'receipts' => $receipts,
+            'filters' => $request->only('search'),
+        ]);
+    }
+
+    public function show(Receipt $receipt)
+    {
+        $receipt->load([
+            'accountsReceivable.saleOrder.customer',
+            'bankTransaction.bankAccount',
+            'accountsReceivable.vueltoTransactions.bankAccount',
+        ]);
+
+        $vueltos = $receipt->accountsReceivable?->vueltoTransactions->values() ?? [];
+
+        return Inertia::render('Finance/Receipts/Show', [
+            'receipt' => $receipt,
+            'vueltos' => $vueltos,
+        ]);
+    }
 
     public function create()
     {
@@ -129,7 +158,7 @@ class ReceiptController extends Controller
         try {
             $this->receiptService->deletePayment($payment);
 
-            return redirect()->back()
+            return redirect()->route('receipts.index')
                 ->with('success', 'Cobro eliminado exitosamente.');
         } catch (\Throwable $e) {
             return redirect()->back()

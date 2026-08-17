@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { Landmark, Calculator } from 'lucide-vue-next';
-import { ref, computed, onMounted, watch } from 'vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import {
+    Landmark,
+    Calculator,
+    CheckCircle2,
+    AlertCircle,
+} from 'lucide-vue-next';
+import { ref, computed, onMounted } from 'vue';
 import FormActions from '@/components/Form/FormActions.vue';
 import FormRowDelete from '@/components/Form/FormRowDelete.vue';
 import FormSection from '@/components/Form/FormSection.vue';
 import ItemsTable from '@/components/Form/ItemsTable.vue';
-import DocumentPaymentModal from '@/components/payments/DocumentPaymentModal.vue';
+import PaymentSection from '@/components/payments/PaymentSection.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
-import type { PaymentPending } from '@/types/Finance/DocumentPayment';
 import type { ColumnConfig } from '@/types/Transaction';
 
 const props = defineProps<{
@@ -24,6 +28,7 @@ const props = defineProps<{
     ivas: string[];
     bankAccounts: any[];
     methods: string[];
+    sale_preset?: any;
 }>();
 
 const prodRef = computed(() => props.products);
@@ -34,26 +39,86 @@ const latestRef = computed(() => props.latest_rate);
 const tx = useTransactionForm(prodRef, wareRef, ratesRef, latestRef);
 
 const valorcam = ref(
-    props.latest_rate ? Number(props.latest_rate.rate_usd) : 1,
+    props.sale_preset?.sls_valorcam
+        ? Number(props.sale_preset.sls_valorcam)
+        : props.latest_rate
+          ? Number(props.latest_rate.rate_usd)
+          : 1,
 );
 
+const presetItems = (props.sale_preset?.items ?? []).map((item: any) => ({
+    mvs_pro_code: item.mvs_pro_code || '',
+    mvs_war_id: item.mvs_war_id ?? '',
+    mvs_quantity: Number(item.mvs_quantity) || 1,
+    mvs_unit_price: Number(item.mvs_unit_price) || 0,
+    mvs_unit_price_ref: Number(item.mvs_unit_price_ref) || 0,
+    mvs_pro_iva: Number(item.mvs_pro_iva) || 0,
+    _pending: false,
+}));
+
 const form = useForm({
-    sls_number: '',
-    sls_date: new Date().toISOString().split('T')[0],
-    sls_customer_id: '',
+    sls_number: props.sale_preset?.sls_number ?? '',
+    sls_date:
+        props.sale_preset?.sls_date ?? new Date().toISOString().split('T')[0],
+    sls_customer_id: props.sale_preset?.sls_customer_id
+        ? String(props.sale_preset.sls_customer_id)
+        : '',
     sls_valorcam: valorcam.value,
-    sls_coin: 'USD',
-    sls_payment_condition: 'cash',
-    sls_credit_days: 0,
-    sls_due_date: new Date().toISOString().split('T')[0],
-    items: [] as any[],
-    sls_subtotal: 0,
-    sls_iva: 0,
-    sls_exento: 0,
-    sls_total: 0,
+    sls_coin: props.sale_preset?.sls_coin ?? 'USD',
+    sls_payment_condition: props.sale_preset?.sls_payment_condition ?? 'cash',
+    sls_credit_days: props.sale_preset?.sls_credit_days ?? 0,
+    sls_due_date:
+        props.sale_preset?.sls_due_date ??
+        new Date().toISOString().split('T')[0],
+    sls_reference: props.sale_preset?.sls_reference ?? '',
+    items: presetItems as any[],
+    sls_subtotal: props.sale_preset?.sls_subtotal ?? 0,
+    sls_iva: props.sale_preset?.sls_iva ?? 0,
+    sls_exento: props.sale_preset?.sls_exento ?? 0,
+    sls_total: props.sale_preset?.sls_total ?? 0,
+    payment: {
+        payment_date: new Date().toISOString().split('T')[0],
+        vueltos: [] as {
+            vuelto_amount: number | string;
+            vuelto_currency: string;
+            vuelto_bank_account_id: string;
+        }[],
+        payments: [] as {
+            payment_currency: string;
+            payment_rate: string;
+            bank_account_id: string;
+            payment_method: string;
+            payment_reference: string;
+            payment_description: string;
+            payment_amount: number;
+        }[],
+    },
 });
 
 form.sls_valorcam = valorcam.value;
+
+const step = ref<'ticket' | 'payment'>('ticket');
+const clientError = ref('');
+
+const isCash = computed(() => form.sls_payment_condition === 'cash');
+
+const actionLabel = computed(() => {
+    if (!isCash.value) {
+        return 'Guardar';
+    }
+
+    return step.value === 'ticket' ? 'Pagar' : 'Confirmar';
+});
+
+const actionLoadingLabel = computed(() => {
+    if (form.processing) {
+        return 'Procesando...';
+    }
+
+    return !isCash.value || step.value === 'ticket'
+        ? 'Guardando...'
+        : 'Confirmando...';
+});
 
 const createBlankItem = () => ({
     mvs_pro_code: '',
@@ -200,7 +265,73 @@ const getItemTotal = (item: any) => {
     return (baseTotal + baseTotal * ivaRate).toFixed(4);
 };
 
+const validateTicket = (): string => {
+    if (!form.sls_number.trim()) {
+        return 'Ingrese el número de factura.';
+    }
+
+    if (!form.sls_customer_id) {
+        return 'Seleccione un cliente.';
+    }
+
+    if (form.items.length === 0) {
+        return 'Agregue al menos un producto.';
+    }
+
+    for (const item of form.items) {
+        if (!item.mvs_pro_code) {
+            return 'Todos los productos deben estar seleccionados.';
+        }
+
+        if (!item.mvs_war_id) {
+            return 'Todos los productos deben tener almacén asignado.';
+        }
+
+        if (Number(item.mvs_quantity) <= 0) {
+            return 'Las cantidades deben ser mayores a cero.';
+        }
+    }
+
+    return '';
+};
+
+const goToPayment = () => {
+    clientError.value = validateTicket();
+
+    if (clientError.value) {
+        return;
+    }
+
+    form.payment.payment_date = new Date().toISOString().split('T')[0];
+    form.payment.payments = [
+        {
+            payment_currency: form.sls_coin,
+            payment_rate: '1',
+            bank_account_id: '',
+            payment_method: props.methods[0] || '',
+            payment_reference: '',
+            payment_description: '',
+            payment_amount: Number(form.sls_total.toFixed(4)),
+        },
+    ];
+    step.value = 'payment';
+
+    setTimeout(() => {
+        const section = document.getElementById('payment-section');
+
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 50);
+};
+
 const submit = () => {
+    if (isCash.value && step.value === 'ticket') {
+        goToPayment();
+
+        return;
+    }
+
     form.sls_valorcam = valorcam.value;
     form.post('/sales', {
         preserveScroll: true,
@@ -211,42 +342,6 @@ onMounted(() => {
     handleExchangeUpdate();
     updateDueDate();
 });
-
-const page = usePage();
-
-const showPaymentModal = ref(false);
-const pendingPayment = ref<PaymentPending | null>(null);
-
-const resetSaleForm = () => {
-    form.reset();
-    form.items = [];
-    form.items.push(createBlankItem());
-    recalc();
-};
-
-const pendingEntityName = computed(() => {
-    if (!pendingPayment.value || pendingPayment.value.entity !== 'sale') {
-        return '';
-    }
-
-    const customer = props.customers.find(
-        (c: any) => String(c.id) === String(pendingPayment.value?.customer_id),
-    );
-
-    return customer?.clt_name || '';
-});
-
-watch(
-    () => (page.props.flash as any)?.payment_pending,
-    (pending: PaymentPending | undefined) => {
-        if (pending) {
-            pendingPayment.value = pending;
-            resetSaleForm();
-            showPaymentModal.value = true;
-        }
-    },
-    { immediate: true },
-);
 
 const columns: ColumnConfig[] = [
     { key: 'product', label: 'Producto' },
@@ -268,8 +363,20 @@ const columns: ColumnConfig[] = [
             subtitle="Registro de facturas de venta e inventario"
             back-url="/sales"
             :processing="form.processing"
+            :label="actionLabel"
+            :loading-label="actionLoadingLabel"
             @save="submit"
         />
+
+        <div
+            v-if="clientError"
+            class="flex items-start gap-3 rounded-xl border border-destructive/50 bg-destructive/10 p-4"
+        >
+            <AlertCircle class="mt-0.5 size-4 shrink-0 text-destructive" />
+            <p class="text-sm font-semibold text-destructive">
+                {{ clientError }}
+            </p>
+        </div>
 
         <div
             v-if="Object.keys(form.errors).length > 0"
@@ -650,17 +757,56 @@ const columns: ColumnConfig[] = [
             </div>
         </div>
 
-        <DocumentPaymentModal
-            v-model:open="showPaymentModal"
-            :pending="pendingPayment"
-            :bank-accounts="props.bankAccounts"
-            :latest-rate="props.latest_rate"
-            :rates="props.rates"
-            :methods="props.methods"
-            :currencies="props.coins"
-            :entity-name="pendingEntityName"
-            @paid="showPaymentModal = false"
-        />
+        <FormSection
+            v-if="isCash && step === 'payment'"
+            id="payment-section"
+            class="scroll-mt-24"
+        >
+            <template #header>
+                <Landmark class="size-4 text-primary" />
+                <span>Pago de la Factura</span>
+            </template>
+
+            <PaymentSection
+                v-model="form.payment"
+                :bank-accounts="props.bankAccounts"
+                :latest-rate="props.latest_rate"
+                :rates="props.rates"
+                :methods="props.methods"
+                :currencies="props.coins"
+                :errors="form.errors"
+                :doc-currency="form.sls_coin"
+                :doc-total="Number(form.sls_total) || 0"
+                allow-excess
+            />
+
+            <template #actions>
+                <div class="flex flex-col gap-3">
+                    <button
+                        type="button"
+                        :disabled="form.processing"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:opacity-50"
+                        @click="submit"
+                    >
+                        <CheckCircle2 v-if="!form.processing" class="size-4" />
+                        <span>
+                            {{
+                                form.processing
+                                    ? 'Procesando...'
+                                    : 'Confirmar Venta y Pago'
+                            }}
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        class="text-sm font-medium text-muted-foreground hover:text-foreground"
+                        @click="step = 'ticket'"
+                    >
+                        ← Volver al ticket
+                    </button>
+                </div>
+            </template>
+        </FormSection>
     </div>
 </template>
 

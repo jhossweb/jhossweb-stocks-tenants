@@ -45,6 +45,9 @@ export interface CashClosingPreview {
     receipts_by_method: ReceiptsByMethod
     receipts_details: ReceiptDetail[]
     grouped_receipts: GroupedReceipts
+    vuelto_total: number
+    vuelto_details: ReceiptDetail[]
+    grouped_vueltos: GroupedReceipts
 }
 
 export interface CashMovementData {

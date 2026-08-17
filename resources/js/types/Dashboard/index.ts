@@ -119,6 +119,37 @@ export interface CategoryAggregates {
     gastos: CategoryAggregate;
     finanzas: CategoryAggregate;
     compras: CategoryAggregate;
+    inventario: CategoryAggregate;
+}
+
+export interface WarehouseStock {
+    warehouse_id: number;
+    war_name: string;
+    product_count: number;
+    total_quantity: number;
+}
+
+export interface StockDetailRow {
+    pro_code: string;
+    pro_name: string;
+    pro_und: string;
+    war_id: number;
+    war_name: string;
+    quantity: number;
+}
+
+export interface InventoryValueItem {
+    pro_code: string;
+    pro_name: string;
+    pro_und: string;
+    total_quantity: number;
+    unit_cost_ref: number;
+    total_value_ref: number;
+}
+
+export interface InventoryKpis {
+    stockByWarehouse: WarehouseStock[];
+    inventoryValue: CurrencyMap;
 }
 
 export interface PurchaseItem {

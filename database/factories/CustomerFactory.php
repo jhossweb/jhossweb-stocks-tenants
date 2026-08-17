@@ -15,6 +15,8 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
+            'clt_code' => fake()->unique()->bothify('C-####'),
+            'clt_cedula' => fake()->numerify('########'),
             'clt_name' => fake()->unique()->company(),
             'clt_address' => fake()->address(),
             'clt_phone' => fake()->unique()->phoneNumber(),

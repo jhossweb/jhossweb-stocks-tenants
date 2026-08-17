@@ -111,9 +111,9 @@ test('store creates a sale with valid data', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 16.0000,
         'sls_total' => 116.0000,
-        'sls_payment_condition' => 'cash',
-        'sls_credit_days' => 0,
-        'sls_due_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
+        'sls_due_date' => now()->addDays(30)->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,
@@ -128,8 +128,7 @@ test('store creates a sale with valid data', function () {
 
     $this->post(route('sales.store'), $data)
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('sales.create'))
-        ->assertSessionHas('payment_pending');
+        ->assertRedirect(route('sales.index'));
 
     expect(SaleOrder::where('sls_number', 'SLS-001')->exists())->toBeTrue();
     expect(SaleOrder::where('sls_number', 'SLS-001')->first()->sls_trans_type_code)->toBe('FACV');
@@ -221,9 +220,63 @@ test('edit renders the edit form', function () {
         );
 });
 
+test('show renders the sale detail with movements', function () {
+    $sale = SaleOrder::factory()->facv()->create([
+        'sls_customer_id' => $this->customer->id,
+    ]);
+
+    $sale->movements()->create([
+        'mvs_number' => $sale->sls_number,
+        'mvs_trans_type_code' => 'FACV',
+        'mvs_factor' => '-1',
+        'mvs_pro_code' => $this->product->pro_code,
+        'mvs_pro_iva' => 16,
+        'mvs_war_id' => $this->warehouse->id,
+        'mvs_quantity' => 5,
+        'mvs_unit_price' => 20,
+        'mvs_unit_price_ref' => 50,
+    ]);
+
+    $this->get(route('sales.show', $sale->id))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Sales/Show')
+            ->where('sale.sls_number', $sale->sls_number)
+            ->has('sale.movements', 1)
+            ->where('sale.movements.0.mvs_pro_code', $this->product->pro_code)
+            ->where('sale.customer.clt_name', $this->customer->clt_name)
+        );
+});
+
+test('export pdf downloads a sale invoice', function () {
+    $sale = SaleOrder::factory()->facv()->create([
+        'sls_customer_id' => $this->customer->id,
+    ]);
+
+    $sale->movements()->create([
+        'mvs_number' => $sale->sls_number,
+        'mvs_trans_type_code' => 'FACV',
+        'mvs_factor' => '-1',
+        'mvs_pro_code' => $this->product->pro_code,
+        'mvs_pro_iva' => 16,
+        'mvs_war_id' => $this->warehouse->id,
+        'mvs_quantity' => 5,
+        'mvs_unit_price' => 20,
+        'mvs_unit_price_ref' => 50,
+    ]);
+
+    $response = $this->get(route('sales.pdf', $sale->id));
+
+    $response->assertOk();
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect(str_starts_with($response->getContent(), '%PDF'))->toBeTrue();
+});
+
 test('update modifies a sale', function () {
     $sale = SaleOrder::factory()->facv()->create([
         'sls_customer_id' => $this->customer->id,
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
     ]);
 
     $data = [
@@ -236,9 +289,9 @@ test('update modifies a sale', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 32.0000,
         'sls_total' => 232.0000,
-        'sls_payment_condition' => 'cash',
-        'sls_credit_days' => 0,
-        'sls_due_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
+        'sls_due_date' => now()->addDays(30)->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,
@@ -262,6 +315,8 @@ test('update modifies a sale', function () {
 test('update removes old items when not in request', function () {
     $sale = SaleOrder::factory()->facv()->create([
         'sls_customer_id' => $this->customer->id,
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
     ]);
 
     $oldMovement = $sale->movements()->create([
@@ -286,9 +341,9 @@ test('update removes old items when not in request', function () {
         'sls_exento' => 0.0000,
         'sls_iva' => 8.0000,
         'sls_total' => 58.0000,
-        'sls_payment_condition' => 'cash',
-        'sls_credit_days' => 0,
-        'sls_due_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
+        'sls_due_date' => now()->addDays(30)->format('Y-m-d'),
         'items' => [
             [
                 'mvs_pro_code' => $this->product->pro_code,

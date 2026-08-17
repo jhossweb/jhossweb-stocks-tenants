@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\Dashboard\PurchaseKpiRepository;
 use App\Repositories\Dashboard\SalesKpiRepository;
+use App\Repositories\Inventory\InventoryKpiRepository;
 use App\Services\Dashboard\DashboardService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,14 +15,20 @@ class DashboardController extends Controller
         protected DashboardService $dashboardService,
         protected SalesKpiRepository $salesKpiRepository,
         protected PurchaseKpiRepository $purchaseKpiRepository,
+        protected InventoryKpiRepository $inventoryKpiRepository,
     ) {}
 
     public function index(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
 
+        $categoryAggregates = $this->dashboardService->getCategoryAggregates($month);
+        $categoryAggregates['inventario'] = [
+            'total' => $this->inventoryKpiRepository->inventoryValue(),
+        ];
+
         return Inertia::render('Dashboard', [
-            'categoryAggregates' => $this->dashboardService->getCategoryAggregates($month),
+            'categoryAggregates' => $categoryAggregates,
             'selectedMonth' => $month,
         ]);
     }
@@ -83,6 +90,41 @@ class DashboardController extends Controller
             'selectedMonth' => $month,
             'from' => $from,
             'to' => $to,
+        ]);
+    }
+
+    public function inventario(Request $request)
+    {
+        $month = $request->input('month', now()->format('Y-m'));
+
+        return Inertia::render('Dashboard/Inventario', [
+            'kpis' => [
+                'stockByWarehouse' => $this->inventoryKpiRepository->stockByWarehouse(),
+                'inventoryValue' => $this->inventoryKpiRepository->inventoryValue(),
+            ],
+            'selectedMonth' => $month,
+        ]);
+    }
+
+    public function inventarioExistencia(Request $request)
+    {
+        $month = $request->input('month', now()->format('Y-m'));
+
+        return Inertia::render('Dashboard/Inventario/ExistenciaAlmacen', [
+            'stockByWarehouse' => $this->inventoryKpiRepository->stockByWarehouse(),
+            'stockDetail' => $this->inventoryKpiRepository->stockDetail(),
+            'selectedMonth' => $month,
+        ]);
+    }
+
+    public function inventarioValor(Request $request)
+    {
+        $month = $request->input('month', now()->format('Y-m'));
+
+        return Inertia::render('Dashboard/Inventario/ValorInventario', [
+            'inventoryValue' => $this->inventoryKpiRepository->inventoryValue(),
+            'valueDetail' => $this->inventoryKpiRepository->inventoryValueDetail(),
+            'selectedMonth' => $month,
         ]);
     }
 }

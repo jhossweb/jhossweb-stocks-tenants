@@ -13,6 +13,8 @@ class Customer extends Model
     use HasFactory;
 
     protected $fillable = [
+        'clt_code',
+        'clt_cedula',
         'clt_name',
         'clt_address',
         'clt_phone',

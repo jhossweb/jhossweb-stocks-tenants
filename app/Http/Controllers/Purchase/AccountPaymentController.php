@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\Purchase;
 
 use App\Enum\Finanzas\TransactionMethod;
-use App\Enum\Finanzas\TypePayment;
 use App\Enum\Purchases\StatusPurchases;
 use App\Enum\TypeCoin;
 use App\Http\Controllers\Controller;
 use App\Models\AccountPayments;
 use App\Models\AccountsPayable;
 use App\Models\BankAccount;
-use App\Models\BankTransaction;
 use App\Models\Rate;
 use App\Models\Supplier;
-use App\Services\Dashboard\DashboardCacheInvalidator;
-use App\Services\Finance\RateService;
+use App\Repositories\Purchases\AccountPaymentRepository;
+use App\Services\Purchases\PurchasePaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -22,8 +20,33 @@ use Inertia\Inertia;
 class AccountPaymentController extends Controller
 {
     public function __construct(
-        protected RateService $rateService,
+        protected PurchasePaymentService $paymentService,
+        protected AccountPaymentRepository $paymentRepository,
     ) {}
+
+    public function index(Request $request)
+    {
+        $payments = $this->paymentRepository->history(
+            search: $request->string('search')->toString() ?: null,
+        );
+
+        return Inertia::render('Finance/Payments/Index', [
+            'payments' => $payments,
+            'filters' => $request->only('search'),
+        ]);
+    }
+
+    public function show($id)
+    {
+        $payment = AccountPayments::with([
+            'accountPayable.purchaseOrder.supplier',
+            'bankTransaction.bankAccount',
+        ])->findOrFail($id);
+
+        return Inertia::render('Finance/Payments/Show', [
+            'payment' => $payment,
+        ]);
+    }
 
     /**
      * Show the form for creating a new payment receipt.
@@ -74,98 +97,11 @@ class AccountPaymentController extends Controller
             'payments.*.amount' => 'required|numeric|min:0',
         ]);
 
-        $bankAccount = BankAccount::findOrFail($validated['bank_account_id']);
-        $totalPayment = (float) array_sum(array_column($validated['payments'], 'amount'));
-
-        if ($bankAccount->bank_balance < $totalPayment) {
-            return redirect()->back()->withErrors([
-                'bank_account_id' => 'Saldo insuficiente. Saldo disponible en '.$bankAccount->bank_name.': '.number_format((float) $bankAccount->bank_balance, 4).' '.$bankAccount->bank_currency,
-            ]);
-        }
-
         DB::beginTransaction();
         try {
-            $activePayments = array_filter($validated['payments'], fn ($p) => $p['amount'] > 0);
-
-            if (empty($activePayments)) {
-                return redirect()->back()->withErrors(['error' => 'Debe ingresar al menos un monto a pagar.']);
-            }
-
-            $payRate = $this->rateService->getBestRateForDate($validated['payment_date']);
-
-            if (! $payRate) {
-                return redirect()->back()->withErrors(['payment_date' => 'No existe tasa de cambio para la fecha seleccionada.']);
-            }
-
-            $valorcam = $this->rateService->resolveRateForCoin(
-                $validated['payment_date'],
-                $validated['payment_currency'],
-            );
-
-            foreach ($activePayments as $paymentData) {
-                $acp = AccountsPayable::with('purchaseOrder')->findOrFail($paymentData['acp_id']);
-
-                $paymentAmount = (float) $paymentData['amount'];
-                $payCurrency = $validated['payment_currency'];
-                $docCurrency = $acp->purchaseOrder->invoice_coin ?? 'USD';
-
-                // Get the document's rate record for differential calculation
-                $docDate = $acp->purchaseOrder->invoice_date?->format('Y-m-d')
-                    ?? $acp->purchaseOrder->created_at?->format('Y-m-d');
-                $docRate = $docDate
-                    ? ($this->rateService->getExactRateForDate($docDate) ?? $payRate)
-                    : $payRate;
-
-                // Convert payment to document currency (existing behavior)
-                $amountInDocCurrency = round(Rate::convert($paymentAmount, $payCurrency, $docCurrency, $payRate), 4);
-
-                // Calculate differential in USD
-                $diferencial = $this->rateService->calculateDiferencial(
-                    $paymentAmount,
-                    $payCurrency,
-                    $payRate,
-                    $docRate,
-                );
-
-                // Convert payment to USD for balance tracking
-                $amountUsd = round(Rate::convert($paymentAmount, $payCurrency, 'USD', $payRate), 4);
-
-                $bankTransaction = BankTransaction::create([
-                    'btr_bank_account_id' => $validated['bank_account_id'],
-                    'btr_type' => 'outflow',
-                    'btr_amount' => round($paymentAmount, 4),
-                    'btr_reference' => $validated['payment_reference'],
-                    'btr_description' => $validated['payment_description'] ?: 'Pago a proveedor',
-                    'btr_valorcam' => $valorcam,
-                    'btr_diferencial' => $diferencial,
-                    'btr_balance' => 0,
-                    'btr_method' => $validated['payment_method'],
-                    'btr_transaction_date' => $validated['payment_date'],
-                    'btr_coin' => $validated['payment_currency'],
-                ]);
-
-                $bankTransaction->btr_transactionable()->associate($acp);
-                $bankTransaction->save();
-
-                $acp->registerPayment(
-                    $amountInDocCurrency,
-                    TypePayment::PAYMENT->value,
-                    $bankTransaction->id,
-                    null,
-                    $amountUsd,
-                );
-
-                // Store differential on account payment
-                $accountPayment = $acp->payments()->where('apy_bank_transaction_id', $bankTransaction->id)->first();
-                if ($accountPayment) {
-                    $accountPayment->apy_diferencial = $diferencial;
-                    $accountPayment->save();
-                }
-            }
+            $this->paymentService->pay($validated);
 
             DB::commit();
-
-            DashboardCacheInvalidator::payables(substr($validated['payment_date'], 0, 7));
 
             return redirect()->route('accounts-payable.index')->with('success', 'Comprobante de pago generado exitosamente.');
         } catch (\Exception $e) {
@@ -334,7 +270,7 @@ class AccountPaymentController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Pago eliminado exitosamente.');
+            return redirect()->route('payments.index')->with('success', 'Pago eliminado exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
 

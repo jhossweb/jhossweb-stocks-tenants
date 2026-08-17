@@ -12,6 +12,12 @@ class BankTransaction extends Model
     /** @use HasFactory<BankTransactionFactory> */
     use HasFactory;
 
+    public const TYPE_INFLOW = 'inflow';
+
+    public const TYPE_OUTFLOW = 'outflow';
+
+    public const VUELTO_DESCRIPTION = 'Vuelto a cliente';
+
     protected $fillable = [
         'btr_bank_account_id',
         'btr_type',

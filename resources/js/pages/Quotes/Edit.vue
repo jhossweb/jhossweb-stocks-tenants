@@ -543,6 +543,8 @@ const columns: ColumnConfig[] = [
                 sls_number: props.quote.sls_number,
                 sls_total: props.quote.sls_total,
                 sls_coin: props.quote.sls_coin,
+                sls_date: props.quote.sls_date,
+                customer: props.quote.customer,
             }"
             @update:open="convertOpen = $event"
             @converted="router.visit(`/quotes/${props.quote.id}/edit`)"

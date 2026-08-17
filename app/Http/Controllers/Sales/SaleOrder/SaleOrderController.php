@@ -17,8 +17,10 @@ use App\Models\SaleOrder;
 use App\Models\Stock;
 use App\Models\TransactionType;
 use App\Models\Warehouse;
+use App\Reports\Sales\SaleInvoiceReport;
 use App\Services\Finance\RateService;
 use App\Services\Sales\SaleOrderService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -27,6 +29,7 @@ class SaleOrderController extends Controller
     public function __construct(
         protected SaleOrderService $saleOrderService,
         protected RateService $rateService,
+        protected SaleInvoiceReport $saleInvoiceReport,
     ) {}
 
     public function index()
@@ -87,7 +90,7 @@ class SaleOrderController extends Controller
             ->values();
     }
 
-    public function create()
+    public function create(Request $request)
     {
         return Inertia::render('Sales/Create', [
             'customers' => Customer::all(),
@@ -100,6 +103,7 @@ class SaleOrderController extends Controller
                     'rate_usd' => $rate->rate_usd,
                     'rate_cop' => $rate->rate_cop,
                     'rate_eur' => $rate->rate_eur,
+                    'rate_cop_bs' => $rate->rate_cop_bs,
                 ];
             }),
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),
@@ -107,7 +111,50 @@ class SaleOrderController extends Controller
             'ivas' => TypeIva::values(),
             'bankAccounts' => BankAccount::where('bank_status', true)->get(),
             'methods' => TransactionMethod::values(),
+            'sale_preset' => $this->buildSalePreset($request),
         ]);
+    }
+
+    /**
+     * Builds a prefilled sale draft from an originating quote (cash flow).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function buildSalePreset(Request $request): ?array
+    {
+        if (! $request->has('from_quote')) {
+            return null;
+        }
+
+        $quote = SaleOrder::with(['customer', 'movements'])
+            ->where('sls_trans_type_code', 'COT')
+            ->findOrFail($request->integer('from_quote'));
+
+        return [
+            'sls_number' => $request->input('sls_number') ?? '',
+            'sls_date' => $quote->sls_date?->format('Y-m-d'),
+            'sls_customer_id' => $quote->sls_customer_id,
+            'sls_valorcam' => $quote->sls_valorcam,
+            'sls_coin' => $quote->sls_coin,
+            'sls_subtotal' => (float) $quote->sls_subtotal,
+            'sls_exento' => (float) $quote->sls_exento,
+            'sls_iva' => (float) $quote->sls_iva,
+            'sls_total' => (float) $quote->sls_total,
+            'sls_payment_condition' => 'cash',
+            'sls_credit_days' => 0,
+            'sls_due_date' => $quote->sls_date?->format('Y-m-d'),
+            'sls_reference' => $quote->sls_number,
+            'items' => $quote->movements->map(function ($movement) {
+                return [
+                    'mvs_pro_code' => $movement->mvs_pro_code,
+                    'mvs_war_id' => $movement->mvs_war_id,
+                    'mvs_quantity' => (float) $movement->mvs_quantity,
+                    'mvs_unit_price' => (float) $movement->mvs_unit_price,
+                    'mvs_unit_price_ref' => (float) $movement->mvs_unit_price_ref,
+                    'mvs_pro_iva' => (float) $movement->mvs_pro_iva,
+                ];
+            })->all(),
+        ];
     }
 
     public function store(StoreSaleRequest $request)
@@ -117,28 +164,9 @@ class SaleOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $sale = $this->saleOrderService->create($validated);
+            $sale = $this->saleOrderService->createWithPayment($validated);
 
             DB::commit();
-
-            if ($validated['sls_payment_condition'] === 'cash' && (float) $sale->sls_total > 0) {
-                $receivable = $sale->accountsReceivable;
-
-                if ($receivable) {
-                    return redirect()->route('sales.create')
-                        ->with('success', 'Venta guardada exitosamente.')
-                        ->with('payment_pending', [
-                            'entity' => 'sale',
-                            'acr_id' => $receivable->id,
-                            'document_number' => $sale->sls_number,
-                            'amount' => (float) $sale->sls_total,
-                            'currency' => $sale->sls_coin,
-                            'date' => $sale->sls_date?->format('Y-m-d'),
-                            'valorcam' => (float) $sale->sls_valorcam,
-                            'customer_id' => $sale->sls_customer_id,
-                        ]);
-                }
-            }
 
             return redirect()->route('sales.index')->with('success', 'Venta guardada exitosamente.');
         } catch (\Exception $e) {
@@ -150,12 +178,21 @@ class SaleOrderController extends Controller
 
     public function show(SaleOrder $sale)
     {
-        return redirect()->route('sales.edit', $sale->id);
+        $sale->load(['customer', 'transactionType', 'movements.product']);
+
+        return Inertia::render('Sales/Show', [
+            'sale' => $sale,
+        ]);
+    }
+
+    public function exportPdf(SaleOrder $sale)
+    {
+        return $this->saleInvoiceReport->download($sale);
     }
 
     public function edit($id)
     {
-        $sale = SaleOrder::with(['movements', 'customer', 'transactionType'])->findOrFail($id);
+        $sale = SaleOrder::with(['movements', 'customer', 'transactionType', 'accountsReceivable'])->findOrFail($id);
 
         return Inertia::render('Sales/Edit', [
             'sale' => $sale,
@@ -169,11 +206,14 @@ class SaleOrderController extends Controller
                     'rate_usd' => $rate->rate_usd,
                     'rate_cop' => $rate->rate_cop,
                     'rate_eur' => $rate->rate_eur,
+                    'rate_cop_bs' => $rate->rate_cop_bs,
                 ];
             }),
             'latest_rate' => Rate::orderBy('rate_date', 'desc')->first(),
             'coins' => TypeCoin::values(),
             'ivas' => TypeIva::values(),
+            'bankAccounts' => BankAccount::where('bank_status', true)->get(),
+            'methods' => TransactionMethod::values(),
         ]);
     }
 
@@ -185,7 +225,7 @@ class SaleOrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $this->saleOrderService->update($sale, $validated);
+            $this->saleOrderService->updateWithPayment($sale, $validated);
 
             DB::commit();
 

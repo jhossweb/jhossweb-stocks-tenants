@@ -7,9 +7,14 @@ interface Props {
     subtitle?: string;
     backUrl: string;
     processing?: boolean;
+    label?: string;
+    loadingLabel?: string;
 }
 
-defineProps<Props>();
+withDefaults(defineProps<Props>(), {
+    label: 'Guardar',
+    loadingLabel: 'Guardando...',
+});
 
 const emit = defineEmits<{
     save: [];
@@ -17,11 +22,13 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="flex items-center justify-between bg-card rounded-xl border px-6 py-4 shadow-sm">
+    <div
+        class="flex items-center justify-between rounded-xl border bg-card px-6 py-4 shadow-sm"
+    >
         <div class="flex items-center gap-4">
             <Link
                 :href="backUrl"
-                class="text-muted-foreground hover:text-foreground rounded-full p-2 transition-colors hover:bg-accent"
+                class="rounded-full p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
                 <ArrowLeft class="size-5" />
             </Link>
@@ -40,7 +47,7 @@ const emit = defineEmits<{
         >
             <Loader2 v-if="processing" class="size-4 animate-spin" />
             <Save v-else class="size-4" />
-            {{ processing ? 'Guardando...' : 'Guardar' }}
+            {{ processing ? loadingLabel : label }}
         </button>
     </div>
 </template>

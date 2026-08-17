@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, StickyNote } from 'lucide-vue-next';
 import { computed } from 'vue';
+import CashClosingBreakdown from '@/components/CashClosing/CashClosingBreakdown.vue';
 import CashClosingCountTable from '@/components/CashClosing/CashClosingCountTable.vue';
 import CashClosingStatusBadge from '@/components/CashClosing/CashClosingStatusBadge.vue';
 import CashClosingSummary from '@/components/CashClosing/CashClosingSummary.vue';
@@ -34,6 +35,9 @@ const props = defineProps<{
     breakdown?: {
         receipts_details: ReceiptDetail[];
         grouped_receipts: GroupedReceipts;
+        vuelto_total: number;
+        vuelto_details: ReceiptDetail[];
+        grouped_vueltos: GroupedReceipts;
     };
 }>();
 
@@ -61,9 +65,12 @@ const expectedByCoin = computed(() => {
 });
 
 function expectedFor(coin: string): number {
-    return Object.values(props.breakdown?.grouped_receipts[coin] ?? {}).reduce(
-        (sum, value) => sum + value,
-        0,
+    const receipts = props.breakdown?.grouped_receipts[coin] ?? {};
+    const vueltos = props.breakdown?.grouped_vueltos[coin] ?? {};
+
+    return (
+        Object.values(receipts).reduce((sum, value) => sum + value, 0) -
+        Object.values(vueltos).reduce((sum, value) => sum + value, 0)
     );
 }
 
@@ -113,8 +120,21 @@ function diffToneClass(coin: string): string {
                     :opening-balance="closing.cc_opening_balance"
                     :total-sales="closing.cc_total_sales"
                     :total-received="closing.cc_total_received"
+                    :total-vueltos="breakdown?.vuelto_total ?? 0"
                     :inflows="closing.cc_total_manual_inflows"
                     :outflows="closing.cc_total_manual_outflows"
+                />
+            </CardContent>
+        </Card>
+
+        <Card v-if="breakdown?.vuelto_details?.length">
+            <CardHeader>
+                <CardTitle>Vuelto a clientes</CardTitle>
+            </CardHeader>
+            <CardContent class="p-0">
+                <CashClosingBreakdown
+                    :details="breakdown.vuelto_details"
+                    tone="out"
                 />
             </CardContent>
         </Card>
@@ -160,6 +180,7 @@ function diffToneClass(coin: string): string {
                     :rows="closing.cc_counted_details ?? []"
                     readonly
                     :grouped-receipts="breakdown?.grouped_receipts ?? {}"
+                    :grouped-vueltos="breakdown?.grouped_vueltos ?? {}"
                     :expected-by-coin="expectedByCoin"
                     :differences-by-coin="normalizedDifferences"
                 />

@@ -2,7 +2,9 @@
 
 use App\Enum\Inventary\ProType;
 use App\Enum\Sales\StatusSales;
+use App\Models\AccountsReceivable;
 use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\CostHistory;
@@ -101,81 +103,68 @@ beforeEach(function () {
     ];
 });
 
-test('store a cash sale redirects to create with payment_pending flash', function () {
+function singlePaymentPayload(int $bankAccountId, float $amount, string $currency = 'USD', string $reference = 'REF-CASH-001'): array
+{
+    return [
+        'payment_date' => now()->format('Y-m-d'),
+        'payments' => [
+            [
+                'payment_currency' => $currency,
+                'payment_rate' => 1.0000,
+                'bank_account_id' => $bankAccountId,
+                'payment_method' => 'EFECTIVO',
+                'payment_reference' => $reference,
+                'payment_description' => 'Cobro de contado',
+                'payment_amount' => $amount,
+            ],
+        ],
+    ];
+}
+
+test('store a cash sale without payment is rejected', function () {
     $this->post(route('sales.store'), $this->saleData)
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('sales.create'))
-        ->assertSessionHas('payment_pending');
+        ->assertSessionHasErrors([
+            'payment.payment_date',
+            'payment.payments',
+        ]);
 
-    $sale = SaleOrder::where('sls_number', 'SLS-CASH-001')->first();
-
-    expect($sale->accountsReceivable)->not->toBeNull();
-    expect((float) $sale->accountsReceivable->acr_balance)->toBe(116.0);
-
-    $flash = session('payment_pending');
-    expect($flash['entity'])->toBe('sale');
-    expect($flash['acr_id'])->toBe($sale->accountsReceivable->id);
-    expect((float) $flash['amount'])->toBe(116.0);
-    expect($flash['currency'])->toBe('USD');
-    expect($flash['customer_id'])->toBe($this->customer->id);
+    expect(SaleOrder::where('sls_number', 'SLS-CASH-001')->exists())->toBeFalse();
+    expect(AccountsReceivable::count())->toBe(0);
 });
 
-test('create page exposes payment_pending after a cash sale', function () {
-    $this->post(route('sales.store'), $this->saleData);
-
-    $this->get(route('sales.create'))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->component('Sales/Create')
-            ->where('flash.payment_pending.entity', 'sale')
-            ->where('flash.payment_pending.acr_id', SaleOrder::where('sls_number', 'SLS-CASH-001')->first()->accountsReceivable->id)
-        );
-});
-
-test('store a credit sale redirects to index without payment_pending', function () {
-    $creditData = array_merge($this->saleData, [
-        'sls_number' => 'SLS-CREDIT-001',
-        'sls_payment_condition' => 'credit',
-        'sls_credit_days' => 30,
+test('store a cash sale with a complete payment creates sale and settles the receivable', function () {
+    $data = array_merge($this->saleData, [
+        'payment' => singlePaymentPayload($this->bankAccount->id, 116.00),
     ]);
 
-    $this->post(route('sales.store'), $creditData)
+    $this->post(route('sales.store'), $data)
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('sales.index'))
-        ->assertSessionMissing('payment_pending');
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-001')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect($acr)->not->toBeNull();
+    expect((float) $acr->acr_balance)->toBe(0.0);
+    expect($acr->acr_status)->toBe(StatusSales::PAID->value);
+    expect($sale->sls_status)->toBe(StatusSales::PAID->value);
+    expect($acr->payments()->count())->toBe(1);
+    expect((float) $acr->payments()->first()->rec_amount)->toBe(116.0);
 });
 
-test('a receipt pays the pending cash sale receivable', function () {
-    $this->post(route('sales.store'), $this->saleData);
+test('store a cash sale with a partial payment is rejected', function () {
+    $data = array_merge($this->saleData, [
+        'payment' => singlePaymentPayload($this->bankAccount->id, 50.00, 'USD', 'REF-PARTIAL-001'),
+    ]);
 
-    $acr = SaleOrder::where('sls_number', 'SLS-CASH-001')->first()->accountsReceivable;
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasErrors('payment.payments');
 
-    $this->post(route('receipts.store'), [
-        'payment_date' => now()->format('Y-m-d'),
-        'customer_id' => $this->customer->id,
-        'bank_account_id' => $this->bankAccount->id,
-        'payment_currency' => 'USD',
-        'payment_rate' => 1.0000,
-        'payment_method' => 'EFECTIVO',
-        'payment_reference' => 'REF-CASH-001',
-        'payment_description' => 'Cobro de contado',
-        'payments' => [
-            ['acr_id' => $acr->id, 'amount' => 116.00],
-        ],
-    ])->assertSessionHasNoErrors()
-        ->assertRedirect(route('accounts-receivable.index'));
-
-    expect((float) $acr->fresh()->acr_balance)->toBe(0.0);
-    expect($acr->fresh()->acr_status)->toBe(StatusSales::PAID->value);
-    expect($acr->fresh()->saleOrder->sls_status)->toBe(StatusSales::PAID->value);
-    expect($acr->fresh()->payments()->count())->toBe(1);
+    expect(SaleOrder::where('sls_number', 'SLS-CASH-001')->exists())->toBeFalse();
+    expect(AccountsReceivable::count())->toBe(0);
 });
 
-test('a receipt in a different currency settles the full USD receivable', function () {
-    $this->post(route('sales.store'), $this->saleData);
-
-    $acr = SaleOrder::where('sls_number', 'SLS-CASH-001')->first()->accountsReceivable;
-
+test('store a cash sale paid in a different currency settles the receivable', function () {
     Rate::whereDate('rate_date', today())->update(['rate_usd' => 770.0000]);
 
     $bsBank = BankAccount::factory()->create([
@@ -184,20 +173,30 @@ test('a receipt in a different currency settles the full USD receivable', functi
         'bank_status' => true,
     ]);
 
-    $this->post(route('receipts.store'), [
-        'payment_date' => now()->format('Y-m-d'),
-        'customer_id' => $this->customer->id,
-        'bank_account_id' => $bsBank->id,
-        'payment_currency' => 'BS',
-        'payment_rate' => 770.0000,
-        'payment_method' => 'PAGO_MOVIL',
-        'payment_reference' => 'REF-BS-001',
-        'payment_description' => 'Cobro en bolívares',
-        'payments' => [
-            ['acr_id' => $acr->id, 'amount' => 89320.0000],
+    $data = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CASH-BS-001',
+        'payment' => [
+            'payment_date' => now()->format('Y-m-d'),
+            'payments' => [
+                [
+                    'payment_currency' => 'BS',
+                    'payment_rate' => 770.0000,
+                    'bank_account_id' => $bsBank->id,
+                    'payment_method' => 'PAGO_MOVIL',
+                    'payment_reference' => 'REF-BS-001',
+                    'payment_description' => 'Cobro en bolívares',
+                    'payment_amount' => 89320.0000,
+                ],
+            ],
         ],
-    ])->assertSessionHasNoErrors()
-        ->assertRedirect(route('accounts-receivable.index'));
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-BS-001')->first();
+    $acr = $sale->accountsReceivable;
 
     expect((float) $acr->fresh()->acr_balance)->toBe(0.0);
     expect($acr->fresh()->acr_status)->toBe(StatusSales::PAID->value);
@@ -206,36 +205,337 @@ test('a receipt in a different currency settles the full USD receivable', functi
     expect((float) $acr->fresh()->payments()->first()->rec_amount)->toBe(116.0);
 });
 
-test('a receipt on a date without an exact rate uses the most recent rate', function () {
-    $this->post(route('sales.store'), $this->saleData);
+test('store a cash sale with multiple payments in different currencies settles the receivable', function () {
+    Rate::whereDate('rate_date', today())->update(['rate_usd' => 780.0000]);
 
-    $acr = SaleOrder::where('sls_number', 'SLS-CASH-001')->first()->accountsReceivable;
+    $bsBank = BankAccount::factory()->create([
+        'bank_currency' => 'BS',
+        'bank_balance' => 100000.00,
+        'bank_status' => true,
+    ]);
 
+    $data = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CASH-MIXED-001',
+        'payment' => [
+            'payment_date' => now()->format('Y-m-d'),
+            'payments' => [
+                [
+                    'payment_currency' => 'USD',
+                    'payment_rate' => 1.0000,
+                    'bank_account_id' => $this->bankAccount->id,
+                    'payment_method' => 'EFECTIVO',
+                    'payment_reference' => 'REF-USD-001',
+                    'payment_description' => 'Abono en efectivo',
+                    'payment_amount' => 60.0000,
+                ],
+                [
+                    'payment_currency' => 'BS',
+                    'payment_rate' => 780.0000,
+                    'bank_account_id' => $bsBank->id,
+                    'payment_method' => 'PAGO_MOVIL',
+                    'payment_reference' => 'REF-BS-001',
+                    'payment_description' => 'Abono por pago móvil',
+                    'payment_amount' => 43680.0000,
+                ],
+            ],
+        ],
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-MIXED-001')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect((float) $acr->fresh()->acr_balance)->toBe(0.0);
+    expect($acr->fresh()->acr_status)->toBe(StatusSales::PAID->value);
+    expect($acr->fresh()->payments()->count())->toBe(2);
+});
+
+test('store a cash sale that exceeds the total registers the vuelto as an outflow', function () {
+    $data = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CASH-VUELTO-001',
+        'payment' => singlePaymentPayload($this->bankAccount->id, 150.00, 'USD', 'REF-VUELTO-001'),
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-VUELTO-001')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect((float) $acr->fresh()->acr_balance)->toBe(0.0);
+    expect($acr->fresh()->acr_status)->toBe(StatusSales::PAID->value);
+
+    $inflows = BankTransaction::where('btr_type', 'inflow')
+        ->where('btr_transactionable_type', $acr->getMorphClass())
+        ->where('btr_transactionable_id', $acr->id)
+        ->get();
+
+    $outflow = BankTransaction::where('btr_type', 'outflow')
+        ->where('btr_transactionable_type', $acr->getMorphClass())
+        ->where('btr_transactionable_id', $acr->id)
+        ->first();
+
+    expect($inflows)->toHaveCount(1);
+    expect((float) $inflows->first()->btr_amount)->toBe(116.0);
+
+    expect($outflow)->not->toBeNull();
+    expect((float) $outflow->btr_amount)->toBe(34.0);
+    expect($outflow->btr_description)->toBe('Vuelto a cliente');
+    expect($outflow->btr_coin->value)->toBe('USD');
+    expect((float) $acr->fresh()->payments()->first()->rec_amount)->toBe(116.0);
+});
+
+test('store a cash sale with a typed vuelto in a different currency uses the chosen bank', function () {
+    Rate::whereDate('rate_date', today())->update(['rate_usd' => 770.0000]);
+
+    $bsBank = BankAccount::factory()->create([
+        'bank_currency' => 'BS',
+        'bank_balance' => 100000.00,
+        'bank_status' => true,
+    ]);
+
+    $data = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CASH-VUELTO-BS-001',
+        'payment' => [
+            'payment_date' => now()->format('Y-m-d'),
+            'vueltos' => [
+                [
+                    'vuelto_amount' => 26180.0000,
+                    'vuelto_currency' => 'BS',
+                    'vuelto_bank_account_id' => $bsBank->id,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_currency' => 'USD',
+                    'payment_rate' => 1.0000,
+                    'bank_account_id' => $this->bankAccount->id,
+                    'payment_method' => 'EFECTIVO',
+                    'payment_reference' => 'REF-VUELTO-BS-001',
+                    'payment_description' => 'Cobro de contado',
+                    'payment_amount' => 150.0000,
+                ],
+            ],
+        ],
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-VUELTO-BS-001')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect((float) $acr->fresh()->acr_balance)->toBe(0.0);
+
+    $outflow = BankTransaction::where('btr_type', 'outflow')
+        ->where('btr_transactionable_type', $acr->getMorphClass())
+        ->where('btr_transactionable_id', $acr->id)
+        ->first();
+
+    expect($outflow)->not->toBeNull();
+    expect((float) $outflow->btr_amount)->toBe(26180.0);
+    expect($outflow->btr_coin->value)->toBe('BS');
+    expect($outflow->btr_bank_account_id)->toBe($bsBank->id);
+    expect($outflow->btr_description)->toBe('Vuelto a cliente');
+    expect((float) $bsBank->fresh()->bank_balance)->toBe(73820.0);
+});
+
+test('store a cash sale with a multi-currency vuelto registers an outflow per currency', function () {
+    Rate::whereDate('rate_date', today())->update(['rate_usd' => 770.0000]);
+
+    $bsBank = BankAccount::factory()->create([
+        'bank_currency' => 'BS',
+        'bank_balance' => 100000.00,
+        'bank_status' => true,
+    ]);
+
+    $data = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CASH-VUELTO-MULTI-001',
+        'payment' => [
+            'payment_date' => now()->format('Y-m-d'),
+            'vueltos' => [
+                [
+                    'vuelto_amount' => 20.0000,
+                    'vuelto_currency' => 'USD',
+                    'vuelto_bank_account_id' => $this->bankAccount->id,
+                ],
+                [
+                    'vuelto_amount' => 10780.0000,
+                    'vuelto_currency' => 'BS',
+                    'vuelto_bank_account_id' => $bsBank->id,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_currency' => 'USD',
+                    'payment_rate' => 1.0000,
+                    'bank_account_id' => $this->bankAccount->id,
+                    'payment_method' => 'EFECTIVO',
+                    'payment_reference' => 'REF-VUELTO-MULTI-001',
+                    'payment_description' => 'Cobro de contado',
+                    'payment_amount' => 150.0000,
+                ],
+            ],
+        ],
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-VUELTO-MULTI-001')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect((float) $acr->fresh()->acr_balance)->toBe(0.0);
+
+    $outflows = BankTransaction::where('btr_type', 'outflow')
+        ->where('btr_transactionable_type', $acr->getMorphClass())
+        ->where('btr_transactionable_id', $acr->id)
+        ->get();
+
+    expect($outflows)->toHaveCount(2);
+    expect($outflows->pluck('btr_description')->unique()->all())->toBe(['Vuelto a cliente']);
+
+    $usdVuelto = $outflows->first(fn ($tx) => $tx->btr_coin?->value === 'USD');
+    $bsVuelto = $outflows->first(fn ($tx) => $tx->btr_coin?->value === 'BS');
+
+    expect((float) $usdVuelto->btr_amount)->toBe(20.0);
+    expect($usdVuelto->btr_bank_account_id)->toBe($this->bankAccount->id);
+    expect((float) $bsVuelto->btr_amount)->toBe(10780.0);
+    expect($bsVuelto->btr_bank_account_id)->toBe($bsBank->id);
+    expect((float) $bsBank->fresh()->bank_balance)->toBe(89220.0);
+});
+
+test('store a cash sale with a typed vuelto greater than the excess is rejected', function () {
+    $data = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CASH-VUELTO-EXCESO-001',
+        'payment' => [
+            'payment_date' => now()->format('Y-m-d'),
+            'vueltos' => [
+                [
+                    'vuelto_amount' => 50.0000,
+                    'vuelto_currency' => 'USD',
+                    'vuelto_bank_account_id' => $this->bankAccount->id,
+                ],
+            ],
+            'payments' => [
+                [
+                    'payment_currency' => 'USD',
+                    'payment_rate' => 1.0000,
+                    'bank_account_id' => $this->bankAccount->id,
+                    'payment_method' => 'EFECTIVO',
+                    'payment_reference' => 'REF-VUELTO-EXCESO-001',
+                    'payment_description' => 'Cobro de contado',
+                    'payment_amount' => 150.0000,
+                ],
+            ],
+        ],
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasErrors('payment.payments');
+
+    expect(SaleOrder::where('sls_number', 'SLS-CASH-VUELTO-EXCESO-001')->exists())->toBeFalse();
+});
+
+test('store a credit sale creates a pending receivable', function () {
+    $creditData = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CREDIT-001',
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
+        'sls_due_date' => now()->addDays(30)->format('Y-m-d'),
+    ]);
+
+    $this->post(route('sales.store'), $creditData)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CREDIT-001')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect($acr)->not->toBeNull();
+    expect((float) $acr->acr_balance)->toBe(116.0);
+    expect($acr->acr_status)->toBe(StatusSales::PENDING->value);
+    expect($acr->payments()->count())->toBe(0);
+});
+
+test('store a credit sale with an empty payment payload is saved without payment', function () {
+    $creditData = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CREDIT-EMPTY-PAYMENT',
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
+        'sls_due_date' => now()->addDays(30)->format('Y-m-d'),
+        'payment' => [
+            'payment_date' => now()->format('Y-m-d'),
+            'payments' => [],
+        ],
+    ]);
+
+    $this->post(route('sales.store'), $creditData)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CREDIT-EMPTY-PAYMENT')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect($acr)->not->toBeNull();
+    expect((float) $acr->acr_balance)->toBe(116.0);
+    expect($acr->acr_status)->toBe(StatusSales::PENDING->value);
+    expect($acr->payments()->count())->toBe(0);
+});
+
+test('store a cash sale on a date without an exact rate still settles using the most recent rate', function () {
     Rate::query()->delete();
     Rate::factory()->create([
         'rate_date' => now()->subDay()->format('Y-m-d'),
-        'rate_usd' => 765.0000,
+        'rate_usd' => 1.0000,
         'rate_cop' => 4000.0000,
         'rate_eur' => 0.9000,
     ]);
 
-    $this->post(route('receipts.store'), [
-        'payment_date' => now()->format('Y-m-d'),
-        'customer_id' => $this->customer->id,
-        'bank_account_id' => $this->bankAccount->id,
-        'payment_currency' => 'USD',
-        'payment_rate' => 765.0000,
-        'payment_method' => 'EFECTIVO',
-        'payment_reference' => 'REF-NORATE-001',
-        'payment_description' => 'Cobro sin tasa exacta del día',
-        'payments' => [
-            ['acr_id' => $acr->id, 'amount' => 116.00],
-        ],
-    ])->assertSessionHasNoErrors()
-        ->assertRedirect(route('accounts-receivable.index'));
+    $data = array_merge($this->saleData, [
+        'payment' => singlePaymentPayload($this->bankAccount->id, 116.00, 'USD', 'REF-NORATE-001'),
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-001')->first();
+    $acr = $sale->accountsReceivable;
 
     expect((float) $acr->fresh()->acr_balance)->toBe(0.0);
     expect($acr->fresh()->acr_status)->toBe(StatusSales::PAID->value);
-    expect($acr->fresh()->saleOrder->sls_status)->toBe(StatusSales::PAID->value);
     expect($acr->fresh()->payments()->count())->toBe(1);
+});
+
+test('store a cash sale registers the bank movement on the payment date, not the document date', function () {
+    $paymentDate = now()->format('Y-m-d');
+    $docDate = now()->subDay()->format('Y-m-d');
+
+    $data = array_merge($this->saleData, [
+        'sls_number' => 'SLS-CASH-DATE-001',
+        'sls_date' => $docDate,
+        'payment' => singlePaymentPayload($this->bankAccount->id, 116.00, 'USD', 'REF-DATE-001'),
+    ]);
+
+    $this->post(route('sales.store'), $data)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'SLS-CASH-DATE-001')->first();
+    $acr = $sale->accountsReceivable;
+
+    expect((float) $acr->acr_balance)->toBe(0.0);
+    expect($sale->sls_date->format('Y-m-d'))->toBe($docDate);
+
+    $bankTx = BankTransaction::where('btr_reference', 'REF-DATE-001')->first();
+    expect($bankTx)->not->toBeNull();
+    expect($bankTx->btr_transaction_date->format('Y-m-d'))->toBe($paymentDate);
+    expect($bankTx->btr_transaction_date->format('Y-m-d'))->not->toBe($docDate);
 });

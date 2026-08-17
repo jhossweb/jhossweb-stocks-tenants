@@ -4,6 +4,8 @@ import { ArrowLeft, Users } from 'lucide-vue-next';
 
 interface Customer {
     id: number;
+    clt_code: string | null;
+    clt_cedula: string | null;
     clt_name: string;
     clt_address: string;
     clt_phone: string;
@@ -46,22 +48,29 @@ const { customers } = defineProps<{
                     <table class="w-full text-sm">
                         <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
                             <tr>
+                                <th class="px-4 py-4 text-left">Código</th>
+                                <th class="px-4 py-4 text-left">Cédula</th>
                                 <th class="px-4 py-4 text-left">Nombre</th>
                                 <th class="px-4 py-4 text-left">Días Créd.</th>
                                 <th class="px-4 py-4 text-left">Teléfono</th>
                                 <th class="px-4 py-4 text-left">Email</th>
-                                <th class="px-4 py-4 text-left">Dirección</th>
                                 <th class="px-4 py-4 w-12"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-800">
                             <tr v-if="customers.data.length === 0">
-                                <td colspan="6" class="px-4 py-12 text-center text-zinc-500">
+                                <td colspan="7" class="px-4 py-12 text-center text-zinc-500">
                                     <Users class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
                                     <p>No hay clientes registrados</p>
                                 </td>
                             </tr>
                             <tr v-for="customer in customers.data" :key="customer.id" class="hover:bg-zinc-800/30 transition-colors">
+                                <td class="px-4 py-4 font-mono text-xs text-zinc-400 whitespace-nowrap">
+                                    {{ customer.clt_code || '—' }}
+                                </td>
+                                <td class="px-4 py-4 font-mono text-xs text-zinc-400 whitespace-nowrap">
+                                    {{ customer.clt_cedula || '—' }}
+                                </td>
                                 <td class="px-4 py-4 font-medium text-zinc-200 whitespace-nowrap">
                                     {{ customer.clt_name }}
                                 </td>
@@ -70,7 +79,6 @@ const { customers } = defineProps<{
                                 </td>
                                 <td class="px-4 py-4 text-zinc-400">{{ customer.clt_phone }}</td>
                                 <td class="px-4 py-4 text-zinc-400">{{ customer.clt_email }}</td>
-                                <td class="px-4 py-4 max-w-[200px] truncate text-zinc-400">{{ customer.clt_address }}</td>
                                 <td class="px-4 py-4 text-center">
                                     <Link :href="`/customers/${customer.id}/edit`" class="text-indigo-400 hover:text-indigo-300 text-xs">Editar</Link>
                                 </td>

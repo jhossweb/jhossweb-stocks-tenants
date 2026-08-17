@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, FileText, ClipboardList, Pencil } from 'lucide-vue-next';
+import {
+    ArrowLeft,
+    FileText,
+    ClipboardList,
+    Pencil,
+    Download,
+} from 'lucide-vue-next';
 import { ref } from 'vue';
 import ConvertQuoteModal from '@/components/Quotes/ConvertQuoteModal.vue';
 import { formatDate } from '@/composables/useDate';
@@ -144,6 +150,14 @@ const statusClass: Record<QuoteStatusValue, string> = {
                                     >
                                         <Pencil class="size-3" /> Editar
                                     </Link>
+                                    <a
+                                        :href="`/quotes/${quote.id}/pdf`"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200"
+                                    >
+                                        <Download class="size-3" /> PDF
+                                    </a>
                                 </div>
                             </td>
                         </tr>

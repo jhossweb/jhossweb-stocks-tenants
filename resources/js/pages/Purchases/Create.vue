@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { Landmark, Calculator } from 'lucide-vue-next';
-import { computed, onMounted, ref, shallowRef, watch } from 'vue';
+import { Head, useForm } from '@inertiajs/vue3';
+import {
+    Landmark,
+    Calculator,
+    CheckCircle2,
+    AlertCircle,
+} from 'lucide-vue-next';
+import { computed, onMounted, ref, shallowRef } from 'vue';
 import FormActions from '@/components/Form/FormActions.vue';
 import FormSection from '@/components/Form/FormSection.vue';
 import ItemsTable from '@/components/Form/ItemsTable.vue';
-import DocumentPaymentModal from '@/components/payments/DocumentPaymentModal.vue';
+import PaymentSection from '@/components/payments/PaymentSection.vue';
 import PurchaseItemRow from '@/components/Purchases/PurchaseItemRow.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
 import { today } from '@/composables/useDate';
-import type { PaymentPending } from '@/types/Finance/DocumentPayment';
 import type {
     ColumnConfig,
     LatestRate,
@@ -77,6 +81,18 @@ const form = useForm({
     invoice_iva: 0,
     invoice_exento: 0,
     invoice_total: 0,
+    payment: {
+        payment_date: today(),
+        payments: [] as {
+            payment_currency: string;
+            payment_rate: string;
+            bank_account_id: string;
+            payment_method: string;
+            payment_reference: string;
+            payment_description: string;
+            payment_amount: number;
+        }[],
+    },
 });
 
 form.invoice_valorcam = valorcam.value;
@@ -84,6 +100,29 @@ form.invoice_valorcam = valorcam.value;
 if (form.items.length === 0) {
     form.items.push(createBlankItem());
 }
+
+const step = ref<'ticket' | 'payment'>('ticket');
+const clientError = ref('');
+
+const isCash = computed(() => form.invoice_payment_condition === 'cash');
+
+const actionLabel = computed(() => {
+    if (!isCash.value) {
+        return 'Guardar';
+    }
+
+    return step.value === 'ticket' ? 'Pagar' : 'Confirmar';
+});
+
+const actionLoadingLabel = computed(() => {
+    if (form.processing) {
+        return 'Procesando...';
+    }
+
+    return !isCash.value || step.value === 'ticket'
+        ? 'Guardando...'
+        : 'Confirmando...';
+});
 
 const recalc = () => {
     tx.calculateTotals(
@@ -184,7 +223,73 @@ const handleExchangeUpdate = () => {
     );
 };
 
+const validateTicket = (): string => {
+    if (!form.invoice_number.trim()) {
+        return 'Ingrese el número de factura.';
+    }
+
+    if (!form.invoice_supplier_id) {
+        return 'Seleccione un proveedor.';
+    }
+
+    if (form.items.length === 0) {
+        return 'Agregue al menos un producto.';
+    }
+
+    for (const item of form.items) {
+        if (!item.mov_pro_code) {
+            return 'Todos los productos deben estar seleccionados.';
+        }
+
+        if (!item.mov_war_id) {
+            return 'Todos los productos deben tener almacén asignado.';
+        }
+
+        if (Number(item.mov_quantity) <= 0) {
+            return 'Las cantidades deben ser mayores a cero.';
+        }
+    }
+
+    return '';
+};
+
+const goToPayment = () => {
+    clientError.value = validateTicket();
+
+    if (clientError.value) {
+        return;
+    }
+
+    form.payment.payment_date = today();
+    form.payment.payments = [
+        {
+            payment_currency: form.invoice_coin,
+            payment_rate: '1',
+            bank_account_id: '',
+            payment_method: props.methods[0] || '',
+            payment_reference: '',
+            payment_description: '',
+            payment_amount: Number(form.invoice_total.toFixed(4)),
+        },
+    ];
+    step.value = 'payment';
+
+    setTimeout(() => {
+        const section = document.getElementById('payment-section');
+
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 50);
+};
+
 const submit = () => {
+    if (isCash.value && step.value === 'ticket') {
+        goToPayment();
+
+        return;
+    }
+
     form.invoice_valorcam = valorcam.value;
     form.post('/purchases', {
         preserveScroll: true,
@@ -197,42 +302,6 @@ onMounted(() => {
     });
     updateDueDate();
 });
-
-const page = usePage();
-
-const showPaymentModal = ref(false);
-const pendingPayment = ref<PaymentPending | null>(null);
-
-const resetPurchaseForm = () => {
-    form.reset();
-    form.items = [];
-    form.items.push(createBlankItem());
-    recalc();
-};
-
-const pendingEntityName = computed(() => {
-    if (!pendingPayment.value || pendingPayment.value.entity !== 'purchase') {
-        return '';
-    }
-
-    const supplier = props.suppliers.find(
-        (s) => String(s.id) === String(pendingPayment.value?.supplier_id),
-    );
-
-    return supplier?.supplier_name || '';
-});
-
-watch(
-    () => (page.props.flash as any)?.payment_pending,
-    (pending: PaymentPending | undefined) => {
-        if (pending) {
-            pendingPayment.value = pending;
-            resetPurchaseForm();
-            showPaymentModal.value = true;
-        }
-    },
-    { immediate: true },
-);
 
 const columns: ColumnConfig[] = [
     { key: 'product', label: 'Producto' },
@@ -254,8 +323,20 @@ const columns: ColumnConfig[] = [
             subtitle="Registro de facturas e inventario"
             back-url="/purchases"
             :processing="form.processing"
+            :label="actionLabel"
+            :loading-label="actionLoadingLabel"
             @save="submit"
         />
+
+        <div
+            v-if="clientError"
+            class="flex items-start gap-3 rounded-xl border border-destructive/50 bg-destructive/10 p-4"
+        >
+            <AlertCircle class="mt-0.5 size-4 shrink-0 text-destructive" />
+            <p class="text-sm font-semibold text-destructive">
+                {{ clientError }}
+            </p>
+        </div>
 
         <!-- Validation errors -->
         <div
@@ -518,17 +599,55 @@ const columns: ColumnConfig[] = [
             </div>
         </div>
 
-        <DocumentPaymentModal
-            v-model:open="showPaymentModal"
-            :pending="pendingPayment"
-            :bank-accounts="props.bankAccounts"
-            :latest-rate="props.latest_rate"
-            :rates="props.rates"
-            :methods="props.methods"
-            :currencies="props.coins"
-            :entity-name="pendingEntityName"
-            @paid="showPaymentModal = false"
-        />
+        <FormSection
+            v-if="isCash && step === 'payment'"
+            id="payment-section"
+            class="scroll-mt-24"
+        >
+            <template #header>
+                <Landmark class="size-4 text-primary" />
+                <span>Pago de la Factura</span>
+            </template>
+
+            <PaymentSection
+                v-model="form.payment"
+                :bank-accounts="props.bankAccounts"
+                :latest-rate="props.latest_rate"
+                :rates="props.rates"
+                :methods="props.methods"
+                :currencies="props.coins"
+                :errors="form.errors"
+                :doc-currency="form.invoice_coin"
+                :doc-total="Number(form.invoice_total) || 0"
+            />
+
+            <template #actions>
+                <div class="flex flex-col gap-3">
+                    <button
+                        type="button"
+                        :disabled="form.processing"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:opacity-50"
+                        @click="submit"
+                    >
+                        <CheckCircle2 v-if="!form.processing" class="size-4" />
+                        <span>
+                            {{
+                                form.processing
+                                    ? 'Procesando...'
+                                    : 'Confirmar Compra y Pago'
+                            }}
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        class="text-sm font-medium text-muted-foreground hover:text-foreground"
+                        @click="step = 'ticket'"
+                    >
+                        ← Volver al ticket
+                    </button>
+                </div>
+            </template>
+        </FormSection>
     </div>
 </template>
 

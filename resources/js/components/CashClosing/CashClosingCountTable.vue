@@ -17,6 +17,7 @@ const rows = defineModel<CountedDetail[]>('rows', { required: true });
 
 const props = defineProps<{
     groupedReceipts: GroupedReceipts;
+    groupedVueltos: GroupedReceipts;
     expectedByCoin: Record<string, number>;
     differencesByCoin: Record<string, number>;
     readonly?: boolean;
@@ -25,7 +26,10 @@ const props = defineProps<{
 const coins = computed(() => Object.keys(props.expectedByCoin));
 
 function expectedFor(row: CountedDetail): number {
-    return props.groupedReceipts[row.coin]?.[row.method] ?? 0;
+    const expected = props.groupedReceipts[row.coin]?.[row.method] ?? 0;
+    const vuelto = props.groupedVueltos[row.coin]?.[row.method] ?? 0;
+
+    return expected - vuelto;
 }
 
 function totalsFor(coin: string): number {

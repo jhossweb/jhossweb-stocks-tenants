@@ -325,6 +325,7 @@ function submitForm() {
                             :opening-balance="openingBalance"
                             :total-sales="preview.cc_total_sales"
                             :total-received="preview.cc_total_received"
+                            :total-vueltos="preview.vuelto_total"
                             :inflows="totalManualInflows"
                             :outflows="totalManualOutflows"
                         />
@@ -341,6 +342,21 @@ function submitForm() {
                             class="py-4 text-sm text-zinc-500"
                         >
                             No hay cobros ni abonos registrados para esta fecha.
+                        </p>
+                    </div>
+                    <div class="mt-4 border-t border-zinc-800 px-6 pt-4 pb-2">
+                        <h3 class="mb-1 text-sm font-semibold text-zinc-300">
+                            Vuelto a clientes
+                        </h3>
+                        <CashClosingBreakdown
+                            :details="preview.vuelto_details"
+                            tone="out"
+                        />
+                        <p
+                            v-if="preview.vuelto_details.length === 0"
+                            class="py-4 text-sm text-zinc-500"
+                        >
+                            No se entregaron vueltos en esta fecha.
                         </p>
                     </div>
                 </CardContent>
@@ -409,6 +425,7 @@ function submitForm() {
                         v-if="countedRows.length > 0"
                         v-model:rows="countedRows"
                         :grouped-receipts="preview.grouped_receipts"
+                        :grouped-vueltos="preview.grouped_vueltos"
                         :expected-by-coin="expectedByCoin"
                         :differences-by-coin="differencesByCoin"
                     />

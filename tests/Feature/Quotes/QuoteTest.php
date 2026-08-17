@@ -3,6 +3,7 @@
 use App\Enum\Inventary\ProType;
 use App\Enum\Sales\QuoteStatus;
 use App\Models\AccountsReceivable;
+use App\Models\BankAccount;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\CostHistory;
@@ -220,7 +221,7 @@ test('store validates required fields', function () {
         ->assertSessionHasErrors(['sls_date', 'sls_customer_id', 'sls_valorcam', 'sls_total', 'items']);
 });
 
-test('convert creates FACV with stock, CxC and marks quote converted', function () {
+test('convert to credit creates FACV with stock, CxC and marks quote converted', function () {
     $this->post(route('quotes.store'), quotePayload())
         ->assertSessionHasNoErrors();
 
@@ -228,6 +229,10 @@ test('convert creates FACV with stock, CxC and marks quote converted', function 
 
     $this->post(route('quotes.convert', $quote->id), [
         'sls_number' => 'FACV-CONVERT-001',
+        'sls_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 30,
+        'sls_due_date' => now()->addDays(30)->format('Y-m-d'),
     ])
         ->assertSessionHasNoErrors();
 
@@ -236,7 +241,9 @@ test('convert creates FACV with stock, CxC and marks quote converted', function 
     expect($sale)->not->toBeNull();
     expect($sale->sls_trans_type_code)->toBe('FACV');
     expect($sale->sls_reference)->toBe($quote->sls_number);
-    expect($sale->sls_payment_condition)->toBe('cash');
+    expect($sale->sls_payment_condition)->toBe('credit');
+    expect((int) $sale->sls_credit_days)->toBe(30);
+    expect($sale->sls_due_date->toDateString())->toBe(now()->addDays(30)->toDateString());
 
     $quote->refresh();
     expect($quote->sls_quote_status)->toBe(QuoteStatus::CONVERTED->value);
@@ -252,11 +259,48 @@ test('convert rejects already converted quotes', function () {
 
     $quote = SaleOrder::where('sls_trans_type_code', 'COT')->first();
 
-    $this->post(route('quotes.convert', $quote->id), ['sls_number' => 'FACV-ONE'])
+    $this->post(route('quotes.convert', $quote->id), [
+        'sls_number' => 'FACV-ONE',
+        'sls_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
+    ])
         ->assertSessionHasNoErrors();
 
-    $this->post(route('quotes.convert', $quote->id), ['sls_number' => 'FACV-TWO'])
+    $this->post(route('quotes.convert', $quote->id), [
+        'sls_number' => 'FACV-TWO',
+        'sls_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
+    ])
         ->assertSessionHasErrors(['error']);
+});
+
+test('convert with cash condition redirects to a new cash sale without saving', function () {
+    $this->post(route('quotes.store'), quotePayload())
+        ->assertSessionHasNoErrors();
+
+    $quote = SaleOrder::where('sls_trans_type_code', 'COT')->first();
+
+    $this->post(route('quotes.convert', $quote->id), [
+        'sls_number' => 'FACV-CASH',
+        'sls_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
+    ])
+        ->assertRedirect(route('sales.create', [
+            'from_quote' => $quote->id,
+            'sls_number' => 'FACV-CASH',
+        ]));
+
+    expect(SaleOrder::where('sls_trans_type_code', 'FACV')->count())->toBe(0);
+    expect(AccountsReceivable::count())->toBe(0);
+
+    $quote->refresh();
+    expect($quote->sls_quote_status)->toBe(QuoteStatus::PENDING->value);
 });
 
 test('edit renders quote with movements', function () {
@@ -275,6 +319,18 @@ test('edit renders quote with movements', function () {
         );
 });
 
+test('export pdf downloads a quote', function () {
+    $this->post(route('quotes.store'), quotePayload());
+
+    $quote = SaleOrder::where('sls_trans_type_code', 'COT')->first();
+
+    $response = $this->get(route('quotes.pdf', $quote->id));
+
+    $response->assertOk();
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect(str_starts_with($response->getContent(), '%PDF'))->toBeTrue();
+});
+
 test('convert fails with insufficient stock without side effects', function () {
     Stock::where('stk_pro_code', $this->product->pro_code)
         ->where('stk_war_id', $this->warehouse->id)
@@ -286,6 +342,10 @@ test('convert fails with insufficient stock without side effects', function () {
 
     $this->post(route('quotes.convert', $quote->id), [
         'sls_number' => 'FACV-NOSTOCK',
+        'sls_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
     ])
         ->assertSessionHasErrors(['error'])
         ->assertSessionHas('quote_availability');
@@ -352,6 +412,10 @@ test('convert fails when a composite component lacks stock', function () {
 
     $this->post(route('quotes.convert', $quote->id), [
         'sls_number' => 'FACV-COMP',
+        'sls_date' => now()->format('Y-m-d'),
+        'sls_payment_condition' => 'credit',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
     ])
         ->assertSessionHasErrors(['error'])
         ->assertSessionHas('quote_availability');
@@ -365,4 +429,66 @@ test('convert fails when a composite component lacks stock', function () {
 
     expect(SaleOrder::where('sls_trans_type_code', 'FACV')->count())->toBe(0);
     expect(AccountsReceivable::count())->toBe(0);
+});
+
+test('saving a cash sale that references a quote marks the quote converted', function () {
+    $this->post(route('quotes.store'), quotePayload())
+        ->assertSessionHasNoErrors();
+
+    $quote = SaleOrder::where('sls_trans_type_code', 'COT')->first();
+
+    $bank = BankAccount::factory()->create([
+        'bank_currency' => 'USD',
+        'bank_balance' => 10000.00,
+        'bank_status' => true,
+    ]);
+
+    $this->post(route('sales.store'), [
+        'sls_number' => 'FACV-FROM-QT',
+        'sls_date' => now()->format('Y-m-d'),
+        'sls_customer_id' => $this->customer->id,
+        'sls_valorcam' => 1.0000,
+        'sls_coin' => 'USD',
+        'sls_subtotal' => 100.0000,
+        'sls_exento' => 0.0000,
+        'sls_iva' => 16.0000,
+        'sls_total' => 116.0000,
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => now()->format('Y-m-d'),
+        'sls_reference' => $quote->sls_number,
+        'items' => [
+            [
+                'mvs_pro_code' => $this->product->pro_code,
+                'mvs_war_id' => $this->warehouse->id,
+                'mvs_quantity' => 5,
+                'mvs_unit_price' => 20.0000,
+                'mvs_unit_price_ref' => 50.0000,
+                'mvs_pro_iva' => 16,
+            ],
+        ],
+        'payment' => [
+            'payment_date' => now()->format('Y-m-d'),
+            'payments' => [
+                [
+                    'payment_currency' => 'USD',
+                    'payment_rate' => 1.0000,
+                    'bank_account_id' => $bank->id,
+                    'payment_method' => 'EFECTIVO',
+                    'payment_reference' => 'REF-QT-001',
+                    'payment_description' => 'Cobro de contado',
+                    'payment_amount' => 116.0000,
+                ],
+            ],
+        ],
+    ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('sales.index'));
+
+    $sale = SaleOrder::where('sls_number', 'FACV-FROM-QT')->first();
+    expect($sale)->not->toBeNull();
+    expect($sale->sls_reference)->toBe($quote->sls_number);
+
+    $quote->refresh();
+    expect($quote->sls_quote_status)->toBe(QuoteStatus::CONVERTED->value);
 });
