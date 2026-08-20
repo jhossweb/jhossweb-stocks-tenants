@@ -93,7 +93,7 @@ class ReceiptService
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $bankId,
                     'btr_type' => 'inflow',
-                    'btr_amount' => round($appliedInDoc, 4),
+                    'btr_amount' => round(Rate::convert($appliedInDoc, $docCurrency, $payCurrency, $payRate), 4),
                     'btr_reference' => $payReference,
                     'btr_description' => $payDescription ?: 'Cobro a cliente',
                     'btr_valorcam' => $valorcam,
@@ -202,7 +202,7 @@ class ReceiptService
             throw new \RuntimeException('El monto no puede ser mayor a la deuda pendiente de la factura ($'.number_format($acr->acr_balance, 4).').');
         }
 
-        DB::transaction(function () use ($payment, $acr, $newAmount, $oldAmount, $validated) {
+        DB::transaction(function () use ($payment, $acr, $newAmount, $validated) {
             $acr->acr_balance -= $newAmount;
 
             if ($acr->acr_balance <= 0) {
@@ -222,11 +222,17 @@ class ReceiptService
 
             $bankTx = $payment->bankTransaction;
             if ($bankTx) {
+                $newPayCoin = strtoupper((string) $validated['payment_currency']);
+                $newPayRate = $this->rateService->getBestRateForDate($validated['payment_date']);
+                $docCurrency = $acr->saleOrder->sls_coin ?? 'USD';
+
                 $bankTx->btr_bank_account_id = (int) $validated['bank_account_id'];
                 $bankTx->btr_transaction_date = $validated['payment_date'];
                 $bankTx->btr_reference = $validated['payment_reference'];
                 $bankTx->btr_description = $validated['payment_description'];
-                $bankTx->btr_amount = ($bankTx->btr_amount - $oldAmount) + $newAmount;
+                $bankTx->btr_amount = $newPayRate
+                    ? round(Rate::convert($newAmount, $docCurrency, $newPayCoin, $newPayRate), 4)
+                    : round($newAmount, 4);
                 $bankTx->btr_coin = $validated['payment_currency'];
                 $bankTx->btr_valorcam = $this->rateService->resolveRateForCoin(
                     $validated['payment_date'],
@@ -272,7 +278,12 @@ class ReceiptService
 
             $bankTx = $payment->bankTransaction;
             if ($bankTx) {
-                $bankTx->btr_amount -= $amount;
+                $payCoin = $bankTx->btr_coin?->value ?? $bankTx->btr_coin;
+                $amountInPay = is_string($payCoin) && strtoupper($payCoin) !== 'USD' && $bankTx->btr_valorcam > 0
+                    ? round($amount * (float) $bankTx->btr_valorcam, 4)
+                    : $amount;
+
+                $bankTx->btr_amount -= $amountInPay;
                 if ($bankTx->btr_amount <= 0) {
                     $bankTx->delete();
                 } else {

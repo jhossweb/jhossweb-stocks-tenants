@@ -1,0 +1,25 @@
+[     867ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/quotes:51
+[    2192ms] [WARNING] [Vue warn]: Hydration node mismatch:
+- rendered on server: JSHandle@node  
+- expected on client: Symbol(v-cmt) 
+  at <BaseTransition appear=false persisted=false mode=undefined  ... > 
+  at <Transition name="modal" > 
+  at <PayModal open=false title="Convertir Cotización a Factura" onClose=fn<close>  ... > 
+  at <ConvertQuoteModal open=false quote=null onUpdate:open=fn  ... > 
+  at <Index errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <SidebarInset key=0 class="overflow-x-hidden" > 
+  at <AppContent variant="sidebar" class="overflow-x-hidden" > 
+  at <TooltipProvider delay-duration=0 > 
+  at <SidebarProvider key=1 default-open=true > 
+  at <AppShell variant="sidebar" > 
+  at <AppSidebarLayout breadcrumbs= [] > 
+  at <AppLayout errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <Inertia initialPage= {component: Quotes/Index, props: Object, url: /quotes, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {__name: Index, props: Object, setup: , __hmrId: 456ea77d, render: } resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://127.0.0.1:8000/quotes:121
+[    2195ms] [ERROR] Hydration completed but contains mismatches. @ http://127.0.0.1:8000/quotes:121
+[  973977ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/sales:47
+[  983749ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/sales:47
+[  991801ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/sales:47
+[ 1007328ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/sales:47
+[ 1022389ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/sales:47
+[ 1041507ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/sales:47

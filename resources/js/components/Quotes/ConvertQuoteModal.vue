@@ -54,12 +54,16 @@ const updateDueDate = () => {
         return;
     }
 
-    const parts = base.split('-');
-    const date = new Date(
-        Number(parts[0]),
-        Number(parts[1]) - 1,
-        Number(parts[2]),
-    );
+    const [year, month, day] = base
+        .substring(0, 10)
+        .split('-')
+        .map(Number);
+
+    if (!year || !month || !day) {
+        return;
+    }
+
+    const date = new Date(year, month - 1, day);
     date.setDate(date.getDate() + Number(form.sls_credit_days || 0));
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');

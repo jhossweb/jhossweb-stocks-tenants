@@ -6,7 +6,7 @@ use App\Models\CostHistory;
 use App\Models\MovementsPurchase;
 use App\Models\Product;
 
-class CostHistoryObserver
+class MovCostHistoryObserver
 {
     public function created(MovementsPurchase $movement): void
     {

@@ -1,0 +1,373 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - list:
+                - listitem:
+                  - link:
+                    - /url: /dashboard
+                    - generic: Laravel Starter Kit
+            - generic:
+              - generic:
+                - generic: Platform
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /dashboard
+                      - generic: Dashboard
+                  - listitem:
+                    - button:
+                      - generic: Inventory
+                  - listitem:
+                    - button:
+                      - generic: Compras
+                  - listitem:
+                    - button [expanded]:
+                      - generic: Ventas
+                    - generic:
+                      - list:
+                        - listitem:
+                          - generic: Fichero
+                        - listitem:
+                          - generic: Transacciones
+                          - generic:
+                            - list:
+                              - listitem:
+                                - link:
+                                  - /url: /sales
+                                  - generic: Factura de venta
+                              - listitem:
+                                - link:
+                                  - /url: /quotes
+                                  - generic: Cotizaciones
+                              - listitem:
+                                - link:
+                                  - /url: /sale-returns
+                                  - generic: Devoluciones de Ventas
+                        - listitem:
+                          - generic: Análisis
+                  - listitem:
+                    - button:
+                      - generic: Finanzas
+                  - listitem:
+                    - button:
+                      - generic: Gastos
+                  - listitem:
+                    - button:
+                      - generic: Nómina
+            - generic:
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link:
+                        - /url: https://github.com/laravel/vue-starter-kit
+                        - generic: Repository
+                    - listitem:
+                      - link:
+                        - /url: https://laravel.com/docs/starter-kits#vue
+                        - generic: Documentation
+              - list:
+                - listitem:
+                  - button:
+                    - generic: TU
+                    - generic: Test User
+      - main:
+        - generic:
+          - generic:
+            - button:
+              - generic: Toggle sidebar
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /sales
+              - generic:
+                - heading [level=1]: Nueva Venta
+                - paragraph: Registro de facturas de venta e inventario
+            - button: Confirmar
+          - generic:
+            - generic:
+              - generic:
+                - generic: Configuración General
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: N° Factura
+                      - textbox: FACV-CONTADO-001
+                    - generic:
+                      - generic: Cliente
+                      - button: david
+                    - generic:
+                      - generic:
+                        - generic: Fecha
+                        - textbox: 2026-08-18
+                      - generic:
+                        - generic: Moneda
+                        - combobox
+                    - generic:
+                      - generic:
+                        - generic: Condición de Pago
+                        - combobox
+                      - generic:
+                        - generic: Días Crédito
+                        - spinbutton: "0"
+                    - generic:
+                      - generic: Fecha Vencimiento
+                      - textbox [disabled]: 2026-08-18
+                    - generic:
+                      - generic: Tasa de Cambio
+                      - generic: "Tasa del día: 800"
+                      - spinbutton: "800"
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: SUBTOTAL
+                    - generic: "102.2727"
+                  - generic:
+                    - generic: EXENTO
+                    - generic: "0"
+                  - generic:
+                    - generic: IVA
+                    - generic: "8.1818"
+                  - generic:
+                    - generic: Total USD
+                    - generic: "110.4545"
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Detalle de Productos
+                  - button: Agregar Item
+                - generic:
+                  - table:
+                    - rowgroup:
+                      - row:
+                        - columnheader: Producto
+                        - columnheader: Almacén
+                        - columnheader: IVA
+                        - columnheader: Cant.
+                        - columnheader: Precio Unit.
+                        - columnheader: Ref ($)
+                        - columnheader: Total
+                        - columnheader
+                    - rowgroup:
+                      - row:
+                        - cell:
+                          - button: Osbaldo Feil Sr.
+                        - cell:
+                          - combobox
+                        - cell:
+                          - generic: 8%
+                        - cell:
+                          - generic:
+                            - spinbutton: "1"
+                            - generic: m²
+                        - cell:
+                          - generic: "102.2727"
+                        - cell: "102.2727"
+                        - cell: "110.4545"
+                        - cell:
+                          - button
+          - generic:
+            - generic: Pago de la Factura
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Fecha de Pago
+                  - generic:
+                    - textbox: 2026-08-18
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Pago
+                      - button
+                    - generic:
+                      - generic:
+                        - generic: Moneda de Pago
+                        - combobox:
+                          - generic: USD
+                      - generic:
+                        - generic: Tasa de Cambio
+                        - generic:
+                          - spinbutton: "800"
+                    - generic:
+                      - generic:
+                        - generic: Banco y Cuenta
+                        - combobox:
+                          - generic: TestUSD
+                      - generic:
+                        - generic: Monto a Pagar (en moneda del banco)
+                        - generic:
+                          - spinbutton: "50"
+                        - generic:
+                          - generic:
+                            - text: "Total USD:"
+                            - strong: "40.4545"
+                          - button: Máximo
+                    - generic:
+                      - generic:
+                        - generic: Método de Pago
+                        - combobox:
+                          - generic: TRANSFERENCIA
+                      - generic:
+                        - generic: Referencia / Voucher
+                        - textbox:
+                          - /placeholder: N° de transacción o referencia
+                          - text: MULTI-USD-001
+                    - generic:
+                      - generic: Observaciones
+                      - textbox:
+                        - /placeholder: Opcional
+                  - generic:
+                    - generic:
+                      - generic: Pago
+                      - button
+                    - generic:
+                      - generic:
+                        - generic: Moneda de Pago
+                        - combobox:
+                          - generic: COP
+                      - generic:
+                        - generic: Tasa de Cambio
+                        - generic:
+                          - spinbutton: "3200"
+                    - generic:
+                      - generic:
+                        - generic: Banco y Cuenta
+                        - combobox:
+                          - generic: Gorczany-MorarCOP
+                      - generic:
+                        - generic: Monto a Pagar (en moneda del banco)
+                        - generic:
+                          - spinbutton: "128000"
+                        - generic:
+                          - generic:
+                            - text: "Total USD:"
+                            - strong: 97,454.4000
+                          - button: Máximo
+                    - generic:
+                      - generic: Conversión de Moneda
+                      - generic: "Pagando en COP para un documento en USD. Tasa aplicada: 3200"
+                    - generic:
+                      - generic:
+                        - generic: Método de Pago
+                        - combobox:
+                          - generic: TRANSFERENCIA
+                      - generic:
+                        - generic: Referencia / Voucher
+                        - textbox:
+                          - /placeholder: N° de transacción o referencia
+                          - text: MULTI-COP-001
+                    - generic:
+                      - generic: Observaciones
+                      - textbox:
+                        - /placeholder: Opcional
+                  - generic:
+                    - generic:
+                      - generic: Pago
+                      - button
+                    - generic:
+                      - generic:
+                        - generic: Moneda de Pago
+                        - combobox:
+                          - generic: BS
+                      - generic:
+                        - generic: Tasa de Cambio
+                        - generic:
+                          - spinbutton: "800"
+                    - generic:
+                      - generic:
+                        - generic: Banco y Cuenta
+                        - combobox:
+                          - generic: BancamigaBS
+                      - generic:
+                        - generic: Monto a Pagar (en moneda del banco)
+                        - generic:
+                          - spinbutton: "24000"
+                        - generic:
+                          - generic:
+                            - text: "Total USD:"
+                            - strong: 16,363.6000
+                          - button: Máximo
+                    - generic:
+                      - generic: Conversión de Moneda
+                      - generic: "Pagando en BS para un documento en USD. Tasa aplicada: 800"
+                    - generic:
+                      - generic:
+                        - generic: Método de Pago
+                        - combobox:
+                          - generic: TRANSFERENCIA
+                      - generic:
+                        - generic: Referencia / Voucher
+                        - textbox:
+                          - /placeholder: N° de transacción o referencia
+                          - text: MULTI-BS-001
+                    - generic:
+                      - generic: Observaciones
+                      - textbox:
+                        - /placeholder: Opcional
+                - button: Agregar pago
+                - generic:
+                  - generic: "Vuelto a entregar (exceso: 9.5455 USD)"
+                  - generic:
+                    - generic:
+                      - generic: Vuelto
+                      - generic:
+                        - generic:
+                          - generic: Monto del vuelto
+                          - spinbutton: "8590.95"
+                        - generic:
+                          - generic: Moneda
+                          - combobox:
+                            - generic: EUR
+                        - generic:
+                          - generic: Banco y Cuenta
+                          - combobox [expanded]:
+                            - generic: Seleccione cuenta bancaria
+                      - paragraph:
+                        - text: "Restante del exceso para este vuelto:"
+                        - strong: 8,590.9500 EUR
+                      - generic:
+                        - generic: Conversión de Moneda
+                        - generic:
+                          - text: "Equivalente en USD:"
+                          - strong: "9.5455"
+                  - button: Agregar vuelto en otra moneda
+                  - paragraph:
+                    - text: "Total a devolver en USD:"
+                    - strong: "9.5455"
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Total del documento
+                      - generic: 110.4545 USD
+                    - generic:
+                      - generic: Total pagado
+                      - generic: 120.0000 USD
+                    - generic:
+                      - generic: Aplicado a la factura
+                      - generic: 110.4545 USD
+            - generic:
+              - generic:
+                - button:
+                  - generic: Confirmar Venta y Pago
+                - button: ← Volver al ticket
+  - generic:
+    - generic:
+      - generic:
+        - generic: "30"
+        - generic: "51"
+        - generic: "1"
+      - generic:
+        - generic:
+          - generic:
+            - generic: "2"
+            - generic: GET /sales/create?from_quote=33&sls_number=FACV-CONTADO-001
+  - listbox [ref=f2e751]:
+    - option "Howe-Littel EUR" [active] [ref=f2e752]:
+      - generic [ref=f2e755]:
+        - generic [ref=f2e756]: Howe-Littel
+        - generic [ref=f2e757]: EUR

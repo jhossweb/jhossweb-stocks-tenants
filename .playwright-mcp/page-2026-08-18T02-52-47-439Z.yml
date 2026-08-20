@@ -1,0 +1,192 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e6]:
+      - list [ref=f1e8]:
+        - listitem [ref=f1e9]:
+          - link "Laravel Starter Kit" [ref=f1e10] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=f1e17]:
+        - generic [ref=f1e18]: Platform
+        - list [ref=f1e19]:
+          - listitem [ref=f1e20]:
+            - link "Dashboard" [ref=f1e21] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=f1e28]:
+            - button "Inventory" [ref=f1e29]
+          - listitem [ref=f1e39]:
+            - button "Compras" [ref=f1e40]
+          - listitem [ref=f1e48]:
+            - button "Ventas" [ref=f1e49]
+          - listitem [ref=f1e58]:
+            - button "Finanzas" [ref=f1e59]
+          - listitem [ref=f1e67]:
+            - button "Gastos" [ref=f1e68]
+          - listitem [ref=f1e75]:
+            - button "Nómina" [ref=f1e76]
+      - generic [ref=f1e83]:
+        - list [ref=f1e86]:
+          - listitem [ref=f1e87]:
+            - link "Repository" [ref=f1e88] [cursor=pointer]:
+              - /url: https://github.com/laravel/vue-starter-kit
+          - listitem [ref=f1e95]:
+            - link "Documentation" [ref=f1e96] [cursor=pointer]:
+              - /url: https://laravel.com/docs/starter-kits#vue
+        - list [ref=f1e100]:
+          - listitem [ref=f1e101]:
+            - button "TU Test User" [ref=f1e102]:
+              - generic [ref=f1e103]: TU
+              - generic [ref=f1e105]: Test User
+    - main [ref=f1e110]:
+      - button "Toggle sidebar" [ref=f1e113]
+      - generic [ref=f1e326]:
+        - generic [ref=f1e327]:
+          - generic [ref=f1e328]:
+            - link [ref=f1e329] [cursor=pointer]:
+              - /url: /dashboard
+            - generic [ref=f1e332]:
+              - heading "Cotizaciones" [level=1] [ref=f1e333]
+              - paragraph [ref=f1e334]: Gestiona y registra cotizaciones sin afectar inventario.
+          - link "Nueva Cotización" [ref=f1e335] [cursor=pointer]:
+            - /url: /quotes/create
+        - table [ref=f1e341]:
+          - rowgroup [ref=f1e342]:
+            - row [ref=f1e343]:
+              - columnheader "Cotización" [ref=f1e344]
+              - columnheader "Cliente" [ref=f1e345]
+              - columnheader "Fecha" [ref=f1e346]
+              - columnheader "Total" [ref=f1e347]
+              - columnheader "Estado" [ref=f1e348]
+              - columnheader "Acciones" [ref=f1e349]
+          - rowgroup [ref=f1e350]:
+            - row [ref=f1e351]:
+              - cell "#COT-0006" [ref=f1e352]
+              - cell "david" [ref=f1e353]
+              - cell "17/08/2026" [ref=f1e354]
+              - cell "$110.4545" [ref=f1e355]
+              - cell "Pendiente" [ref=f1e356]
+              - cell [ref=f1e357]:
+                - generic [ref=f1e358]:
+                  - button "Convertir" [ref=f1e359]
+                  - link "Editar" [ref=f1e360] [cursor=pointer]:
+                    - /url: /quotes/33/edit
+                  - link "PDF" [ref=f1e364] [cursor=pointer]:
+                    - /url: /quotes/33/pdf
+            - row [ref=f1e368]:
+              - cell "#COT-0005" [ref=f1e369]
+              - cell "david" [ref=f1e370]
+              - cell "17/08/2026" [ref=f1e371]
+              - cell "$0.4391" [ref=f1e372]
+              - cell "Pendiente" [ref=f1e373]
+              - cell [ref=f1e374]:
+                - generic [ref=f1e375]:
+                  - button "Convertir" [active] [ref=f1e376]
+                  - link "Editar" [ref=f1e377] [cursor=pointer]:
+                    - /url: /quotes/32/edit
+                  - link "PDF" [ref=f1e381] [cursor=pointer]:
+                    - /url: /quotes/32/pdf
+            - row [ref=f1e385]:
+              - cell "#COT-0004" [ref=f1e386]
+              - cell "david" [ref=f1e387]
+              - cell "15/08/2026" [ref=f1e388]
+              - cell "$87811.3402" [ref=f1e389]
+              - cell "Convertida" [ref=f1e390]
+              - cell [ref=f1e391]:
+                - generic [ref=f1e392]:
+                  - link "Editar" [ref=f1e393] [cursor=pointer]:
+                    - /url: /quotes/30/edit
+                  - link "PDF" [ref=f1e397] [cursor=pointer]:
+                    - /url: /quotes/30/pdf
+            - row [ref=f1e401]:
+              - cell "#COT-0003" [ref=f1e402]
+              - cell "david" [ref=f1e403]
+              - cell "10/08/2026" [ref=f1e404]
+              - cell "$4.7146" [ref=f1e405]
+              - cell "Convertida" [ref=f1e406]
+              - cell [ref=f1e407]:
+                - generic [ref=f1e408]:
+                  - link "Editar" [ref=f1e409] [cursor=pointer]:
+                    - /url: /quotes/28/edit
+                  - link "PDF" [ref=f1e413] [cursor=pointer]:
+                    - /url: /quotes/28/pdf
+            - row [ref=f1e417]:
+              - cell "#COT-0002" [ref=f1e418]
+              - cell "david" [ref=f1e419]
+              - cell "04/08/2026" [ref=f1e420]
+              - cell "$62232.7200" [ref=f1e421]
+              - cell "Pendiente" [ref=f1e422]
+              - cell [ref=f1e423]:
+                - generic [ref=f1e424]:
+                  - button "Convertir" [ref=f1e425]
+                  - link "Editar" [ref=f1e426] [cursor=pointer]:
+                    - /url: /quotes/24/edit
+                  - link "PDF" [ref=f1e430] [cursor=pointer]:
+                    - /url: /quotes/24/pdf
+            - row [ref=f1e434]:
+              - cell "#COT-0001" [ref=f1e435]
+              - cell "david" [ref=f1e436]
+              - cell "04/08/2026" [ref=f1e437]
+              - cell "$9.4292" [ref=f1e438]
+              - cell "Convertida" [ref=f1e439]
+              - cell [ref=f1e440]:
+                - generic [ref=f1e441]:
+                  - link "Editar" [ref=f1e442] [cursor=pointer]:
+                    - /url: /quotes/22/edit
+                  - link "PDF" [ref=f1e446] [cursor=pointer]:
+                    - /url: /quotes/22/pdf
+  - generic [ref=f1e209]:
+    - generic [ref=f1e210] [cursor=pointer]
+    - generic [ref=f1e211]:
+      - generic [ref=f1e212] [cursor=pointer]: Request
+      - generic [ref=f1e213] [cursor=pointer]: Timeline
+      - generic [ref=f1e216] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f1e217]: "7"
+      - generic [ref=f1e218] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f1e219]: "9"
+      - generic [ref=f1e220] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f1e221]: "1"
+    - generic [ref=f1e224]:
+      - generic [ref=f1e225] [cursor=pointer]
+      - generic [ref=f1e226] [cursor=pointer]
+      - generic [ref=f1e227] [cursor=pointer]
+      - generic [ref=f1e229] [cursor=pointer]
+      - generic [ref=f1e231] [cursor=pointer]:
+        - generic [ref=f1e450]: "9"
+        - generic [ref=f1e232]: GET /quotes
+      - generic [ref=f1e233] [cursor=pointer]: 608ms
+      - generic [ref=f1e235] [cursor=pointer]: 29MB
+      - generic [ref=f1e237] [cursor=pointer]: 13.x
+  - generic [ref=f1e545]:
+    - generic [ref=f1e546]:
+      - heading "Convertir Cotización a Factura" [level=2] [ref=f1e547]
+      - button [ref=f1e548]
+    - generic [ref=f1e558]:
+      - paragraph [ref=f1e559]: COT-0005
+      - paragraph [ref=f1e560]: "Total: 0.4391 USD"
+    - generic [ref=f1e562]:
+      - generic [ref=f1e563]:
+        - generic [ref=f1e564]: N° Factura
+        - 'textbox "Ej: FACV-0001" [ref=f1e565]'
+      - generic [ref=f1e566]:
+        - generic [ref=f1e567]: Condición de Pago
+        - generic [ref=f1e568]:
+          - button "Contado Pago al momento" [ref=f1e569]:
+            - generic [ref=f1e570]: Contado
+            - generic [ref=f1e571]: Pago al momento
+          - button "Crédito Cuenta por cobrar" [ref=f1e572]:
+            - generic [ref=f1e573]: Crédito
+            - generic [ref=f1e574]: Cuenta por cobrar
+      - generic [ref=f1e575]:
+        - generic [ref=f1e576]:
+          - generic [ref=f1e577]: Días Crédito
+          - spinbutton [ref=f1e578]: "7"
+        - generic [ref=f1e579]:
+          - generic [ref=f1e580]: Vencimiento
+          - textbox [disabled] [ref=f1e581]: 2026-08-25
+      - paragraph [ref=f1e582]: Al convertir, la cotización generará la factura de venta, descontará inventario y creará la cuenta por cobrar con el vencimiento indicado.
+    - generic [ref=f1e583]:
+      - button "Cancelar" [ref=f1e584]
+      - button "Cancelar" [ref=f1e585]
+      - button "Convertir" [ref=f1e586]

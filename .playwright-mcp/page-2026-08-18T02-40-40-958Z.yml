@@ -1,0 +1,136 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - list [ref=e8]:
+        - listitem [ref=e9]:
+          - link "Laravel Starter Kit" [ref=e10] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=e17]:
+        - generic [ref=e18]: Platform
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "Dashboard" [ref=e21] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=e28]:
+            - button "Inventory" [ref=e29]
+          - listitem [ref=e39]:
+            - button "Compras" [ref=e40]
+          - listitem [ref=e48]:
+            - button "Ventas" [ref=e49]
+          - listitem [ref=e58]:
+            - button "Finanzas" [ref=e59]
+          - listitem [ref=e67]:
+            - button "Gastos" [ref=e68]
+          - listitem [ref=e75]:
+            - button "Nómina" [ref=e76]
+      - generic [ref=e83]:
+        - list [ref=e86]:
+          - listitem [ref=e87]:
+            - link "Repository" [ref=e88] [cursor=pointer]:
+              - /url: https://github.com/laravel/vue-starter-kit
+          - listitem [ref=e95]:
+            - link "Documentation" [ref=e96] [cursor=pointer]:
+              - /url: https://laravel.com/docs/starter-kits#vue
+        - list [ref=e100]:
+          - listitem [ref=e101]:
+            - button "TU Test User" [ref=e102]:
+              - generic [ref=e103]: TU
+              - generic [ref=e105]: Test User
+    - main [ref=e110]:
+      - button "Toggle sidebar" [ref=e113]
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - link [ref=e118] [cursor=pointer]:
+              - /url: /quotes
+            - generic [ref=e121]:
+              - heading "Nueva Cotización" [level=1] [ref=e122]
+              - paragraph [ref=e123]: Registro de cotizaciones sin afectar inventario
+          - button "Guardar" [ref=e124]
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - generic [ref=e131]:
+              - generic [ref=e132]: Configuración General
+              - generic [ref=e137]:
+                - generic [ref=e138]:
+                  - generic [ref=e139]: Cliente
+                  - button "david" [active] [ref=e274]
+                - generic [ref=e141]:
+                  - generic [ref=e142]:
+                    - generic [ref=e143]: Fecha
+                    - textbox [ref=e144]: 2026-08-18
+                  - generic [ref=e145]:
+                    - generic [ref=e146]: Moneda
+                    - combobox [ref=e147]:
+                      - option "USD" [selected]
+                      - option "COP"
+                      - option "BS"
+                      - option "EUR"
+                - generic [ref=e148]:
+                  - generic [ref=e149]: Tasa de Cambio
+                  - generic [ref=e150]: "Tasa del día: 800"
+                  - spinbutton [ref=e151]: "800"
+            - generic [ref=e155]:
+              - generic [ref=e156]:
+                - generic [ref=e157]: SUBTOTAL
+                - generic [ref=e158]: "0"
+              - generic [ref=e159]:
+                - generic [ref=e160]: EXENTO
+                - generic [ref=e161]: "0"
+              - generic [ref=e162]:
+                - generic [ref=e163]: IVA
+                - generic [ref=e164]: "0"
+              - generic [ref=e165]:
+                - generic [ref=e166]: Total USD
+                - generic [ref=e167]: "0"
+          - generic [ref=e169]:
+            - generic [ref=e170]:
+              - generic [ref=e171]: Detalle de Productos
+              - button "Agregar Item" [ref=e172]
+            - table [ref=e176]:
+              - rowgroup [ref=e177]:
+                - row [ref=e178]:
+                  - columnheader "Producto" [ref=e179]
+                  - columnheader "Almacén" [ref=e180]
+                  - columnheader "IVA" [ref=e181]
+                  - columnheader "Cant." [ref=e182]
+                  - columnheader "Precio Unit." [ref=e183]
+                  - columnheader "Ref ($)" [ref=e184]
+                  - columnheader "Total" [ref=e185]
+                  - columnheader [ref=e186]
+              - rowgroup [ref=e187]:
+                - row [ref=e188]:
+                  - cell [ref=e189]:
+                    - button "Seleccione producto" [ref=e190]
+                  - cell "Seleccione..." [ref=e191]:
+                    - combobox [ref=e192]:
+                      - option "Seleccione..." [selected]
+                      - option "Laurianne Schimmel"
+                      - option "Ernestina Homenick"
+                  - cell "-" [ref=e193]
+                  - cell [ref=e195]:
+                    - spinbutton [ref=e197]: "1"
+                  - cell "0.0000" [ref=e198]
+                  - cell "0" [ref=e200]
+                  - cell "0.0000" [ref=e201]
+                  - cell [ref=e202]:
+                    - button "Eliminar fila" [ref=e203]
+  - generic [ref=e209]:
+    - generic [ref=e210] [cursor=pointer]
+    - generic [ref=e211]:
+      - generic [ref=e212] [cursor=pointer]
+      - generic [ref=e214] [cursor=pointer]
+      - generic [ref=e216] [cursor=pointer]: "3"
+      - generic [ref=e219] [cursor=pointer]: "23"
+      - generic [ref=e222] [cursor=pointer]: "41"
+      - generic [ref=e225] [cursor=pointer]: "1"
+      - generic [ref=e228] [cursor=pointer]: "1"
+    - generic [ref=e231]:
+      - generic [ref=e232] [cursor=pointer]
+      - generic [ref=e233] [cursor=pointer]
+      - generic [ref=e234] [cursor=pointer]
+      - generic [ref=e236] [cursor=pointer]
+      - generic [ref=e237]: GET /quotes/create
+      - generic [ref=e240] [cursor=pointer]: 776ms
+      - generic [ref=e242] [cursor=pointer]: 32MB
+      - generic [ref=e244] [cursor=pointer]: 13.x

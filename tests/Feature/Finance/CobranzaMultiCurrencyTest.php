@@ -3,6 +3,7 @@
 use App\Enum\Sales\StatusSales;
 use App\Models\AccountsReceivable;
 use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use App\Models\Customer;
 use App\Models\Rate;
 use App\Models\Receipt;
@@ -86,6 +87,65 @@ it('registra cobranza multimoneda COP↔BS sin errores (factura en :docCoin, cob
     expect((float) $acr->acr_balance)->toBe(0.0);
     expect($acr->acr_status)->toBe(StatusSales::PAID->value);
     expect(AccountsReceivable::where('id', $acr->id)->value('acr_status'))->toBe(StatusSales::PAID->value);
+})->with([
+    'COP factura / BS cobro' => ['COP', 'BS', 350000.0, 100000.0],
+    'BS factura / COP cobro' => ['BS', 'COP', 100000.0, 350000.0],
+]);
+
+it('registra el abono bancario en la moneda del pago y actualiza el saldo del banco', function (
+    string $docCoin,
+    string $payCoin,
+    float $total,
+    float $payAmount,
+) {
+    $sale = SaleOrder::factory()->facv()->create([
+        'sls_customer_id' => $this->customer->id,
+        'sls_coin' => $docCoin,
+        'sls_total' => $total,
+        'sls_subtotal' => $total,
+        'sls_exento' => 0,
+        'sls_iva' => 0,
+        'sls_payment_condition' => 'credit',
+        'sls_date' => now()->toDateString(),
+    ]);
+
+    $acr = $sale->accountsReceivable;
+
+    $bank = BankAccount::factory()->create([
+        'bank_currency' => $payCoin,
+        'bank_balance' => 10000000,
+    ]);
+
+    $payload = [
+        'payment_date' => now()->toDateString(),
+        'customer_id' => $this->customer->id,
+        'bank_account_id' => $bank->id,
+        'payment_currency' => $payCoin,
+        'payment_rate' => 3.5,
+        'payment_method' => 'TRANSFERENCIA',
+        'payment_reference' => 'REF-MULTI-BAL',
+        'payment_description' => 'Cobro multimoneda',
+        'payments' => [
+            [
+                'acr_id' => $acr->id,
+                'amount' => $payAmount,
+            ],
+        ],
+    ];
+
+    $this->post(route('receipts.store'), $payload)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('accounts-receivable.index'));
+
+    $bankTx = BankTransaction::where('btr_transactionable_id', $acr->id)
+        ->where('btr_transactionable_type', $acr->getMorphClass())
+        ->first();
+
+    expect($bankTx)->not->toBeNull();
+    expect($bankTx->btr_type)->toBe('inflow');
+    expect($bankTx->btr_coin->value)->toBe($payCoin);
+    expect((float) $bankTx->btr_amount)->toBe($payAmount);
+    expect((float) $bank->fresh()->bank_balance)->toBe(10000000 + $payAmount);
 })->with([
     'COP factura / BS cobro' => ['COP', 'BS', 350000.0, 100000.0],
     'BS factura / COP cobro' => ['BS', 'COP', 100000.0, 350000.0],

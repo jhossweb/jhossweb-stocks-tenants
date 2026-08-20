@@ -13,12 +13,13 @@ use App\Models\SaleOrder;
 use App\Observers\BankTransactionObserver;
 use App\Observers\ExpenseObserver;
 use App\Observers\Inventory\MovInventoryObserver;
-use App\Observers\Purchases\CostHistoryObserver;
+use App\Observers\Purchases\MovCostHistoryObserver;
 use App\Observers\Purchases\MovPurchasesObserver;
 use App\Observers\Purchases\PurchaseOrderObserver;
 use App\Observers\RateObserver;
 use App\Observers\Sales\MovSalesObserver;
 use App\Observers\Sales\SaleOrderObserver;
+use App\Services\Inventory\StockService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Facades\Date;
@@ -33,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(StockService::class);
     }
 
     /**
@@ -45,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
         $this->registerSqliteDateFunctions();
 
         MovementsPurchase::observe(MovPurchasesObserver::class);
-        MovementsPurchase::observe(CostHistoryObserver::class);
+        MovementsPurchase::observe(MovCostHistoryObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);
         BankTransaction::observe(BankTransactionObserver::class);
         Expense::observe(ExpenseObserver::class);

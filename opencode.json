@@ -9,6 +9,17 @@
                 "artisan",
                 "boost:mcp"
             ]
+        },
+        "playwright": {
+            "type": "local",
+            "command": [
+                "npx",
+                "-y",
+                "@playwright/mcp@latest",
+                "--executable-path",
+                "/usr/bin/brave-browser"
+            ],
+            "enabled": true
         }
     }
 }

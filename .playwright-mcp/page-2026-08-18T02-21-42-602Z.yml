@@ -1,0 +1,54 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - link "Log in to your account" [ref=e7] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e12]:
+        - heading "Log in to your account" [level=1] [ref=e13]
+        - paragraph [ref=e14]: Enter your email and password below to log in
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]: Email address
+          - textbox "Email address" [ref=e19]:
+            - /placeholder: email@example.com
+            - text: test@example.com
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Password
+            - link "Forgot password?" [ref=e23] [cursor=pointer]:
+              - /url: /forgot-password
+          - generic [ref=e24]:
+            - textbox "Password" [ref=e25]: password
+            - button "Show password" [ref=e26]
+        - generic [ref=e31]:
+          - checkbox "Remember me" [ref=e32]:
+            - checkbox [ref=e33]
+          - generic [ref=e34]: Remember me
+        - button "Loading Log in" [disabled]:
+          - status "Loading"
+          - text: Log in
+      - generic [ref=e36]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e37] [cursor=pointer]:
+          - /url: /register
+  - generic [ref=e40]:
+    - generic [ref=e41] [cursor=pointer]
+    - generic [ref=e42]:
+      - generic [ref=e43] [cursor=pointer]
+      - generic [ref=e45] [cursor=pointer]
+      - generic [ref=e47] [cursor=pointer]: "3"
+      - generic [ref=e50] [cursor=pointer]: "2"
+      - generic [ref=e53] [cursor=pointer]: "1"
+      - generic [ref=e56] [cursor=pointer]: "1"
+    - generic [ref=e59]:
+      - generic [ref=e60] [cursor=pointer]
+      - generic [ref=e61] [cursor=pointer]
+      - generic [ref=e62] [cursor=pointer]
+      - generic [ref=e64] [cursor=pointer]
+      - generic [ref=e66] [cursor=pointer]:
+        - generic [ref=e67]: "2"
+        - generic [ref=e68]: GET /login
+      - generic [ref=e69] [cursor=pointer]: 1.01s
+      - generic [ref=e71] [cursor=pointer]: 30MB
+      - generic [ref=e73] [cursor=pointer]: 13.x

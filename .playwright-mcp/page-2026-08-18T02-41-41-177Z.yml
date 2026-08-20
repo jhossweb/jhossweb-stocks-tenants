@@ -1,0 +1,147 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - list [ref=e8]:
+        - listitem [ref=e9]:
+          - link "Laravel Starter Kit" [ref=e10] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=e17]:
+        - generic [ref=e18]: Platform
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "Dashboard" [ref=e21] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=e28]:
+            - button "Inventory" [ref=e29]
+          - listitem [ref=e39]:
+            - button "Compras" [ref=e40]
+          - listitem [ref=e48]:
+            - button "Ventas" [ref=e49]
+          - listitem [ref=e58]:
+            - button "Finanzas" [ref=e59]
+          - listitem [ref=e67]:
+            - button "Gastos" [ref=e68]
+          - listitem [ref=e75]:
+            - button "Nómina" [ref=e76]
+      - generic [ref=e83]:
+        - list [ref=e86]:
+          - listitem [ref=e87]:
+            - link "Repository" [ref=e88] [cursor=pointer]:
+              - /url: https://github.com/laravel/vue-starter-kit
+          - listitem [ref=e95]:
+            - link "Documentation" [ref=e96] [cursor=pointer]:
+              - /url: https://laravel.com/docs/starter-kits#vue
+        - list [ref=e100]:
+          - listitem [ref=e101]:
+            - button "TU Test User" [ref=e102]:
+              - generic [ref=e103]: TU
+              - generic [ref=e105]: Test User
+    - main [ref=e110]:
+      - button "Toggle sidebar" [ref=e113]
+      - generic [ref=e333]:
+        - generic [ref=e334]:
+          - generic [ref=e335]:
+            - link [ref=e336] [cursor=pointer]:
+              - /url: /dashboard
+            - generic [ref=e339]:
+              - heading "Cotizaciones" [level=1] [ref=e340]
+              - paragraph [ref=e341]: Gestiona y registra cotizaciones sin afectar inventario.
+          - link "Nueva Cotización" [ref=e342] [cursor=pointer]:
+            - /url: /quotes/create
+        - table [ref=e348]:
+          - rowgroup [ref=e349]:
+            - row [ref=e350]:
+              - columnheader "Cotización" [ref=e351]
+              - columnheader "Cliente" [ref=e352]
+              - columnheader "Fecha" [ref=e353]
+              - columnheader "Total" [ref=e354]
+              - columnheader "Estado" [ref=e355]
+              - columnheader "Acciones" [ref=e356]
+          - rowgroup [ref=e357]:
+            - row [ref=e358]:
+              - cell "#COT-0005" [ref=e359]
+              - cell "david" [ref=e360]
+              - cell "17/08/2026" [ref=e361]
+              - cell "$0.4391" [ref=e362]
+              - cell "Pendiente" [ref=e363]
+              - cell [ref=e364]:
+                - generic [ref=e365]:
+                  - button "Convertir" [ref=e366]
+                  - link "Editar" [ref=e367] [cursor=pointer]:
+                    - /url: /quotes/32/edit
+                  - link "PDF" [ref=e371] [cursor=pointer]:
+                    - /url: /quotes/32/pdf
+            - row [ref=e375]:
+              - cell "#COT-0004" [ref=e376]
+              - cell "david" [ref=e377]
+              - cell "15/08/2026" [ref=e378]
+              - cell "$87811.3402" [ref=e379]
+              - cell "Convertida" [ref=e380]
+              - cell [ref=e381]:
+                - generic [ref=e382]:
+                  - link "Editar" [ref=e383] [cursor=pointer]:
+                    - /url: /quotes/30/edit
+                  - link "PDF" [ref=e387] [cursor=pointer]:
+                    - /url: /quotes/30/pdf
+            - row [ref=e391]:
+              - cell "#COT-0003" [ref=e392]
+              - cell "david" [ref=e393]
+              - cell "10/08/2026" [ref=e394]
+              - cell "$4.7146" [ref=e395]
+              - cell "Convertida" [ref=e396]
+              - cell [ref=e397]:
+                - generic [ref=e398]:
+                  - link "Editar" [ref=e399] [cursor=pointer]:
+                    - /url: /quotes/28/edit
+                  - link "PDF" [ref=e403] [cursor=pointer]:
+                    - /url: /quotes/28/pdf
+            - row [ref=e407]:
+              - cell "#COT-0002" [ref=e408]
+              - cell "david" [ref=e409]
+              - cell "04/08/2026" [ref=e410]
+              - cell "$62232.7200" [ref=e411]
+              - cell "Pendiente" [ref=e412]
+              - cell [ref=e413]:
+                - generic [ref=e414]:
+                  - button "Convertir" [ref=e415]
+                  - link "Editar" [ref=e416] [cursor=pointer]:
+                    - /url: /quotes/24/edit
+                  - link "PDF" [ref=e420] [cursor=pointer]:
+                    - /url: /quotes/24/pdf
+            - row [ref=e424]:
+              - cell "#COT-0001" [ref=e425]
+              - cell "david" [ref=e426]
+              - cell "04/08/2026" [ref=e427]
+              - cell "$9.4292" [ref=e428]
+              - cell "Convertida" [ref=e429]
+              - cell [ref=e430]:
+                - generic [ref=e431]:
+                  - link "Editar" [ref=e432] [cursor=pointer]:
+                    - /url: /quotes/22/edit
+                  - link "PDF" [ref=e436] [cursor=pointer]:
+                    - /url: /quotes/22/pdf
+  - generic [ref=e209]:
+    - generic [ref=e210] [cursor=pointer]
+    - generic [ref=e211]:
+      - generic [ref=e212] [cursor=pointer]: Request
+      - generic [ref=e214] [cursor=pointer]: Timeline
+      - generic [ref=e219] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=e221]: "7"
+      - generic [ref=e222] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=e224]: "8"
+      - generic [ref=e225] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=e227]: "1"
+    - generic [ref=e231]:
+      - generic [ref=e232] [cursor=pointer]
+      - generic [ref=e233] [cursor=pointer]
+      - generic [ref=e234] [cursor=pointer]
+      - generic [ref=e236] [cursor=pointer]
+      - generic [ref=e238] [cursor=pointer]:
+        - generic [ref=e440]: "3"
+        - generic [ref=e239]: GET /quotes
+      - generic [ref=e240] [cursor=pointer]: 562ms
+      - generic [ref=e242] [cursor=pointer]: 29MB
+      - generic [ref=e244] [cursor=pointer]: 13.x

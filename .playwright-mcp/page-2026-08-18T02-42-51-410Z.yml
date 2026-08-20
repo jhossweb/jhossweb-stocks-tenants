@@ -1,0 +1,148 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e6]:
+      - list [ref=f1e8]:
+        - listitem [ref=f1e9]:
+          - link "Laravel Starter Kit" [ref=f1e10] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=f1e17]:
+        - generic [ref=f1e18]: Platform
+        - list [ref=f1e19]:
+          - listitem [ref=f1e20]:
+            - link "Dashboard" [ref=f1e21] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=f1e28]:
+            - button "Inventory" [ref=f1e29]
+          - listitem [ref=f1e39]:
+            - button "Compras" [ref=f1e40]
+          - listitem [ref=f1e48]:
+            - button "Ventas" [ref=f1e49]
+          - listitem [ref=f1e58]:
+            - button "Finanzas" [ref=f1e59]
+          - listitem [ref=f1e67]:
+            - button "Gastos" [ref=f1e68]
+          - listitem [ref=f1e75]:
+            - button "Nómina" [ref=f1e76]
+      - generic [ref=f1e83]:
+        - list [ref=f1e86]:
+          - listitem [ref=f1e87]:
+            - link "Repository" [ref=f1e88] [cursor=pointer]:
+              - /url: https://github.com/laravel/vue-starter-kit
+          - listitem [ref=f1e95]:
+            - link "Documentation" [ref=f1e96] [cursor=pointer]:
+              - /url: https://laravel.com/docs/starter-kits#vue
+        - list [ref=f1e100]:
+          - listitem [ref=f1e101]:
+            - button "TU Test User" [ref=f1e102]:
+              - generic [ref=f1e103]: TU
+              - generic [ref=f1e105]: Test User
+    - main [ref=f1e110]:
+      - button "Toggle sidebar" [ref=f1e113]
+      - generic [ref=f1e115]:
+        - generic [ref=f1e116]:
+          - generic [ref=f1e117]:
+            - link [ref=f1e118] [cursor=pointer]:
+              - /url: /quotes
+            - generic [ref=f1e121]:
+              - heading "Nueva Cotización" [level=1] [ref=f1e122]
+              - paragraph [ref=f1e123]: Registro de cotizaciones sin afectar inventario
+          - button "Guardar" [ref=f1e124]
+        - generic [ref=f1e129]:
+          - generic [ref=f1e130]:
+            - generic [ref=f1e131]:
+              - generic [ref=f1e132]: Configuración General
+              - generic [ref=f1e137]:
+                - generic [ref=f1e138]:
+                  - generic [ref=f1e139]: Cliente
+                  - button "david" [ref=f1e267]
+                - generic [ref=f1e141]:
+                  - generic [ref=f1e142]:
+                    - generic [ref=f1e143]: Fecha
+                    - textbox [ref=f1e144]: 2026-08-18
+                  - generic [ref=f1e145]:
+                    - generic [ref=f1e146]: Moneda
+                    - combobox [ref=f1e147]:
+                      - option "USD" [selected]
+                      - option "COP"
+                      - option "BS"
+                      - option "EUR"
+                - generic [ref=f1e148]:
+                  - generic [ref=f1e149]: Tasa de Cambio
+                  - generic [ref=f1e150]: "Tasa del día: 800"
+                  - spinbutton [ref=f1e151]: "800"
+            - generic [ref=f1e155]:
+              - generic [ref=f1e156]:
+                - generic [ref=f1e157]: SUBTOTAL
+                - generic [ref=f1e158]: "102.2727"
+              - generic [ref=f1e159]:
+                - generic [ref=f1e160]: EXENTO
+                - generic [ref=f1e161]: "0"
+              - generic [ref=f1e162]:
+                - generic [ref=f1e163]: IVA
+                - generic [ref=f1e164]: "8.1818"
+              - generic [ref=f1e165]:
+                - generic [ref=f1e166]: Total USD
+                - generic [ref=f1e167]: "110.4545"
+          - generic [ref=f1e169]:
+            - generic [ref=f1e170]:
+              - generic [ref=f1e171]: Detalle de Productos
+              - button "Agregar Item" [ref=f1e172]
+            - table [ref=f1e176]:
+              - rowgroup [ref=f1e177]:
+                - row [ref=f1e178]:
+                  - columnheader "Producto" [ref=f1e179]
+                  - columnheader "Almacén" [ref=f1e180]
+                  - columnheader "IVA" [ref=f1e181]
+                  - columnheader "Cant." [ref=f1e182]
+                  - columnheader "Precio Unit." [ref=f1e183]
+                  - columnheader "Ref ($)" [ref=f1e184]
+                  - columnheader "Total" [ref=f1e185]
+                  - columnheader [ref=f1e186]
+              - rowgroup [ref=f1e187]:
+                - row [ref=f1e321]:
+                  - cell [ref=f1e312]:
+                    - button "Osbaldo Feil Sr." [active] [ref=f1e313]
+                  - cell "Laurianne Schimmel" [ref=f1e322]:
+                    - combobox [ref=f1e192]:
+                      - option "Seleccione..."
+                      - option "Laurianne Schimmel" [selected]
+                      - option "Ernestina Homenick"
+                  - cell "8%" [ref=f1e314]
+                  - cell "1 m²" [ref=f1e316]:
+                    - generic [ref=f1e196]:
+                      - spinbutton [ref=f1e197]: "1"
+                      - generic [ref=f1e317]: m²
+                  - cell "102.2727" [ref=f1e318]
+                  - cell "102.2727" [ref=f1e319]
+                  - cell "110.4545" [ref=f1e320]
+                  - cell [ref=f1e202]:
+                    - button "Eliminar fila" [ref=f1e203]
+  - generic [ref=f1e209]:
+    - generic [ref=f1e210] [cursor=pointer]
+    - generic [ref=f1e211]:
+      - generic [ref=f1e212] [cursor=pointer]: Request
+      - generic [ref=f1e213] [cursor=pointer]: Timeline
+      - generic [ref=f1e214] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=f1e215]: "3"
+      - generic [ref=f1e216] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f1e217]: "23"
+      - generic [ref=f1e218] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f1e219]: "41"
+      - generic [ref=f1e220] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f1e221]: "1"
+      - generic [ref=f1e222] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=f1e223]: "1"
+    - generic [ref=f1e224]:
+      - generic [ref=f1e225] [cursor=pointer]
+      - generic [ref=f1e226] [cursor=pointer]
+      - generic [ref=f1e227] [cursor=pointer]
+      - generic [ref=f1e229] [cursor=pointer]
+      - generic [ref=f1e230]: GET /quotes/create
+      - generic [ref=f1e233] [cursor=pointer]: 721ms
+      - generic [ref=f1e235] [cursor=pointer]: 32MB
+      - generic [ref=f1e237] [cursor=pointer]: 13.x

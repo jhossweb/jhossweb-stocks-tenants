@@ -1,0 +1,180 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e3]:
+    - generic [ref=f2e6]:
+      - list [ref=f2e8]:
+        - listitem [ref=f2e9]:
+          - link "Laravel Starter Kit" [ref=f2e10] [cursor=pointer]:
+            - /url: /dashboard
+      - generic [ref=f2e17]:
+        - generic [ref=f2e18]: Platform
+        - list [ref=f2e19]:
+          - listitem [ref=f2e20]:
+            - link "Dashboard" [ref=f2e21] [cursor=pointer]:
+              - /url: /dashboard
+          - listitem [ref=f2e28]:
+            - button "Inventory" [ref=f2e29]
+          - listitem [ref=f2e39]:
+            - button "Compras" [ref=f2e40]
+          - listitem [ref=f2e48]:
+            - button "Ventas" [expanded] [ref=f2e49]
+            - list [ref=f2e59]:
+              - listitem [ref=f2e60]:
+                - generic [ref=f2e61]: Fichero
+              - listitem [ref=f2e65]:
+                - generic [ref=f2e66]: Transacciones
+                - list [ref=f2e71]:
+                  - listitem [ref=f2e72]:
+                    - link "Factura de venta" [ref=f2e73] [cursor=pointer]:
+                      - /url: /sales
+                  - listitem [ref=f2e75]:
+                    - link "Cotizaciones" [ref=f2e76] [cursor=pointer]:
+                      - /url: /quotes
+                  - listitem [ref=f2e78]:
+                    - link "Devoluciones de Ventas" [ref=f2e79] [cursor=pointer]:
+                      - /url: /sale-returns
+              - listitem [ref=f2e81]:
+                - generic [ref=f2e82]: Análisis
+          - listitem [ref=f2e86]:
+            - button "Finanzas" [ref=f2e87]
+          - listitem [ref=f2e95]:
+            - button "Gastos" [ref=f2e96]
+          - listitem [ref=f2e103]:
+            - button "Nómina" [ref=f2e104]
+      - generic [ref=f2e111]:
+        - list [ref=f2e114]:
+          - listitem [ref=f2e115]:
+            - link "Repository" [ref=f2e116] [cursor=pointer]:
+              - /url: https://github.com/laravel/vue-starter-kit
+          - listitem [ref=f2e123]:
+            - link "Documentation" [ref=f2e124] [cursor=pointer]:
+              - /url: https://laravel.com/docs/starter-kits#vue
+        - list [ref=f2e128]:
+          - listitem [ref=f2e129]:
+            - button "TU Test User" [ref=f2e130]:
+              - generic [ref=f2e131]: TU
+              - generic [ref=f2e133]: Test User
+    - main [ref=f2e138]:
+      - button "Toggle sidebar" [ref=f2e141]
+      - generic [ref=f2e143]:
+        - generic [ref=f2e144]:
+          - generic [ref=f2e145]:
+            - link [ref=f2e146] [cursor=pointer]:
+              - /url: /dashboard
+            - generic [ref=f2e149]:
+              - heading "Cotizaciones" [level=1] [ref=f2e150]
+              - paragraph [ref=f2e151]: Gestiona y registra cotizaciones sin afectar inventario.
+          - link "Nueva Cotización" [ref=f2e152] [cursor=pointer]:
+            - /url: /quotes/create
+        - table [ref=f2e158]:
+          - rowgroup [ref=f2e159]:
+            - row [ref=f2e160]:
+              - columnheader "Cotización" [ref=f2e161]
+              - columnheader "Cliente" [ref=f2e162]
+              - columnheader "Fecha" [ref=f2e163]
+              - columnheader "Total" [ref=f2e164]
+              - columnheader "Estado" [ref=f2e165]
+              - columnheader "Acciones" [ref=f2e166]
+          - rowgroup [ref=f2e167]:
+            - row [ref=f2e168]:
+              - cell "#COT-0006" [ref=f2e169]
+              - cell "david" [ref=f2e170]
+              - cell "17/08/2026" [ref=f2e171]
+              - cell "$110.4545" [ref=f2e172]
+              - cell "Pendiente" [ref=f2e173]
+              - cell [ref=f2e174]:
+                - generic [ref=f2e175]:
+                  - button "Convertir" [ref=f2e176]
+                  - link "Editar" [ref=f2e177] [cursor=pointer]:
+                    - /url: /quotes/33/edit
+                  - link "PDF" [ref=f2e181] [cursor=pointer]:
+                    - /url: /quotes/33/pdf
+            - row [ref=f2e185]:
+              - cell "#COT-0005" [ref=f2e186]
+              - cell "david" [ref=f2e187]
+              - cell "17/08/2026" [ref=f2e188]
+              - cell "$0.4391" [ref=f2e189]
+              - cell "Convertida" [ref=f2e190]
+              - cell [ref=f2e191]:
+                - generic [ref=f2e192]:
+                  - link "Editar" [ref=f2e193] [cursor=pointer]:
+                    - /url: /quotes/32/edit
+                  - link "PDF" [ref=f2e197] [cursor=pointer]:
+                    - /url: /quotes/32/pdf
+            - row [ref=f2e201]:
+              - cell "#COT-0004" [ref=f2e202]
+              - cell "david" [ref=f2e203]
+              - cell "15/08/2026" [ref=f2e204]
+              - cell "$87811.3402" [ref=f2e205]
+              - cell "Convertida" [ref=f2e206]
+              - cell [ref=f2e207]:
+                - generic [ref=f2e208]:
+                  - link "Editar" [ref=f2e209] [cursor=pointer]:
+                    - /url: /quotes/30/edit
+                  - link "PDF" [ref=f2e213] [cursor=pointer]:
+                    - /url: /quotes/30/pdf
+            - row [ref=f2e217]:
+              - cell "#COT-0003" [ref=f2e218]
+              - cell "david" [ref=f2e219]
+              - cell "10/08/2026" [ref=f2e220]
+              - cell "$4.7146" [ref=f2e221]
+              - cell "Convertida" [ref=f2e222]
+              - cell [ref=f2e223]:
+                - generic [ref=f2e224]:
+                  - link "Editar" [ref=f2e225] [cursor=pointer]:
+                    - /url: /quotes/28/edit
+                  - link "PDF" [ref=f2e229] [cursor=pointer]:
+                    - /url: /quotes/28/pdf
+            - row [ref=f2e233]:
+              - cell "#COT-0002" [ref=f2e234]
+              - cell "david" [ref=f2e235]
+              - cell "04/08/2026" [ref=f2e236]
+              - cell "$62232.7200" [ref=f2e237]
+              - cell "Pendiente" [ref=f2e238]
+              - cell [ref=f2e239]:
+                - generic [ref=f2e240]:
+                  - button "Convertir" [ref=f2e241]
+                  - link "Editar" [ref=f2e242] [cursor=pointer]:
+                    - /url: /quotes/24/edit
+                  - link "PDF" [ref=f2e246] [cursor=pointer]:
+                    - /url: /quotes/24/pdf
+            - row [ref=f2e250]:
+              - cell "#COT-0001" [ref=f2e251]
+              - cell "david" [ref=f2e252]
+              - cell "04/08/2026" [ref=f2e253]
+              - cell "$9.4292" [ref=f2e254]
+              - cell "Convertida" [ref=f2e255]
+              - cell [ref=f2e256]:
+                - generic [ref=f2e257]:
+                  - link "Editar" [ref=f2e258] [cursor=pointer]:
+                    - /url: /quotes/22/edit
+                  - link "PDF" [ref=f2e262] [cursor=pointer]:
+                    - /url: /quotes/22/pdf
+  - generic [ref=f2e268]:
+    - generic [ref=f2e269] [cursor=pointer]
+    - generic [ref=f2e270]:
+      - generic [ref=f2e271] [cursor=pointer]: Request
+      - generic [ref=f2e272] [cursor=pointer]: Timeline
+      - generic [ref=f2e273] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=f2e274]: "3"
+      - generic [ref=f2e275] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f2e276]: "7"
+      - generic [ref=f2e277] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f2e278]: "9"
+      - generic [ref=f2e279] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f2e280]: "1"
+      - generic [ref=f2e281] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=f2e282]: "1"
+    - generic [ref=f2e283]:
+      - generic [ref=f2e284] [cursor=pointer]
+      - generic [ref=f2e285] [cursor=pointer]
+      - generic [ref=f2e286] [cursor=pointer]
+      - generic [ref=f2e288] [cursor=pointer]
+      - generic [ref=f2e289]: GET /quotes
+      - generic [ref=f2e292] [cursor=pointer]: 723ms
+      - generic [ref=f2e294] [cursor=pointer]: 32MB
+      - generic [ref=f2e296] [cursor=pointer]: 13.x

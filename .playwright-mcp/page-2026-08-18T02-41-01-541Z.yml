@@ -1,0 +1,175 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - list:
+                - listitem:
+                  - link:
+                    - /url: /dashboard
+                    - generic: Laravel Starter Kit
+            - generic:
+              - generic:
+                - generic: Platform
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /dashboard
+                      - generic: Dashboard
+                  - listitem:
+                    - button:
+                      - generic: Inventory
+                  - listitem:
+                    - button:
+                      - generic: Compras
+                  - listitem:
+                    - button:
+                      - generic: Ventas
+                  - listitem:
+                    - button:
+                      - generic: Finanzas
+                  - listitem:
+                    - button:
+                      - generic: Gastos
+                  - listitem:
+                    - button:
+                      - generic: Nómina
+            - generic:
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link:
+                        - /url: https://github.com/laravel/vue-starter-kit
+                        - generic: Repository
+                    - listitem:
+                      - link:
+                        - /url: https://laravel.com/docs/starter-kits#vue
+                        - generic: Documentation
+              - list:
+                - listitem:
+                  - button:
+                    - generic: TU
+                    - generic: Test User
+      - main:
+        - generic:
+          - generic:
+            - button:
+              - generic: Toggle sidebar
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /quotes
+              - generic:
+                - heading [level=1]: Nueva Cotización
+                - paragraph: Registro de cotizaciones sin afectar inventario
+            - button: Guardar
+          - generic:
+            - generic:
+              - generic:
+                - generic: Configuración General
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Cliente
+                      - button: david
+                    - generic:
+                      - generic:
+                        - generic: Fecha
+                        - textbox: 2026-08-18
+                      - generic:
+                        - generic: Moneda
+                        - combobox
+                    - generic:
+                      - generic: Tasa de Cambio
+                      - generic: "Tasa del día: 800"
+                      - spinbutton: "800"
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: SUBTOTAL
+                    - generic: "0"
+                  - generic:
+                    - generic: EXENTO
+                    - generic: "0"
+                  - generic:
+                    - generic: IVA
+                    - generic: "0"
+                  - generic:
+                    - generic: Total USD
+                    - generic: "0"
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Detalle de Productos
+                  - button: Agregar Item
+                - generic:
+                  - table:
+                    - rowgroup:
+                      - row:
+                        - columnheader: Producto
+                        - columnheader: Almacén
+                        - columnheader: IVA
+                        - columnheader: Cant.
+                        - columnheader: Precio Unit.
+                        - columnheader: Ref ($)
+                        - columnheader: Total
+                        - columnheader
+                    - rowgroup:
+                      - row:
+                        - cell:
+                          - button [expanded]: Seleccione producto
+                        - cell:
+                          - combobox
+                        - cell:
+                          - generic: "-"
+                        - cell:
+                          - generic:
+                            - spinbutton: "1"
+                        - cell:
+                          - generic: "0.0000"
+                        - cell: "0"
+                        - cell: "0.0000"
+                        - cell:
+                          - button
+  - generic:
+    - generic:
+      - generic:
+        - generic: "3"
+        - generic: "23"
+        - generic: "41"
+        - generic: "1"
+        - generic: "1"
+      - generic: GET /quotes/create
+  - dialog [ref=e276]:
+    - heading "Seleccionar Producto" [level=2] [ref=e278]
+    - generic [ref=e279]:
+      - textbox "Buscar..." [active] [ref=e284]
+      - table [ref=e286]:
+        - rowgroup [ref=e287]:
+          - row [ref=e288]:
+            - columnheader "Código" [ref=e289]
+            - columnheader "Nombre" [ref=e290]
+            - columnheader "Und" [ref=e291]
+            - columnheader "Precio $" [ref=e292]
+            - columnheader "Stock" [ref=e293]
+            - columnheader [ref=e294]
+        - rowgroup [ref=e295]:
+          - row [ref=e296] [cursor=pointer]:
+            - cell "officia" [ref=e297]
+            - cell "Osbaldo Feil Sr." [ref=e298]
+            - cell "m2" [ref=e299]
+            - cell "102.2727" [ref=e300]
+            - cell "6" [ref=e301]
+            - cell [ref=e302]
+          - row [ref=e306] [cursor=pointer]:
+            - cell "lam-0010" [ref=e307]
+            - cell "lámina 5 líneas" [ref=e308]
+            - cell "m2" [ref=e309]
+            - cell "0.4066" [ref=e310]
+            - cell "52" [ref=e311]
+            - cell [ref=e312]
+    - button "Close" [ref=e316]
