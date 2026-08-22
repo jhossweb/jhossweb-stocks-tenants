@@ -76,4 +76,19 @@ class PurchaseOrder extends Model
     {
         return $this->hasOne(AccountsPayable::class, 'acp_purchase_number', 'invoice_number');
     }
+
+    public function getDaysRemainingAttribute(): int
+    {
+        $due = $this->invoice_due_date;
+
+        if (! $due) {
+            $due = $this->invoice_date?->copy()->addDays((int) $this->invoice_credit_days);
+        }
+
+        if (! $due) {
+            return 0;
+        }
+
+        return (int) now()->startOfDay()->diffInDays($due->startOfDay(), false);
+    }
 }

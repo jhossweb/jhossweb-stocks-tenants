@@ -79,6 +79,6 @@ class SaleOrder extends Model
             return 0;
         }
 
-        return (int) $due->startOfDay()->diffInDays(now()->startOfDay(), false);
+        return (int) now()->startOfDay()->diffInDays($due->startOfDay(), false);
     }
 }

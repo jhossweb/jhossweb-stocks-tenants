@@ -1,2 +1,0 @@
-[    1255ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://127.0.0.1:8000/_boost/browser-logs @ http://127.0.0.1:8000/quotes/create:51
-[   41220ms] [WARNING] Warning: Missing `Description` or `aria-describedby="undefined"` for DialogContent. @ http://127.0.0.1:8000/quotes/create:121

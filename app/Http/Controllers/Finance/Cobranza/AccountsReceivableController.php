@@ -31,6 +31,18 @@ class AccountsReceivableController extends Controller
         ]);
     }
 
+    public function byCustomer(Request $request)
+    {
+        $summaries = $this->receivableRepository->summaryByCustomer(
+            search: $request->string('search')->toString() ?: null,
+        );
+
+        return Inertia::render('Sales/AccountsReceivable/ByCustomer', [
+            'summaries' => $summaries,
+            'filters' => $request->only(['search']),
+        ]);
+    }
+
     public function exportPdf(Customer $customer)
     {
         return $this->statementReport->download($customer);

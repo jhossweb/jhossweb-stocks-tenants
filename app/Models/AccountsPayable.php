@@ -39,7 +39,7 @@ class AccountsPayable extends Model
      */
     public function scopePending($query)
     {
-        return $query->whereIn('acp_status', ['PENDIENTE', 'PARCIAL']);
+        return $query->whereIn('acp_status', [StatusPurchases::PENDING->value, StatusPurchases::PARTIAL->value]);
     }
 
     /**

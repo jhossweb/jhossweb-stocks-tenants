@@ -73,6 +73,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Cuentas por Pagar
     Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
+    Route::get('accounts-payable/by-supplier', [AccountsPayableController::class, 'bySupplier'])->name('accounts-payable.by-supplier');
+    Route::get('accounts-payable/supplier/{supplier}/pdf', [AccountsPayableController::class, 'exportPdf'])->name('accounts-payable.statement');
 
     // Pagos a Proveedores
     Route::get('payments', [AccountPaymentController::class, 'index'])->name('payments.index');
@@ -96,6 +98,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Cuentas por Cobrar
     Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');
+    Route::get('accounts-receivable/by-customer', [AccountsReceivableController::class, 'byCustomer'])->name('accounts-receivable.by-customer');
     Route::get('accounts-receivable/client/{customer}/pdf', [AccountsReceivableController::class, 'exportPdf'])->name('accounts-receivable.statement');
 
     // Recibos / Cobranzas
