@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\CompanyController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\RateController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -32,4 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'update' => 'rates.update',
         'destroy' => 'rates.destroy',
     ]);
+
+    Route::get('settings/company', [CompanyController::class, 'edit'])->name('company.edit');
+    Route::patch('settings/company', [CompanyController::class, 'update'])->name('company.update');
 });

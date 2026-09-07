@@ -1,6 +1,20 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, ShoppingCart, FileText, ArrowRightLeft, BarChart3, Users, Building2, PackageSearch, CircleDollarSign, Wallet } from 'lucide-vue-next';
+import {
+    BookOpen,
+    FolderGit2,
+    LayoutGrid,
+    ShoppingCart,
+    FileText,
+    ArrowRightLeft,
+    BarChart3,
+    Users,
+    Building2,
+    PackageSearch,
+    CircleDollarSign,
+    Wallet,
+    Settings,
+} from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -18,11 +32,11 @@ import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
-    {
+    /* {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-    },
+    },*/
     {
         title: 'Inventory',
         href: '#',
@@ -37,6 +51,18 @@ const mainNavItems: NavItem[] = [
                         title: 'Productos',
                         href: '/products',
                     },
+                    {
+                        title: 'Categorías',
+                        href: '/categories',
+                    },
+                    {
+                        title: 'Marcas',
+                        href: '/brands',
+                    },
+                    {
+                        title: 'Almacenes',
+                        href: '/warehouses',
+                    },
                 ],
             },
             {
@@ -48,6 +74,10 @@ const mainNavItems: NavItem[] = [
                         title: 'Kardex',
                         href: '/products',
                     },
+                    {
+                        title: 'Lista de Precios',
+                        href: '/inventory/list-prices',
+                    },
                 ],
             },
             {
@@ -58,6 +88,10 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Ajuste de Inventario',
                         href: '/inventory/adjustments',
+                    },
+                    {
+                        title: 'Ajustar Precios',
+                        href: '/inventory/adjust-prices',
                     },
                 ],
             },
@@ -254,6 +288,17 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Empleados',
                 href: '/employees',
+            },
+        ],
+    },
+    {
+        title: 'Configuración',
+        href: '#',
+        icon: Settings,
+        items: [
+            {
+                title: 'Datos de la Empresa',
+                href: '/settings/company',
             },
         ],
     },

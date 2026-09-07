@@ -12,6 +12,7 @@ import FormRowDelete from '@/components/Form/FormRowDelete.vue';
 import FormSection from '@/components/Form/FormSection.vue';
 import ItemsTable from '@/components/Form/ItemsTable.vue';
 import PaymentSection from '@/components/payments/PaymentSection.vue';
+import CustomerCreateModal from '@/components/sales/CustomerCreateModal.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
@@ -202,6 +203,19 @@ const selectCustomer = (customer: any) => {
         form.sls_credit_days = customer.clt_credit_days;
         updateDueDate();
     }
+};
+
+const customerModalRef = ref<InstanceType<
+    typeof CustomerCreateModal
+> | null>(null);
+
+const openCustomerModal = () => {
+    clientError.value = '';
+    customerModalRef.value?.open();
+};
+
+const onCustomerCreated = (customer: { id: number }) => {
+    selectCustomer(customer as any);
 };
 
 const selectProduct = (index: number, product: any) => {
@@ -441,7 +455,17 @@ const columns: ColumnConfig[] = [
                                 "
                                 :selected-value="form.sls_customer_id"
                                 @select="selectCustomer"
-                            />
+                            >
+                                <template #footer>
+                                    <button
+                                        type="button"
+                                        @click="openCustomerModal"
+                                        class="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-800 bg-zinc-950/50 px-3 py-2.5 text-sm font-semibold text-zinc-400 hover:text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500/40 transition-all"
+                                    >
+                                        + Nuevo Cliente
+                                    </button>
+                                </template>
+                            </SelectorModal>
                             <p
                                 v-if="form.errors.sls_customer_id"
                                 class="mt-1 text-xs text-destructive"
@@ -807,6 +831,11 @@ const columns: ColumnConfig[] = [
                 </div>
             </template>
         </FormSection>
+
+        <CustomerCreateModal
+            ref="customerModalRef"
+            @created="onCustomerCreated"
+        />
     </div>
 </template>
 

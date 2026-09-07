@@ -14,7 +14,7 @@ const emit = defineEmits<{
     <button
         type="button"
         :disabled="disabled"
-        class="text-muted-foreground/40 hover:text-destructive rounded-md p-1.5 transition-colors disabled:opacity-20"
+        class="rounded-md p-1.5 text-muted-foreground/40 transition-colors hover:text-destructive disabled:opacity-20"
         title="Eliminar fila"
         @click="emit('remove')"
     >

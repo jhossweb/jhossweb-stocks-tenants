@@ -15,7 +15,7 @@ class StorePurchaseRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'invoice_number' => 'required|string|max:50|unique:purchase_orders,invoice_number',
             'invoice_date' => 'required|date',
             'invoice_supplier_id' => 'required|exists:suppliers,id',
@@ -29,17 +29,6 @@ class StorePurchaseRequest extends FormRequest
             'invoice_credit_days' => ['required', 'integer', 'min:0', 'max:365'],
             'invoice_due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
 
-            'payment' => ['sometimes', 'array'],
-            'payment.payment_date' => ['required_if:invoice_payment_condition,cash', 'date'],
-            'payment.payments' => ['required_if:invoice_payment_condition,cash', 'array', 'min:1'],
-            'payment.payments.*.payment_currency' => ['required', 'string'],
-            'payment.payments.*.payment_rate' => ['required', 'numeric', 'gt:0'],
-            'payment.payments.*.bank_account_id' => ['required', 'exists:bank_accounts,id'],
-            'payment.payments.*.payment_method' => ['required', 'string'],
-            'payment.payments.*.payment_reference' => ['required', 'string', 'max:50'],
-            'payment.payments.*.payment_description' => ['nullable', 'string', 'max:150'],
-            'payment.payments.*.payment_amount' => ['required', 'numeric', 'gt:0'],
-
             'items' => 'required|array|min:1',
             'items.*.mov_pro_code' => 'required|exists:products,pro_code|distinct',
             'items.*.mov_war_id' => 'required|exists:warehouses,id',
@@ -48,6 +37,21 @@ class StorePurchaseRequest extends FormRequest
             'items.*.mov_unit_cost_ref' => 'required|numeric|min:0',
             'items.*.mov_pro_iva' => 'required|numeric|min:0',
         ];
+
+        if ($this->input('invoice_payment_condition') === 'cash') {
+            $rules['payment'] = ['required', 'array'];
+            $rules['payment.payment_date'] = ['required', 'date'];
+            $rules['payment.payments'] = ['required', 'array', 'min:1'];
+            $rules['payment.payments.*.payment_currency'] = ['required', 'string'];
+            $rules['payment.payments.*.payment_rate'] = ['required', 'numeric', 'gt:0'];
+            $rules['payment.payments.*.bank_account_id'] = ['required', 'exists:bank_accounts,id'];
+            $rules['payment.payments.*.payment_method'] = ['required', 'string'];
+            $rules['payment.payments.*.payment_reference'] = ['required', 'string', 'max:50'];
+            $rules['payment.payments.*.payment_description'] = ['nullable', 'string', 'max:150'];
+            $rules['payment.payments.*.payment_amount'] = ['required', 'numeric', 'gt:0'];
+        }
+
+        return $rules;
     }
 
     public function withValidator($validator)

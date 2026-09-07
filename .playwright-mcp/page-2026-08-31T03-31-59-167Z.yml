@@ -1,0 +1,100 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=e3]:
+      - generic [ref=e6]:
+        - list [ref=e8]:
+          - listitem [ref=e9]:
+            - link "Laravel Starter Kit" [ref=e10] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=e17]:
+          - generic [ref=e18]: Platform
+          - list [ref=e19]:
+            - listitem [ref=e20]:
+              - button "Inventory" [ref=e21]
+            - listitem [ref=e31]:
+              - button "Compras" [ref=e32]
+            - listitem [ref=e40]:
+              - button "Ventas" [ref=e41]
+            - listitem [ref=e50]:
+              - button "Finanzas" [ref=e51]
+            - listitem [ref=e59]:
+              - button "Gastos" [ref=e60]
+            - listitem [ref=e67]:
+              - button "Nómina" [ref=e68]
+            - listitem [ref=e75]:
+              - button "Configuración" [ref=e76]
+        - generic [ref=e83]:
+          - list [ref=e86]:
+            - listitem [ref=e87]:
+              - link "Repository" [ref=e88] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=e95]:
+              - link "Documentation" [ref=e96] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=e100]:
+            - listitem [ref=e101]:
+              - button "TU Test User" [ref=e102]:
+                - generic [ref=e103]: TU
+                - generic [ref=e105]: Test User
+      - main [ref=e110]:
+        - button "Toggle sidebar" [ref=e113]
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - generic [ref=e117]:
+              - link [ref=e118] [cursor=pointer]:
+                - /url: /accounts-receivable
+              - generic [ref=e121]:
+                - heading "Comprobante de Cobro" [level=1] [ref=e122]
+                - paragraph [ref=e123]: Registro de ingresos y abonos de clientes
+            - generic [ref=e124]:
+              - button "Datos" [ref=e125]
+              - button "Facturas" [ref=e129]
+              - button "Fondos" [ref=e133]
+          - generic [ref=e139]:
+            - generic [ref=e140]:
+              - generic [ref=e141]: Datos del Cliente
+              - generic [ref=e145]:
+                - generic [ref=e146]:
+                  - generic [ref=e147]: Cliente
+                  - button "Seleccione cliente" [ref=e148]
+                - generic [ref=e149]:
+                  - generic [ref=e150]:
+                    - generic [ref=e151]: Fecha de Cobro
+                    - textbox [ref=e152]: 2026-08-31
+                  - generic [ref=e153]:
+                    - generic [ref=e154]: Tasa Aplicada (USD)
+                    - generic [ref=e155]: "795.0000"
+                    - paragraph [ref=e156]: Factor usado para convertir el pago de USD a USD según la tasa vigente a la fecha de cobro.
+            - generic [ref=e157]:
+              - button "Siguiente" [disabled]
+  - generic [ref=e160]:
+    - generic [ref=e161] [cursor=pointer]
+    - generic [ref=e162]:
+      - generic [ref=e163] [cursor=pointer]: Request
+      - generic [ref=e164] [cursor=pointer]: Timeline
+      - generic [ref=e165] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=e166]: "3"
+      - generic [ref=e167] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=e168]: "7"
+      - generic [ref=e169] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=e170]: "14"
+      - generic [ref=e171] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=e172]: "1"
+      - generic [ref=e173] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=e174]: "1"
+    - generic [ref=e175]:
+      - generic [ref=e176] [cursor=pointer]
+      - generic [ref=e177] [cursor=pointer]
+      - generic [ref=e178] [cursor=pointer]
+      - generic [ref=e180] [cursor=pointer]
+      - generic [ref=e181]: GET /receipts/create
+      - generic [ref=e184] [cursor=pointer]: 1.39s
+      - generic [ref=e186] [cursor=pointer]: 32MB
+      - generic [ref=e188] [cursor=pointer]: 13.x

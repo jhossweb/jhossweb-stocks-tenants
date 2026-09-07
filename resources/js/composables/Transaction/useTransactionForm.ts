@@ -40,20 +40,23 @@ export function useTransactionForm(
             return null;
         }
 
-        const exact = rates.value.find(r => r.rate_date === date);
+        const exact = rates.value.find((r) => r.rate_date === date);
 
         if (exact) {
             return exact;
         }
 
         const past = rates.value
-            .filter(r => r.rate_date < date)
+            .filter((r) => r.rate_date < date)
             .sort((a, b) => b.rate_date.localeCompare(a.rate_date));
 
         return past.length > 0 ? past[0] : rates.value[0];
     };
 
-    const resolveRateValue = (coin: string, rate: RateData | LatestRateData): number => {
+    const resolveRateValue = (
+        coin: string,
+        rate: RateData | LatestRateData,
+    ): number => {
         if (coin === 'USD' || coin === 'BS' || coin === 'VES') {
             return Number(rate.rate_usd);
         }
@@ -91,7 +94,7 @@ export function useTransactionForm(
     };
 
     const getProduct = (code: string): Product | undefined =>
-        products.value.find(p => p.pro_code === code);
+        products.value.find((p) => p.pro_code === code);
 
     const getProductIvaRate = (code: string): number => {
         const p = getProduct(code);
@@ -109,9 +112,11 @@ export function useTransactionForm(
         return p.pro_iva === '0' ? 'EX' : `${p.pro_iva}%`;
     };
 
-    const getProductUnd = (code: string): string => getProduct(code)?.pro_und ?? '';
+    const getProductUnd = (code: string): string =>
+        getProduct(code)?.pro_und ?? '';
 
-    const getProductConversion = (code: string): number => getProduct(code)?.pro_conversion_factor ?? 1;
+    const getProductConversion = (code: string): number =>
+        getProduct(code)?.pro_conversion_factor ?? 1;
 
     const undLabelMap: Record<string, string> = {
         und: 'Und',
@@ -123,7 +128,7 @@ export function useTransactionForm(
     const getUndLabel = (und: string): string => undLabelMap[und] || und;
 
     const getWarehouseName = (id: string | number): string => {
-        const w = warehouses.value.find(w => w.id == id);
+        const w = warehouses.value.find((w) => w.id == id);
 
         return w?.war_name ?? String(w?.id ?? '');
     };
@@ -141,7 +146,14 @@ export function useTransactionForm(
         return (base + base * ivaRate).toFixed(4);
     };
 
-    const calculateTotals = <T extends { mov_pro_code: string; mov_quantity: number | string; mov_unit_cost: number | string; mov_pro_iva: number }>(
+    const calculateTotals = <
+        T extends {
+            mov_pro_code: string;
+            mov_quantity: number | string;
+            mov_unit_cost: number | string;
+            mov_pro_iva: number;
+        },
+    >(
         items: T[],
         setSubtotal: (v: number) => void,
         setIva: (v: number) => void,
@@ -153,7 +165,8 @@ export function useTransactionForm(
         let exento = 0;
 
         for (const item of items) {
-            const lineTotal = Number(item.mov_quantity) * Number(item.mov_unit_cost);
+            const lineTotal =
+                Number(item.mov_quantity) * Number(item.mov_unit_cost);
             subtotal += lineTotal;
             const ivaRate = getProductIvaRate(item.mov_pro_code);
             const ivaAmount = lineTotal * ivaRate;
@@ -192,17 +205,24 @@ export function useTransactionForm(
         items.push(createBlank());
     };
 
-    const removeItem = <T>(items: T[], index: number, recalc: () => void): void => {
+    const removeItem = <T>(
+        items: T[],
+        index: number,
+        recalc: () => void,
+    ): void => {
         if (items.length > 1) {
             items.splice(index, 1);
             recalc();
         }
     };
 
-    const getSupplierName = (suppliers: { id: number; supplier_name?: string; name?: string }[], id: string | number): string => {
-        const s = suppliers.find(s => s.id == id);
+    const getSupplierName = (
+        suppliers: { id: number; supplier_name?: string; name?: string }[],
+        id: string | number,
+    ): string => {
+        const s = suppliers.find((s) => s.id == id);
 
-        return s ? (s.supplier_name || s.name || '') : 'Seleccione proveedor';
+        return s ? s.supplier_name || s.name || '' : 'Seleccione proveedor';
     };
 
     const getProductName = (code: string): string => {
@@ -211,10 +231,20 @@ export function useTransactionForm(
         return p ? p.pro_name : 'Seleccione producto';
     };
 
-    const getCustomerName = (customers: { id: number; customer_name?: string; name?: string; clt_name?: string }[], id: string | number): string => {
-        const c = customers.find(c => c.id == id);
+    const getCustomerName = (
+        customers: {
+            id: number;
+            customer_name?: string;
+            name?: string;
+            clt_name?: string;
+        }[],
+        id: string | number,
+    ): string => {
+        const c = customers.find((c) => c.id == id);
 
-        return c ? (c.customer_name || c.name || c.clt_name || '') : 'Seleccione cliente';
+        return c
+            ? c.customer_name || c.name || c.clt_name || ''
+            : 'Seleccione cliente';
     };
 
     return {

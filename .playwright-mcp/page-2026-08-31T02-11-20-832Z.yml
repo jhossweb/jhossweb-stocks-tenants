@@ -1,0 +1,120 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f5e3]:
+      - generic [ref=f5e6]:
+        - list [ref=f5e8]:
+          - listitem [ref=f5e9]:
+            - link "Laravel Starter Kit" [ref=f5e10] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=f5e17]:
+          - generic [ref=f5e18]: Platform
+          - list [ref=f5e19]:
+            - listitem [ref=f5e20]:
+              - button "Inventory" [ref=f5e21]
+            - listitem [ref=f5e31]:
+              - button "Compras" [ref=f5e32]
+            - listitem [ref=f5e40]:
+              - button "Ventas" [ref=f5e41]
+            - listitem [ref=f5e50]:
+              - button "Finanzas" [ref=f5e51]
+            - listitem [ref=f5e59]:
+              - button "Gastos" [ref=f5e60]
+            - listitem [ref=f5e67]:
+              - button "Nómina" [ref=f5e68]
+            - listitem [ref=f5e75]:
+              - button "Configuración" [ref=f5e76]
+        - generic [ref=f5e83]:
+          - list [ref=f5e86]:
+            - listitem [ref=f5e87]:
+              - link "Repository" [ref=f5e88] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=f5e95]:
+              - link "Documentation" [ref=f5e96] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=f5e100]:
+            - listitem [ref=f5e101]:
+              - button "TU Test User" [ref=f5e102]:
+                - generic [ref=f5e103]: TU
+                - generic [ref=f5e105]: Test User
+      - main [ref=f5e110]:
+        - button "Toggle sidebar" [ref=f5e113]
+        - generic [ref=f5e115]:
+          - generic [ref=f5e116]:
+            - generic [ref=f5e117]:
+              - link [ref=f5e118] [cursor=pointer]:
+                - /url: /accounts-receivable
+              - generic [ref=f5e121]:
+                - heading "Comprobante de Cobro" [level=1] [ref=f5e122]
+                - paragraph [ref=f5e123]: Registro de ingresos y abonos de clientes
+            - generic [ref=f5e124]:
+              - button "Datos" [ref=f5e125] [cursor=pointer]
+              - button "Facturas" [ref=f5e129]
+              - button "Fondos" [ref=f5e133]
+          - generic [ref=f5e139]:
+            - generic [ref=f5e236]:
+              - generic [ref=f5e237]:
+                - generic [ref=f5e238]: Facturas Pendientes
+                - generic [ref=f5e243]: 2 facturas encontradas
+              - table [ref=f5e245]:
+                - rowgroup [ref=f5e246]:
+                  - row [ref=f5e247]:
+                    - columnheader "Factura" [ref=f5e248]
+                    - columnheader "Saldo Pendiente" [ref=f5e249]
+                    - columnheader "Monto a Cobrar" [ref=f5e250]
+                    - columnheader [ref=f5e251]
+                - rowgroup [ref=f5e252]:
+                  - row [ref=f5e253]:
+                    - cell "#nbnb Factura de Venta" [ref=f5e254]:
+                      - generic [ref=f5e255]:
+                        - generic [ref=f5e256]: "#nbnb"
+                        - generic [ref=f5e257]: Factura de Venta
+                    - cell "USD 6.2500" [ref=f5e258]:
+                      - generic [ref=f5e259]:
+                        - generic [ref=f5e260]: USD
+                        - text: "6.2500"
+                    - cell [ref=f5e261]:
+                      - generic [ref=f5e262]:
+                        - spinbutton [ref=f5e263]: "0"
+                        - button "MÁX" [ref=f5e264]
+                    - cell [ref=f5e265]
+                  - row [ref=f5e266]:
+                    - cell "#mnmn Factura de Venta" [ref=f5e267]:
+                      - generic [ref=f5e268]:
+                        - generic [ref=f5e269]: "#mnmn"
+                        - generic [ref=f5e270]: Factura de Venta
+                    - cell "USD 262.5000" [ref=f5e271]:
+                      - generic [ref=f5e272]:
+                        - generic [ref=f5e273]: USD
+                        - text: "262.5000"
+                    - cell [ref=f5e274]:
+                      - generic [ref=f5e275]:
+                        - spinbutton [ref=f5e276]: "0"
+                        - button "MÁX" [ref=f5e277]
+                    - cell [ref=f5e278]
+            - generic [ref=f5e279]:
+              - button "Anterior" [ref=f5e280]
+              - button "Siguiente" [disabled]
+  - generic [ref=f5e160]:
+    - generic [ref=f5e161] [cursor=pointer]
+    - generic [ref=f5e162]:
+      - generic [ref=f5e163] [cursor=pointer]: Request
+      - generic [ref=f5e164] [cursor=pointer]: Timeline
+      - generic [ref=f5e167] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f5e168]: "6"
+      - generic [ref=f5e169] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f5e170]: "6"
+    - generic [ref=f5e175]:
+      - generic [ref=f5e176] [cursor=pointer]
+      - generic [ref=f5e177] [cursor=pointer]
+      - generic [ref=f5e178] [cursor=pointer]
+      - generic [ref=f5e180] [cursor=pointer]
+      - generic [ref=f5e182] [cursor=pointer]:
+        - generic [ref=f5e281]: "2"
+        - generic [ref=f5e183]: GET /api/customers/4/pending-receivables
+      - generic [ref=f5e184] [cursor=pointer]: 598ms
+      - generic [ref=f5e186] [cursor=pointer]: 29MB
+      - generic [ref=f5e188] [cursor=pointer]: 13.x

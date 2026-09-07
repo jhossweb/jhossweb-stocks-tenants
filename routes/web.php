@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Api\QuickCreateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employees\EmployeeController;
 use App\Http\Controllers\Expense\ExpenseCategoryController;
@@ -10,10 +11,14 @@ use App\Http\Controllers\Finance\Bank\BankTransactionAnalysisController;
 use App\Http\Controllers\Finance\CashClosingController;
 use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
 use App\Http\Controllers\Finance\Cobranza\ReceiptController;
+use App\Http\Controllers\Inventory\BrandController;
+use App\Http\Controllers\Inventory\CategoryController;
 use App\Http\Controllers\Inventory\InventoryAdjustmentController;
 use App\Http\Controllers\Inventory\KardexController;
 use App\Http\Controllers\Inventory\PriceAdjustmentController;
+use App\Http\Controllers\Inventory\PriceListController;
 use App\Http\Controllers\Inventory\ProductController;
+use App\Http\Controllers\Inventory\WarehouseController;
 use App\Http\Controllers\Payroll\EmployeeDamageController;
 use App\Http\Controllers\Payroll\EmployeeLoanController;
 use App\Http\Controllers\Payroll\PayrollController;
@@ -128,6 +133,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // PRODUCTOS / INVENTARIO
     // -----------------------------------------------------------------------
     Route::resource('products', ProductController::class)->except(['create', 'edit', 'show']);
+    Route::resource('categories', CategoryController::class)->except(['create', 'edit', 'show']);
+    Route::resource('brands', BrandController::class)->except(['create', 'edit', 'show']);
+    Route::resource('warehouses', WarehouseController::class)->except(['create', 'edit', 'show']);
 
     // Kardex por producto
     Route::prefix('kardex')->name('kardex.')->group(function () {
@@ -135,6 +143,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::get('list-prices', [PriceListController::class, 'index'])->name('list-prices');
+        Route::get('list-prices/pdf', [PriceListController::class, 'exportPdf'])->name('list-prices.pdf');
+
         Route::get('adjust-prices', [PriceAdjustmentController::class, 'index'])->name('adjust-prices');
         Route::post('adjust-prices', [PriceAdjustmentController::class, 'store'])->name('adjust-prices.store');
 
@@ -198,12 +209,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('kardex/{proCode}/movements', [KardexController::class, 'getMovements']);
         Route::get('kardex/{proCode}/pdf', [KardexController::class, 'exportPdf']);
 
+        // Inventario / Precios
+        Route::get('products/{proCode}/price-history', [PriceListController::class, 'history']);
+
         // Nómina
         Route::get('employees/active', [EmployeeController::class, 'getActiveEmployees']);
         Route::get('employees/{employee}/loans', [EmployeeLoanController::class, 'getActiveLoans']);
         Route::get('employees/{employee}/damages', [EmployeeDamageController::class, 'getActiveDamages']);
         Route::get('employees/{employee}/pending-payrolls', [PayrollPaymentController::class, 'getPendingPayrolls']);
         Route::get('payroll-periods/pending', [PayrollPeriodController::class, 'getPendingPeriods']);
+
+        // Creación rápida (modales inline en formularios largos)
+        Route::post('bank-accounts', [QuickCreateController::class, 'storeBankAccount']);
+        Route::post('customers', [QuickCreateController::class, 'storeCustomer']);
+        Route::post('suppliers', [QuickCreateController::class, 'storeSupplier']);
     });
 });
 

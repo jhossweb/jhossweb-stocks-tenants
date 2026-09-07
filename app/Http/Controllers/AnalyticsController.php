@@ -44,12 +44,18 @@ class AnalyticsController extends Controller
         $summary = $this->getSummary($type, $month);
         $deferred = fn () => $this->getDetails($type, $month);
 
-        return Inertia::render($pageMap[$type], [
+        $props = [
             'summary' => $summary,
             'details' => Inertia::defer($deferred),
             'selectedMonth' => $month,
             'analyticsType' => $type,
-        ]);
+        ];
+
+        if ($type === 'cash-flow') {
+            $props['monthlyNet'] = $this->cashFlowKpiRepo->monthlyNet(6, $month);
+        }
+
+        return Inertia::render($pageMap[$type], $props);
     }
 
     private function getSummary(string $type, string $month): array

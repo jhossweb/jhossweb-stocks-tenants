@@ -10,6 +10,10 @@ export interface TrendData {
     percentage: number;
 }
 
+export type TrendByCurrency = Record<string, TrendData>;
+
+export type MonthlyNetSeries = Record<string, CurrencyMap>;
+
 export interface ExpenseKpis {
     total: CurrencyMap;
     pending: CurrencyMap;
@@ -20,7 +24,7 @@ export interface CashFlowKpis {
     inflow: CurrencyMap;
     outflow: CurrencyMap;
     net: CurrencyMap;
-    trend: TrendData;
+    trend: TrendByCurrency;
 }
 
 export interface ApArKpis {

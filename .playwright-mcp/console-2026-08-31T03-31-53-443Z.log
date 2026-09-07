@@ -1,0 +1,32 @@
+[     296ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/dashboard:50
+[     414ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-600-normal.woff2 @ http://localhost:8000/dashboard:259
+[     414ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-500-normal.woff2 @ http://localhost:8000/dashboard:259
+[     416ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-400-normal.woff2 @ http://localhost:8000/dashboard:259
+[  155535ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/dashboard:50
+[  167856ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/dashboard:50
+[  351785ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/appearance/index.ts?t=1788147465072:0
+[  351788ms] [ERROR] [vite] Failed to reload /resources/js/layouts/settings/Layout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  351794ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/security/index.ts?t=1788147465089:0
+[  351803ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/profile/index.ts?t=1788147465065:0
+[  351805ms] [ERROR] [vite] Failed to reload /resources/js/components/UserMenuContent.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  351904ms] [ERROR] [vite] Failed to reload /resources/js/layouts/settings/Layout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  351925ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/index.ts?t=1788147465079:0
+[  352000ms] [ERROR] [vite] Failed to reload /home/jhossweb/Documents/JhossWeb/laravel/inventary-vidrialum/resources/js/pages/Dashboard.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  352002ms] [ERROR] [vite] Failed to reload /resources/js/layouts/auth/AuthSimpleLayout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  352040ms] [ERROR] [vite] Failed to reload /resources/js/components/AppSidebar.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  352064ms] [ERROR] [vite] Failed to reload /resources/js/components/UserMenuContent.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  352246ms] [ERROR] [vite] Failed to reload /resources/js/layouts/settings/Layout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  353810ms] [ERROR] [vite] Failed to reload /resources/js/components/UserMenuContent.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  353922ms] [ERROR] [vite] Failed to reload /resources/js/components/AppSidebar.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/dashboard:120
+[  354487ms] [WARNING] [Vue warn]: Extraneous non-props attributes (errors, name, auth, sidebarOpen, flash) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Dashboard errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <SidebarInset key=0 class="overflow-x-hidden" > 
+  at <AppContent variant="sidebar" class="overflow-x-hidden" > 
+  at <TooltipProvider delay-duration=0 > 
+  at <SidebarProvider key=1 default-open=true > 
+  at <AppShell variant="sidebar" > 
+  at <AppSidebarLayout breadcrumbs= [Object] > 
+  at <AppLayout errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <Inertia initialPage= {component: Dashboard, props: Object, url: /dashboard, version: 8b2086528a4b0cd66526cee476b7ce34, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Dashboard, props: Object, setup: , __hmrId: 34521018} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/dashboard:120
+[  365862ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/dashboard:50

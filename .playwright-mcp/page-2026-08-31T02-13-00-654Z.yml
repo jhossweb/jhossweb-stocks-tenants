@@ -1,0 +1,142 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f5e3]:
+      - generic [ref=f5e6]:
+        - list [ref=f5e8]:
+          - listitem [ref=f5e9]:
+            - link "Laravel Starter Kit" [ref=f5e10] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=f5e17]:
+          - generic [ref=f5e18]: Platform
+          - list [ref=f5e19]:
+            - listitem [ref=f5e20]:
+              - button "Inventory" [ref=f5e21]
+            - listitem [ref=f5e31]:
+              - button "Compras" [ref=f5e32]
+            - listitem [ref=f5e40]:
+              - button "Ventas" [ref=f5e41]
+            - listitem [ref=f5e50]:
+              - button "Finanzas" [ref=f5e51]
+            - listitem [ref=f5e59]:
+              - button "Gastos" [ref=f5e60]
+            - listitem [ref=f5e67]:
+              - button "Nómina" [ref=f5e68]
+            - listitem [ref=f5e75]:
+              - button "Configuración" [ref=f5e76]
+        - generic [ref=f5e83]:
+          - list [ref=f5e86]:
+            - listitem [ref=f5e87]:
+              - link "Repository" [ref=f5e88] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=f5e95]:
+              - link "Documentation" [ref=f5e96] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=f5e100]:
+            - listitem [ref=f5e101]:
+              - button "TU Test User" [ref=f5e102]:
+                - generic [ref=f5e103]: TU
+                - generic [ref=f5e105]: Test User
+      - main [ref=f5e110]:
+        - button "Toggle sidebar" [ref=f5e113]
+        - generic [ref=f5e115]:
+          - generic [ref=f5e116]:
+            - generic [ref=f5e117]:
+              - link [ref=f5e118] [cursor=pointer]:
+                - /url: /accounts-receivable
+              - generic [ref=f5e121]:
+                - heading "Comprobante de Cobro" [level=1] [ref=f5e122]
+                - paragraph [ref=f5e123]: Registro de ingresos y abonos de clientes
+            - generic [ref=f5e124]:
+              - button "Datos" [ref=f5e125] [cursor=pointer]
+              - button "Facturas" [ref=f5e129] [cursor=pointer]
+              - button "Fondos" [ref=f5e133]
+          - generic [ref=f5e138]:
+            - generic [ref=f5e139]:
+              - generic [ref=f5e295]:
+                - generic [ref=f5e296]:
+                  - generic [ref=f5e297]: Origen de Fondos
+                  - button "Agregar Movimiento" [ref=f5e303]
+                - generic [ref=f5e305]:
+                  - generic [ref=f5e306]: "Movimiento #1"
+                  - generic [ref=f5e308]:
+                    - generic [ref=f5e309]:
+                      - generic [ref=f5e310]:
+                        - generic [ref=f5e311]: Moneda
+                        - combobox [ref=f5e312]:
+                          - generic: USD
+                      - generic [ref=f5e313]:
+                        - generic [ref=f5e314]: Banco y Cuenta
+                        - generic [ref=f5e315]:
+                          - combobox [ref=f5e316]:
+                            - generic: BANCO PRUEBA123456789876543 (USD)
+                          - button "Crear nueva cuenta bancaria" [ref=f5e317]
+                    - generic [ref=f5e318]:
+                      - generic [ref=f5e319]:
+                        - generic [ref=f5e320]: Monto (USD)
+                        - generic [ref=f5e321]:
+                          - spinbutton [ref=f5e322]: "50"
+                          - button "MÁX" [ref=f5e323]
+                        - paragraph [ref=f5e324]: "Saldo restante a cancelar: 50.0000 USD"
+                      - generic [ref=f5e325]:
+                        - generic [ref=f5e326]: Tipo de Transacción
+                        - combobox [ref=f5e327]:
+                          - generic: TRANSFERENCIA
+                  - generic [ref=f5e328]:
+                    - generic [ref=f5e329]:
+                      - generic [ref=f5e330]: Referencia / Voucher
+                      - textbox "N° de transacción o referencia" [ref=f5e331]
+                    - generic [ref=f5e332]:
+                      - generic [ref=f5e333]: Observaciones
+                      - textbox "Opcional" [ref=f5e334]
+              - generic [ref=f5e335]:
+                - button "Anterior" [ref=f5e336]
+                - button "Generar Cobro" [disabled]
+            - generic [ref=f5e338]:
+              - generic [ref=f5e342]:
+                - generic [ref=f5e343]:
+                  - generic [ref=f5e344]: Total a Liquidar (USD)
+                  - generic [ref=f5e345]: "50.0000"
+                - generic [ref=f5e346]:
+                  - generic [ref=f5e347]: Total Movimientos (USD)
+                  - generic [ref=f5e348]: "50.0000"
+                - generic [ref=f5e349] [cursor=pointer]:
+                  - checkbox "Aplicar vuelto (pagar de más para dar cambio)" [ref=f5e350]
+                  - generic [ref=f5e351]: Aplicar vuelto (pagar de más para dar cambio)
+                - generic [ref=f5e352]:
+                  - generic [ref=f5e353]: Total USD
+                  - generic [ref=f5e354]: "50.0000"
+              - generic [ref=f5e355]:
+                - generic [ref=f5e356]: Movimientos Bancarios
+                - generic [ref=f5e362]:
+                  - generic [ref=f5e363]:
+                    - generic [ref=f5e364]:
+                      - generic [ref=f5e365]: USD — TRANSFERENCIA
+                      - generic [ref=f5e366]: Sin referencia
+                    - generic [ref=f5e367]: "50.0000"
+                  - generic [ref=f5e368]:
+                    - generic [ref=f5e369]: Total Movimientos
+                    - generic [ref=f5e370]: 50.0000 USD
+  - generic [ref=f5e160]:
+    - generic [ref=f5e161] [cursor=pointer]
+    - generic [ref=f5e162]:
+      - generic [ref=f5e163] [cursor=pointer]: Request
+      - generic [ref=f5e164] [cursor=pointer]: Timeline
+      - generic [ref=f5e167] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f5e168]: "6"
+      - generic [ref=f5e169] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f5e170]: "6"
+    - generic [ref=f5e175]:
+      - generic [ref=f5e176] [cursor=pointer]
+      - generic [ref=f5e177] [cursor=pointer]
+      - generic [ref=f5e178] [cursor=pointer]
+      - generic [ref=f5e180] [cursor=pointer]
+      - generic [ref=f5e182] [cursor=pointer]:
+        - generic [ref=f5e281]: "2"
+        - generic [ref=f5e183]: GET /api/customers/4/pending-receivables
+      - generic [ref=f5e184] [cursor=pointer]: 598ms
+      - generic [ref=f5e186] [cursor=pointer]: 29MB
+      - generic [ref=f5e188] [cursor=pointer]: 13.x

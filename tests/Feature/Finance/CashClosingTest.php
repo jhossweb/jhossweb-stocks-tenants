@@ -200,7 +200,8 @@ beforeEach(function () {
     if (Schema::hasTable('transaction_types') && DB::table('transaction_types')->count() === 0) {
         DB::table('transaction_types')->insert([
             'trans_type_code' => 'FACV',
-            'trans_type_name' => 'Factura Venta',
+            'trans_type_description' => 'FACTURA VENTA',
+            'trans_type_factor' => '-1',
         ]);
     }
 });

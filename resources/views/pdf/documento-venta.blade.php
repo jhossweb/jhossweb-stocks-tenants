@@ -1,6 +1,6 @@
 @extends('pdf.layout')
 
-@section('title', $documentLabel.' '.$sale->sls_number.' - '.$company)
+@section('title', $documentLabel.' '.$sale->sls_number.' - '.$companyName)
 
 @push('styles')
     <style>
@@ -237,4 +237,4 @@
     </div>
 @endsection
 
-@section('footer', $documentLabel.' generada por '.$company.' — '.date('d/m/Y H:i'))
+@section('footer', $documentLabel.' generada por '.$companyName.' — '.date('d/m/Y H:i'))

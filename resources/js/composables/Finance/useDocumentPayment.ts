@@ -18,7 +18,8 @@ export function useDocumentPayment() {
         rate_eur: number;
     } | null>(null);
 
-    const roundTo4 = (value: number): number => Math.round(value * 10000) / 10000;
+    const roundTo4 = (value: number): number =>
+        Math.round(value * 10000) / 10000;
 
     const payForm = useForm({
         payment_date: '',
@@ -154,10 +155,12 @@ export function useDocumentPayment() {
                 payment_method: data.payment_method,
                 payment_reference: data.reference,
                 payment_description: data.description,
-                payments: (data.payments ?? []).map((p: { acr_id?: number; acp_id?: number }) => ({
-                    ...p,
-                    amount: roundTo4(Number(data.amount) || 0),
-                })),
+                payments: (data.payments ?? []).map(
+                    (p: { acr_id?: number; acp_id?: number }) => ({
+                        ...p,
+                        amount: roundTo4(Number(data.amount) || 0),
+                    }),
+                ),
             }))
             .post(target, {
                 preserveScroll: true,

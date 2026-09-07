@@ -1,0 +1,125 @@
+- generic:
+  - generic:
+    - region "Notifications alt+T":
+      - list
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - list:
+                - listitem:
+                  - link:
+                    - /url: /dashboard
+                    - generic: Laravel Starter Kit
+            - generic:
+              - generic:
+                - generic: Platform
+                - list:
+                  - listitem:
+                    - button:
+                      - generic: Inventory
+                  - listitem:
+                    - button:
+                      - generic: Compras
+                  - listitem:
+                    - button:
+                      - generic: Ventas
+                  - listitem:
+                    - button:
+                      - generic: Finanzas
+                  - listitem:
+                    - button:
+                      - generic: Gastos
+                  - listitem:
+                    - button:
+                      - generic: Nómina
+                  - listitem:
+                    - button:
+                      - generic: Configuración
+            - generic:
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link:
+                        - /url: https://github.com/laravel/vue-starter-kit
+                        - generic: Repository
+                    - listitem:
+                      - link:
+                        - /url: https://laravel.com/docs/starter-kits#vue
+                        - generic: Documentation
+              - list:
+                - listitem:
+                  - button:
+                    - generic: TU
+                    - generic: Test User
+      - main:
+        - generic:
+          - generic:
+            - button:
+              - generic: Toggle sidebar
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /accounts-receivable
+              - generic:
+                - heading [level=1]: Comprobante de Cobro
+                - paragraph: Registro de ingresos y abonos de clientes
+            - generic:
+              - button: Datos
+              - button: Facturas
+              - button: Fondos
+          - generic:
+            - generic:
+              - generic:
+                - generic: Datos del Cliente
+                - generic:
+                  - generic:
+                    - generic: Cliente
+                    - button [expanded]: Seleccione cliente
+                  - generic:
+                    - generic:
+                      - generic: Fecha de Cobro
+                      - textbox: 2026-08-31
+                    - generic:
+                      - generic: Tasa Aplicada (USD)
+                      - generic: "795.0000"
+                      - paragraph: Factor usado para convertir el pago de USD a USD según la tasa vigente a la fecha de cobro.
+              - generic:
+                - button [disabled]: Siguiente
+  - generic:
+    - generic:
+      - generic:
+        - generic: "3"
+        - generic: "7"
+        - generic: "14"
+        - generic: "1"
+        - generic: "1"
+      - generic: GET /receipts/create
+  - dialog [ref=f6e191]:
+    - generic [ref=f6e192]:
+      - heading "Seleccionar Cliente" [level=2] [ref=f6e193]
+      - paragraph [ref=f6e194]: Busque y seleccione el cliente a cobrar
+    - generic [ref=f6e195]:
+      - textbox "Buscar..." [active] [ref=f6e200]
+      - table [ref=f6e202]:
+        - rowgroup [ref=f6e203]:
+          - row [ref=f6e204]:
+            - columnheader "Nombre" [ref=f6e205]
+            - columnheader [ref=f6e206]
+        - rowgroup [ref=f6e207]:
+          - row [ref=f6e208] [cursor=pointer]:
+            - cell "PEPITO" [ref=f6e209]
+            - cell [ref=f6e210]
+          - row [ref=f6e214] [cursor=pointer]:
+            - cell "david" [ref=f6e215]
+            - cell [ref=f6e216]
+          - row [ref=f6e220] [cursor=pointer]:
+            - cell "juan" [ref=f6e221]
+            - cell [ref=f6e222]
+          - row [ref=f6e226] [cursor=pointer]:
+            - cell "juancito" [ref=f6e227]
+            - cell [ref=f6e228]
+    - button "Close" [ref=f6e232]

@@ -27,6 +27,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Rates',
         href: '/settings/rates',
     },
+    {
+        title: 'Datos de la Empresa',
+        href: '/settings/company',
+    },
 ];
 
 const { isCurrentOrParentUrl } = useCurrentUrl();

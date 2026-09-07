@@ -4,6 +4,7 @@ use App\Enum\Inventary\ProType;
 use App\Enum\Sales\StatusSales;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Company;
 use App\Models\CostHistory;
 use App\Models\Customer;
 use App\Models\PriceHistory;
@@ -248,7 +249,9 @@ test('show renders the sale detail with movements', function () {
         );
 });
 
-test('export pdf downloads a sale invoice', function () {
+test('export pdf downloads a sale invoice with the company fiscal data', function () {
+    $company = Company::factory()->create();
+
     $sale = SaleOrder::factory()->facv()->create([
         'sls_customer_id' => $this->customer->id,
     ]);
@@ -270,6 +273,26 @@ test('export pdf downloads a sale invoice', function () {
     $response->assertOk();
     expect($response->headers->get('content-type'))->toContain('application/pdf');
     expect(str_starts_with($response->getContent(), '%PDF'))->toBeTrue();
+
+    $sale->load(['customer', 'movements.product']);
+
+    $html = view('pdf.documento-venta', [
+        'company' => $company,
+        'companyName' => $company->cmp_name,
+        'sale' => $sale,
+        'customer' => $sale->customer,
+        'items' => $sale->movements,
+        'documentLabel' => 'Factura',
+        'partyLabel' => 'Facturar a',
+        'documentInfoLabel' => 'Información de la factura',
+        'legend' => null,
+    ])->render();
+
+    expect($html)->toContain('Vidrialum C.A.');
+    expect($html)->toContain('RIF: J-12345678-9');
+    expect($html)->toContain('Av. Principal, Sector Industrial, Caracas');
+    expect($html)->toContain('+58 212 555 1234');
+    expect($html)->toContain('contacto@vidrialum.com');
 });
 
 test('update modifies a sale', function () {

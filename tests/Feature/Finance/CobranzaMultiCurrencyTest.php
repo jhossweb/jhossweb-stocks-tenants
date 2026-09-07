@@ -63,16 +63,20 @@ it('registra cobranza multimoneda COP↔BS sin errores (factura en :docCoin, cob
     $payload = [
         'payment_date' => now()->toDateString(),
         'customer_id' => $this->customer->id,
-        'bank_account_id' => $bank->id,
-        'payment_currency' => $payCoin,
-        'payment_rate' => 3.5,
-        'payment_method' => 'TRANSFERENCIA',
-        'payment_reference' => 'REF-MULTI',
-        'payment_description' => 'Cobro multimoneda',
         'payments' => [
             [
                 'acr_id' => $acr->id,
+                'amount' => $total,
+            ],
+        ],
+        'bank_movements' => [
+            [
+                'bank_account_id' => $bank->id,
+                'currency' => $payCoin,
                 'amount' => $payAmount,
+                'method' => 'TRANSFERENCIA',
+                'reference' => 'REF-MULTI',
+                'description' => 'Cobro multimoneda',
             ],
         ],
     ];
@@ -119,16 +123,20 @@ it('registra el abono bancario en la moneda del pago y actualiza el saldo del ba
     $payload = [
         'payment_date' => now()->toDateString(),
         'customer_id' => $this->customer->id,
-        'bank_account_id' => $bank->id,
-        'payment_currency' => $payCoin,
-        'payment_rate' => 3.5,
-        'payment_method' => 'TRANSFERENCIA',
-        'payment_reference' => 'REF-MULTI-BAL',
-        'payment_description' => 'Cobro multimoneda',
         'payments' => [
             [
                 'acr_id' => $acr->id,
+                'amount' => $total,
+            ],
+        ],
+        'bank_movements' => [
+            [
+                'bank_account_id' => $bank->id,
+                'currency' => $payCoin,
                 'amount' => $payAmount,
+                'method' => 'TRANSFERENCIA',
+                'reference' => 'REF-MULTI-BAL',
+                'description' => 'Cobro multimoneda',
             ],
         ],
     ];

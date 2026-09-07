@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', $company)</title>
+    <title>@yield('title', $companyName)</title>
     <style>
         body {
             font-family: 'DejaVu Sans', sans-serif;
@@ -32,6 +32,22 @@
             font-size: 10px;
             color: #6b7280;
             margin-top: 2px;
+        }
+        .brand-bar .brand-company {
+            font-size: 9px;
+            color: #6b7280;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+        .brand-bar .brand-company .sep {
+            margin: 0 6px;
+            color: #cbd5e1;
+        }
+        .brand-bar .brand-logo {
+            max-height: 44px;
+            max-width: 180px;
+            margin-right: 8px;
+            vertical-align: middle;
         }
         .brand-bar .doc-title {
             font-size: 13px;
@@ -119,7 +135,26 @@
         <table>
             <tr>
                 <td>
-                    <div class="brand-name">{{ $company }}</div>
+                    <div class="brand-name">
+                        @if ($company?->cmp_logo && file_exists(public_path(ltrim($company->cmp_logo, '/'))))
+                            <img class="brand-logo" src="{{ public_path(ltrim($company->cmp_logo, '/')) }}" alt="{{ $companyName }}">
+                        @endif
+                        {{ $companyName }}
+                    </div>
+                    <div class="brand-company">
+                        @if ($company?->cmp_rif)
+                            <span>RIF: {{ $company->cmp_rif }}</span>
+                        @endif
+                        @if ($company?->cmp_address)
+                            <span class="sep">•</span><span>{{ $company->cmp_address }}</span>
+                        @endif
+                        @if ($company?->cmp_phone)
+                            <span class="sep">•</span><span>{{ $company->cmp_phone }}</span>
+                        @endif
+                        @if ($company?->cmp_email)
+                            <span class="sep">•</span><span>{{ $company->cmp_email }}</span>
+                        @endif
+                    </div>
                     @hasSection('brand-sub')
                         <div class="brand-sub">@yield('brand-sub')</div>
                     @endif
@@ -139,7 +174,7 @@
     @yield('content')
 
     <div class="footer">
-        @yield('footer', 'Documento generado por '.$company.' — '.date('d/m/Y H:i'))
+        @yield('footer', 'Documento generado por '.$companyName.' — '.date('d/m/Y H:i'))
     </div>
 </body>
 </html>

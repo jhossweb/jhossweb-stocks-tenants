@@ -4,6 +4,7 @@ namespace App\Services\Sales;
 
 use App\Enum\Sales\QuoteStatus;
 use App\Enum\Sales\StatusSales;
+use App\Models\AccountsReceivable;
 use App\Models\MovementsSale;
 use App\Models\SaleOrder;
 use App\Models\TransactionType;
@@ -133,6 +134,13 @@ class SaleOrderService
      */
     private function buildPaymentPayload(array $validated, int $receivableId): array
     {
+        $rawPayments = $validated['payment']['payments'] ?? [];
+
+        $receivable = AccountsReceivable::with('saleOrder')->find($receivableId);
+        $docBalance = $receivable && $receivable->acr_balance > 0
+            ? round((float) $receivable->acr_balance, 4)
+            : array_sum(array_map(fn (array $p): float => (float) $p['payment_amount'], $rawPayments));
+
         return [
             'payment_date' => $validated['payment']['payment_date'] ?? now()->toDateString(),
             'customer_id' => $validated['sls_customer_id'],
@@ -142,16 +150,20 @@ class SaleOrderService
                 'currency' => $v['vuelto_currency'],
                 'bank_account_id' => $v['vuelto_bank_account_id'],
             ], $validated['payment']['vueltos'] ?? []),
-            'payments' => array_map(fn (array $p): array => [
-                'acr_id' => $receivableId,
-                'amount' => $p['payment_amount'],
-                'payment_currency' => $p['payment_currency'],
-                'payment_rate' => $p['payment_rate'],
-                'payment_method' => $p['payment_method'],
-                'payment_reference' => $p['payment_reference'],
-                'payment_description' => $p['payment_description'] ?? null,
+            'payments' => [
+                [
+                    'acr_id' => $receivableId,
+                    'amount' => $docBalance,
+                ],
+            ],
+            'bank_movements' => array_map(fn (array $p): array => [
                 'bank_account_id' => $p['bank_account_id'],
-            ], $validated['payment']['payments']),
+                'currency' => $p['payment_currency'],
+                'amount' => $p['payment_amount'],
+                'method' => $p['payment_method'],
+                'reference' => $p['payment_reference'],
+                'description' => $p['payment_description'] ?? null,
+            ], $rawPayments),
         ];
     }
 

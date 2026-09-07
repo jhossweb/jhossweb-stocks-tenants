@@ -1,0 +1,100 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f4e3]:
+      - generic [ref=f4e6]:
+        - list [ref=f4e8]:
+          - listitem [ref=f4e9]:
+            - link "Laravel Starter Kit" [ref=f4e10] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=f4e17]:
+          - generic [ref=f4e18]: Platform
+          - list [ref=f4e19]:
+            - listitem [ref=f4e20]:
+              - button "Inventory" [ref=f4e21]
+            - listitem [ref=f4e31]:
+              - button "Compras" [ref=f4e32]
+            - listitem [ref=f4e40]:
+              - button "Ventas" [ref=f4e41]
+            - listitem [ref=f4e50]:
+              - button "Finanzas" [ref=f4e51]
+            - listitem [ref=f4e59]:
+              - button "Gastos" [ref=f4e60]
+            - listitem [ref=f4e67]:
+              - button "Nómina" [ref=f4e68]
+            - listitem [ref=f4e75]:
+              - button "Configuración" [ref=f4e76]
+        - generic [ref=f4e83]:
+          - list [ref=f4e86]:
+            - listitem [ref=f4e87]:
+              - link "Repository" [ref=f4e88] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=f4e95]:
+              - link "Documentation" [ref=f4e96] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=f4e100]:
+            - listitem [ref=f4e101]:
+              - button "TU Test User" [ref=f4e102]:
+                - generic [ref=f4e103]: TU
+                - generic [ref=f4e105]: Test User
+      - main [ref=f4e110]:
+        - button "Toggle sidebar" [ref=f4e113]
+        - generic [ref=f4e115]:
+          - generic [ref=f4e116]:
+            - generic [ref=f4e117]:
+              - link [ref=f4e118] [cursor=pointer]:
+                - /url: /accounts-receivable
+              - generic [ref=f4e121]:
+                - heading "Comprobante de Cobro" [level=1] [ref=f4e122]
+                - paragraph [ref=f4e123]: Registro de ingresos y abonos de clientes
+            - generic [ref=f4e124]:
+              - button "Datos" [ref=f4e125]
+              - button "Facturas" [ref=f4e129]
+              - button "Fondos" [ref=f4e133]
+          - generic [ref=f4e139]:
+            - generic [ref=f4e140]:
+              - generic [ref=f4e141]: Datos del Cliente
+              - generic [ref=f4e145]:
+                - generic [ref=f4e146]:
+                  - generic [ref=f4e147]: Cliente
+                  - button "Seleccione cliente" [ref=f4e148]
+                - generic [ref=f4e149]:
+                  - generic [ref=f4e150]:
+                    - generic [ref=f4e151]: Fecha de Cobro
+                    - textbox [ref=f4e152]: 2026-08-31
+                  - generic [ref=f4e153]:
+                    - generic [ref=f4e154]: Tasa Aplicada (USD)
+                    - generic [ref=f4e155]: "795.0000"
+                    - paragraph [ref=f4e156]: Factor usado para convertir el pago de USD a USD según la tasa vigente a la fecha de cobro.
+            - generic [ref=f4e157]:
+              - button "Siguiente" [disabled]
+  - generic [ref=f4e160]:
+    - generic [ref=f4e161] [cursor=pointer]
+    - generic [ref=f4e162]:
+      - generic [ref=f4e163] [cursor=pointer]: Request
+      - generic [ref=f4e164] [cursor=pointer]: Timeline
+      - generic [ref=f4e165] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=f4e166]: "3"
+      - generic [ref=f4e167] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f4e168]: "7"
+      - generic [ref=f4e169] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f4e170]: "14"
+      - generic [ref=f4e171] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f4e172]: "1"
+      - generic [ref=f4e173] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=f4e174]: "1"
+    - generic [ref=f4e175]:
+      - generic [ref=f4e176] [cursor=pointer]
+      - generic [ref=f4e177] [cursor=pointer]
+      - generic [ref=f4e178] [cursor=pointer]
+      - generic [ref=f4e180] [cursor=pointer]
+      - generic [ref=f4e181]: GET /receipts/create
+      - generic [ref=f4e184] [cursor=pointer]: 843ms
+      - generic [ref=f4e186] [cursor=pointer]: 32MB
+      - generic [ref=f4e188] [cursor=pointer]: 13.x

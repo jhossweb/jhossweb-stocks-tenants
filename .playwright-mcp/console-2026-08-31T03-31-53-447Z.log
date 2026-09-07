@@ -1,0 +1,33 @@
+[     220ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/receipts/create:50
+[     314ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-600-normal.woff2 @ http://localhost:8000/receipts/create:259
+[     318ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-500-normal.woff2 @ http://localhost:8000/receipts/create:259
+[     323ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-400-normal.woff2 @ http://localhost:8000/receipts/create:259
+[  157548ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/receipts/create:50
+[  170615ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/receipts/create:50
+[  351942ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/receipts/index.ts?t=1788147465054:0
+[  351947ms] [ERROR] [vite] Failed to reload /home/jhossweb/Documents/JhossWeb/laravel/inventary-vidrialum/resources/js/pages/Finance/Receipts/Create.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  352200ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/appearance/index.ts?t=1788147465072:0
+[  352211ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/profile/index.ts?t=1788147465065:0
+[  352218ms] [ERROR] [vite] Failed to reload /resources/js/layouts/settings/Layout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  352222ms] [ERROR] [vite] Failed to reload /resources/js/components/UserMenuContent.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  352251ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/security/index.ts?t=1788147465089:0
+[  352251ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/index.ts?t=1788147465079:0
+[  352312ms] [ERROR] [vite] Failed to reload /resources/js/layouts/settings/Layout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  352384ms] [ERROR] [vite] Failed to reload /resources/js/layouts/auth/AuthSimpleLayout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  352427ms] [ERROR] [vite] Failed to reload /resources/js/components/AppSidebar.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  352448ms] [ERROR] [vite] Failed to reload /resources/js/components/UserMenuContent.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  352517ms] [ERROR] [vite] Failed to reload /resources/js/layouts/settings/Layout.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  353630ms] [ERROR] [vite] Failed to reload /resources/js/components/UserMenuContent.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  353669ms] [ERROR] [vite] Failed to reload /resources/js/components/AppSidebar.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:8000/receipts/create:120
+[  355041ms] [WARNING] [Vue warn]: Extraneous non-props attributes (errors, name, auth, sidebarOpen, flash) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Create errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <SidebarInset key=0 class="overflow-x-hidden" > 
+  at <AppContent variant="sidebar" class="overflow-x-hidden" > 
+  at <TooltipProvider delay-duration=0 > 
+  at <SidebarProvider key=1 default-open=true > 
+  at <AppShell variant="sidebar" > 
+  at <AppSidebarLayout breadcrumbs= [] > 
+  at <AppLayout errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <Inertia initialPage= {component: Finance/Receipts/Create, props: Object, url: /receipts/create, version: 8b2086528a4b0cd66526cee476b7ce34, sharedProps: Array(5)} initialComponent= {__name: Create, props: Object, setup: , __hmrId: 110e8046, render: } resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/receipts/create:120
+[  362907ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/receipts/create:50

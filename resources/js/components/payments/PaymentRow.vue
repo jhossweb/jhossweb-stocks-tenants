@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { DollarSign, Landmark, Repeat, X } from 'lucide-vue-next';
-import { computed, onMounted, watch } from 'vue';
+import { DollarSign, Landmark, Plus, Repeat, X } from 'lucide-vue-next';
+import { computed, onMounted, ref, watch } from 'vue';
+import BankAccountCreateModal from '@/components/payments/BankAccountCreateModal.vue';
+import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input/Input.vue';
 import { Label } from '@/components/ui/label';
 import {
@@ -190,6 +192,18 @@ const setMax = () => {
         Math.round(Number(props.maxAllowed) * 10000) / 10000,
     );
 };
+
+const bankModalRef = ref<InstanceType<typeof BankAccountCreateModal> | null>(
+    null,
+);
+
+const openBankModal = () => {
+    bankModalRef.value?.open();
+};
+
+const onBankCreated = (bank: { id: number }) => {
+    payment.value.bank_account_id = String(bank.id);
+};
 </script>
 
 <template>
@@ -292,6 +306,16 @@ const setMax = () => {
                         </SelectItem>
                     </SelectContent>
                 </Select>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="openBankModal"
+                    class="mt-2 w-full border-dashed border-zinc-800 text-zinc-400 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-400"
+                    title="Crear nueva cuenta bancaria"
+                >
+                    <Plus class="mr-1.5 h-3.5 w-3.5" /> Nueva cuenta
+                </Button>
                 <p
                     v-if="errors.bank_account_id"
                     class="mt-1 text-xs text-destructive"
@@ -432,5 +456,11 @@ const setMax = () => {
                 {{ errors.payment_description }}
             </p>
         </div>
+
+        <BankAccountCreateModal
+            ref="bankModalRef"
+            :currency="payment.payment_currency"
+            @created="onBankCreated"
+        />
     </div>
 </template>

@@ -1,0 +1,149 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f1e68]:
+      - generic [ref=f1e71]:
+        - list [ref=f1e73]:
+          - listitem [ref=f1e74]:
+            - link "Laravel Starter Kit" [ref=f1e75] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=f1e82]:
+          - generic [ref=f1e83]: Platform
+          - list [ref=f1e84]:
+            - listitem [ref=f1e85]:
+              - button "Inventory" [ref=f1e86]
+            - listitem [ref=f1e96]:
+              - button "Compras" [ref=f1e97]
+            - listitem [ref=f1e105]:
+              - button "Ventas" [ref=f1e106]
+            - listitem [ref=f1e115]:
+              - button "Finanzas" [ref=f1e116]
+            - listitem [ref=f1e124]:
+              - button "Gastos" [ref=f1e125]
+            - listitem [ref=f1e132]:
+              - button "Nómina" [ref=f1e133]
+            - listitem [ref=f1e140]:
+              - button "Configuración" [ref=f1e141]
+        - generic [ref=f1e148]:
+          - list [ref=f1e151]:
+            - listitem [ref=f1e152]:
+              - link "Repository" [ref=f1e153] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=f1e160]:
+              - link "Documentation" [ref=f1e161] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=f1e165]:
+            - listitem [ref=f1e166]:
+              - button "TU Test User" [ref=f1e167]:
+                - generic [ref=f1e168]: TU
+                - generic [ref=f1e170]: Test User
+      - main [ref=f1e175]:
+        - button "Toggle sidebar" [ref=f1e178]
+        - generic [ref=f1e180]:
+          - generic [ref=f1e181]:
+            - generic [ref=f1e182]:
+              - link [ref=f1e183] [cursor=pointer]:
+                - /url: /accounts-receivable
+              - generic [ref=f1e186]:
+                - heading "Comprobante de Cobro" [level=1] [ref=f1e187]
+                - paragraph [ref=f1e188]: Registro de ingresos y abonos de clientes
+            - generic [ref=f1e189]:
+              - button "Datos" [ref=f1e190] [cursor=pointer]
+              - button "Facturas" [ref=f1e194] [cursor=pointer]
+              - button "Fondos" [ref=f1e198]
+          - generic [ref=f1e495]:
+            - paragraph [ref=f1e496]: "Por favor, corrige los siguientes errores:"
+            - list [ref=f1e497]:
+              - listitem [ref=f1e499]: Este campo es obligatorio.
+          - generic [ref=f1e203]:
+            - generic [ref=f1e204]:
+              - generic [ref=f1e412]:
+                - generic [ref=f1e413]:
+                  - generic [ref=f1e414]: Origen de Fondos
+                  - button "Agregar Movimiento" [ref=f1e420]
+                - generic [ref=f1e422]:
+                  - generic [ref=f1e423]: "Movimiento #1"
+                  - generic [ref=f1e425]:
+                    - generic [ref=f1e426]:
+                      - generic [ref=f1e427]:
+                        - generic [ref=f1e428]: Moneda
+                        - combobox [ref=f1e429]:
+                          - generic: USD
+                      - generic [ref=f1e430]:
+                        - generic [ref=f1e431]: Banco y Cuenta
+                        - generic [ref=f1e432]:
+                          - combobox [ref=f1e433]:
+                            - generic: BANCO PRUEBA123456789876543 (USD)
+                          - button "Crear nueva cuenta bancaria" [ref=f1e434]
+                    - generic [ref=f1e435]:
+                      - generic [ref=f1e436]:
+                        - generic [ref=f1e437]: Monto (USD)
+                        - generic [ref=f1e438]:
+                          - spinbutton [ref=f1e439]: "300"
+                          - button "MÁX" [ref=f1e440]
+                        - paragraph [ref=f1e441]: "Saldo restante a cancelar: 300.0000 USD"
+                      - generic [ref=f1e442]:
+                        - generic [ref=f1e443]: Tipo de Transacción
+                        - combobox [ref=f1e444]:
+                          - generic: TRANSFERENCIA
+                  - generic [ref=f1e445]:
+                    - generic [ref=f1e446]:
+                      - generic [ref=f1e447]: Referencia / Voucher
+                      - textbox "N° de transacción o referencia" [ref=f1e448]: REF-ABONO-001
+                    - generic [ref=f1e449]:
+                      - generic [ref=f1e450]: Observaciones
+                      - textbox "Opcional" [ref=f1e451]
+              - generic [ref=f1e452]:
+                - button "Anterior" [ref=f1e453]
+                - button "Generar Cobro" [disabled]
+            - generic [ref=f1e455]:
+              - generic [ref=f1e459]:
+                - generic [ref=f1e460]:
+                  - generic [ref=f1e461]: Total a Liquidar (USD)
+                  - generic [ref=f1e462]: "300.0000"
+                - generic [ref=f1e463]:
+                  - generic [ref=f1e464]: Total Movimientos (USD)
+                  - generic [ref=f1e465]: "300.0000"
+                - generic [ref=f1e466] [cursor=pointer]:
+                  - checkbox "Aplicar vuelto (pagar de más para dar cambio)" [ref=f1e467]
+                  - generic [ref=f1e468]: Aplicar vuelto (pagar de más para dar cambio)
+                - generic [ref=f1e469]:
+                  - generic [ref=f1e470]: Total USD
+                  - generic [ref=f1e471]: "300.0000"
+              - generic [ref=f1e472]:
+                - generic [ref=f1e473]: Movimientos Bancarios
+                - generic [ref=f1e479]:
+                  - generic [ref=f1e480]:
+                    - generic [ref=f1e481]:
+                      - generic [ref=f1e482]: USD — TRANSFERENCIA
+                      - generic [ref=f1e483]: REF-ABONO-001
+                    - generic [ref=f1e484]: "300.0000"
+                  - generic [ref=f1e485]:
+                    - generic [ref=f1e486]: Total Movimientos
+                    - generic [ref=f1e487]: 300.0000 USD
+  - generic [ref=f1e40]:
+    - generic [ref=f1e41] [cursor=pointer]
+    - generic [ref=f1e42]:
+      - generic [ref=f1e43] [cursor=pointer]: Request
+      - generic [ref=f1e44] [cursor=pointer]: Timeline
+      - generic [ref=f1e47] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f1e48]: "7"
+      - generic [ref=f1e223] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f1e224]: "14"
+      - generic [ref=f1e49] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f1e50]: "1"
+    - generic [ref=f1e53]:
+      - generic [ref=f1e54] [cursor=pointer]
+      - generic [ref=f1e55] [cursor=pointer]
+      - generic [ref=f1e56] [cursor=pointer]
+      - generic [ref=f1e58] [cursor=pointer]
+      - generic [ref=f1e60] [cursor=pointer]:
+        - generic [ref=f1e225]: "7"
+        - generic [ref=f1e61]: GET /receipts/create
+      - generic [ref=f1e62] [cursor=pointer]: 608ms
+      - generic [ref=f1e64] [cursor=pointer]: 29MB
+      - generic [ref=f1e66] [cursor=pointer]: 13.x

@@ -28,11 +28,11 @@ const { isCurrentUrl } = useCurrentUrl();
 // Helper to check if any child (or grandchild) is active
 const hasActiveChild = (item: NavItem): boolean => {
     if (isCurrentUrl(item.href)) {
-return true;
-}
+        return true;
+    }
 
     if (item.items) {
-        return item.items.some(child => hasActiveChild(child));
+        return item.items.some((child) => hasActiveChild(child));
     }
 
     return false;
@@ -53,35 +53,70 @@ return true;
                 >
                     <SidebarMenuItem>
                         <CollapsibleTrigger as-child>
-                            <SidebarMenuButton :tooltip="item.title" :is-active="hasActiveChild(item)">
+                            <SidebarMenuButton
+                                :tooltip="item.title"
+                                :is-active="hasActiveChild(item)"
+                            >
                                 <component :is="item.icon" v-if="item.icon" />
                                 <span>{{ item.title }}</span>
-                                <ChevronRight class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                <ChevronRight
+                                    class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                                />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                             <SidebarMenuSub>
-                                <template v-for="subItem in item.items" :key="subItem.title">
+                                <template
+                                    v-for="subItem in item.items"
+                                    :key="subItem.title"
+                                >
                                     <!-- Nested Collapsible for second level if needed -->
                                     <Collapsible
-                                        v-if="subItem.items && subItem.items.length > 0"
+                                        v-if="
+                                            subItem.items &&
+                                            subItem.items.length > 0
+                                        "
                                         as-child
                                         :default-open="hasActiveChild(subItem)"
                                         class="group/sub-collapsible"
                                     >
                                         <SidebarMenuSubItem>
                                             <CollapsibleTrigger as-child>
-                                                <SidebarMenuSubButton :is-active="hasActiveChild(subItem)">
-                                                    <span>{{ subItem.title }}</span>
-                                                    <ChevronRight class="ml-auto size-3 transition-transform duration-200 group-data-[state=open]/sub-collapsible:rotate-90" />
+                                                <SidebarMenuSubButton
+                                                    :is-active="
+                                                        hasActiveChild(subItem)
+                                                    "
+                                                >
+                                                    <span>{{
+                                                        subItem.title
+                                                    }}</span>
+                                                    <ChevronRight
+                                                        class="ml-auto size-3 transition-transform duration-200 group-data-[state=open]/sub-collapsible:rotate-90"
+                                                    />
                                                 </SidebarMenuSubButton>
                                             </CollapsibleTrigger>
                                             <CollapsibleContent>
                                                 <SidebarMenuSub>
-                                                    <SidebarMenuSubItem v-for="grandChild in subItem.items" :key="grandChild.title">
-                                                        <SidebarMenuSubButton as-child :is-active="isCurrentUrl(grandChild.href)">
-                                                            <Link :href="grandChild.href">
-                                                                <span>{{ grandChild.title }}</span>
+                                                    <SidebarMenuSubItem
+                                                        v-for="grandChild in subItem.items"
+                                                        :key="grandChild.title"
+                                                    >
+                                                        <SidebarMenuSubButton
+                                                            as-child
+                                                            :is-active="
+                                                                isCurrentUrl(
+                                                                    grandChild.href,
+                                                                )
+                                                            "
+                                                        >
+                                                            <Link
+                                                                :href="
+                                                                    grandChild.href
+                                                                "
+                                                            >
+                                                                <span>{{
+                                                                    grandChild.title
+                                                                }}</span>
                                                             </Link>
                                                         </SidebarMenuSubButton>
                                                     </SidebarMenuSubItem>
@@ -92,7 +127,12 @@ return true;
 
                                     <!-- Simple sub-item -->
                                     <SidebarMenuSubItem v-else>
-                                        <SidebarMenuSubButton as-child :is-active="isCurrentUrl(subItem.href)">
+                                        <SidebarMenuSubButton
+                                            as-child
+                                            :is-active="
+                                                isCurrentUrl(subItem.href)
+                                            "
+                                        >
                                             <Link :href="subItem.href">
                                                 <span>{{ subItem.title }}</span>
                                             </Link>

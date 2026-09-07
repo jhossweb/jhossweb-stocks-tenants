@@ -1,0 +1,5 @@
+[     972ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/login:50
+[   35410ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-600-normal.woff2 @ http://localhost:8000/receipts/create:0
+[  700058ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/accounts-receivable:50
+[  702793ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:5173/resources/js/routes/profile/index.ts?t=1788142108862:0
+[  711917ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/accounts-receivable:50

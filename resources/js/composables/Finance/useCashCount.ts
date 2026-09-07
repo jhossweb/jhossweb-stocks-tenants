@@ -61,7 +61,10 @@ export function useCashCount(preview: Ref<CashClosingPreview | undefined>) {
 
         const receipts = preview.value.grouped_receipts;
         const vueltos = preview.value.grouped_vueltos ?? {};
-        const coins = new Set([...Object.keys(receipts), ...Object.keys(vueltos)]);
+        const coins = new Set([
+            ...Object.keys(receipts),
+            ...Object.keys(vueltos),
+        ]);
 
         for (const coin of coins) {
             let sum = 0;

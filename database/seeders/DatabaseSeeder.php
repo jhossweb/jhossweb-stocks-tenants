@@ -7,14 +7,11 @@ use App\Models\AccountsPayable;
 use App\Models\AdjustmentReason;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
-use App\Models\Brand;
-use App\Models\Category;
 use App\Models\MovementsPurchase;
 use App\Models\Product;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
-use App\Models\TransactionType;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Database\Seeder;
@@ -33,59 +30,13 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        Brand::factory()->count(2)->create();
-        Category::factory()->count(2)->create();
-        Warehouse::factory()->count(2)->create();
+        $this->call(CompanySeeder::class);
+        $this->call(BrandSeeder::class);
+        $this->call(CategorySeeder::class);
+        $this->call(WarehouseSeeder::class);
+        $this->call(TransactionTypeSeeder::class);
         Product::factory()->count(100)->create();
         Supplier::factory()->count(10)->create();
-        TransactionType::create(
-            [
-                'trans_type_code' => 'FAC',
-                'trans_type_description' => 'FACTURA COMPRA',
-                'trans_type_factor' => '1',
-            ]
-        );
-
-        TransactionType::create(
-            [
-                'trans_type_code' => 'DEVC',
-                'trans_type_description' => 'DEVOLUCION COMPRA',
-                'trans_type_factor' => '-1',
-            ]
-        );
-
-        TransactionType::create(
-            [
-                'trans_type_code' => 'FACV',
-                'trans_type_description' => 'FACTURA VENTA',
-                'trans_type_factor' => '-1',
-            ]
-        );
-
-        TransactionType::create(
-            [
-                'trans_type_code' => 'DEVV',
-                'trans_type_description' => 'DEVOLUCION VENTA',
-                'trans_type_factor' => '1',
-            ]
-        );
-
-        TransactionType::create(
-            [
-                'trans_type_code' => 'INV',
-                'trans_type_description' => 'AJUSTE INVENTARIO',
-                'trans_type_factor' => '-1',
-            ]
-        );
-
-        TransactionType::create(
-            [
-                'trans_type_code' => 'COT',
-                'trans_type_description' => 'COTIZACION',
-                'trans_type_factor' => '0',
-                'trans_last_number' => 1,
-            ]
-        );
 
         AdjustmentReason::create([
             'adjr_code' => 'MERMA',

@@ -1,0 +1,83 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f1e68]:
+      - generic [ref=f1e71]:
+        - list [ref=f1e73]:
+          - listitem [ref=f1e74]:
+            - link "Laravel Starter Kit" [ref=f1e75] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=f1e82]:
+          - generic [ref=f1e83]: Platform
+          - list [ref=f1e84]:
+            - listitem [ref=f1e85]:
+              - button "Inventory" [ref=f1e86]
+            - listitem [ref=f1e96]:
+              - button "Compras" [ref=f1e97]
+            - listitem [ref=f1e105]:
+              - button "Ventas" [ref=f1e106]
+            - listitem [ref=f1e115]:
+              - button "Finanzas" [ref=f1e116]
+            - listitem [ref=f1e124]:
+              - button "Gastos" [ref=f1e125]
+            - listitem [ref=f1e132]:
+              - button "Nómina" [ref=f1e133]
+            - listitem [ref=f1e140]:
+              - button "Configuración" [ref=f1e141]
+        - generic [ref=f1e148]:
+          - list [ref=f1e151]:
+            - listitem [ref=f1e152]:
+              - link "Repository" [ref=f1e153] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=f1e160]:
+              - link "Documentation" [ref=f1e161] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=f1e165]:
+            - listitem [ref=f1e166]:
+              - button "TU Test User" [ref=f1e167]:
+                - generic [ref=f1e168]: TU
+                - generic [ref=f1e170]: Test User
+      - main [ref=f1e175]:
+        - button "Toggle sidebar" [ref=f1e178]
+        - generic [ref=f1e180]:
+          - generic [ref=f1e181]:
+            - generic [ref=f1e182]:
+              - link [ref=f1e183] [cursor=pointer]:
+                - /url: /accounts-receivable
+              - generic [ref=f1e186]:
+                - heading "Comprobante de Cobro" [level=1] [ref=f1e187]
+                - paragraph [ref=f1e188]: Registro de ingresos y abonos de clientes
+            - generic [ref=f1e189]:
+              - button "Datos" [ref=f1e190] [cursor=pointer]
+              - button "Facturas" [ref=f1e194]
+              - button "Fondos" [ref=f1e198]
+          - generic [ref=f1e204]:
+            - generic [ref=f1e272]:
+              - generic [ref=f1e273]: Facturas Pendientes
+              - paragraph [ref=f1e284]: El cliente no tiene deudas pendientes
+            - generic [ref=f1e285]:
+              - button "Anterior" [ref=f1e286]
+              - button "Siguiente" [disabled]
+  - generic [ref=f1e40]:
+    - generic [ref=f1e41] [cursor=pointer]
+    - generic [ref=f1e42]:
+      - generic [ref=f1e43] [cursor=pointer]: Request
+      - generic [ref=f1e44] [cursor=pointer]: Timeline
+      - generic [ref=f1e47] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f1e48]: "5"
+      - generic [ref=f1e223] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f1e224]: "2"
+    - generic [ref=f1e53]:
+      - generic [ref=f1e54] [cursor=pointer]
+      - generic [ref=f1e55] [cursor=pointer]
+      - generic [ref=f1e56] [cursor=pointer]
+      - generic [ref=f1e58] [cursor=pointer]
+      - generic [ref=f1e60] [cursor=pointer]:
+        - generic [ref=f1e225]: "4"
+        - generic [ref=f1e61]: GET /api/customers/1/pending-receivables
+      - generic [ref=f1e62] [cursor=pointer]: 669ms
+      - generic [ref=f1e64] [cursor=pointer]: 29MB
+      - generic [ref=f1e66] [cursor=pointer]: 13.x

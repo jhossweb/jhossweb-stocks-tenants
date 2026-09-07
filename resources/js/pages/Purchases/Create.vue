@@ -12,6 +12,7 @@ import FormSection from '@/components/Form/FormSection.vue';
 import ItemsTable from '@/components/Form/ItemsTable.vue';
 import PaymentSection from '@/components/payments/PaymentSection.vue';
 import PurchaseItemRow from '@/components/Purchases/PurchaseItemRow.vue';
+import SupplierCreateModal from '@/components/purchases/SupplierCreateModal.vue';
 import SelectorModal from '@/components/SelectorModal.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { useTransactionForm } from '@/composables/Transaction/useTransactionForm';
@@ -183,6 +184,18 @@ const selectSupplier = (supplier: Supplier) => {
         form.invoice_credit_days = creditDays;
         updateDueDate();
     }
+};
+
+const supplierModalRef = ref<InstanceType<
+    typeof SupplierCreateModal
+> | null>(null);
+
+const openSupplierModal = () => {
+    supplierModalRef.value?.open();
+};
+
+const onSupplierCreated = (supplier: { id: number }) => {
+    selectSupplier(supplier as Supplier);
 };
 
 const selectProduct = (index: number, product: Product) => {
@@ -408,7 +421,17 @@ const columns: ColumnConfig[] = [
                                 "
                                 :selected-value="form.invoice_supplier_id"
                                 @select="selectSupplier"
-                            />
+                            >
+                                <template #footer>
+                                    <button
+                                        type="button"
+                                        @click="openSupplierModal"
+                                        class="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-800 bg-zinc-950/50 px-3 py-2.5 text-sm font-semibold text-zinc-400 hover:text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500/40 transition-all"
+                                    >
+                                        + Nuevo Proveedor
+                                    </button>
+                                </template>
+                            </SelectorModal>
                             <p
                                 v-if="form.errors.invoice_supplier_id"
                                 class="mt-1 text-xs text-destructive"
@@ -648,6 +671,11 @@ const columns: ColumnConfig[] = [
                 </div>
             </template>
         </FormSection>
+
+        <SupplierCreateModal
+            ref="supplierModalRef"
+            @created="onSupplierCreated"
+        />
     </div>
 </template>
 

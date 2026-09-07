@@ -149,4 +149,4 @@
     </table>
 @endsection
 
-@section('footer', 'Sistema de Inventario '.$company.' — '.date('d/m/Y H:i'))
+@section('footer', 'Sistema de Inventario '.$companyName.' — '.date('d/m/Y H:i'))

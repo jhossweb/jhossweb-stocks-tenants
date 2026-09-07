@@ -42,9 +42,7 @@ const serverError = computed(
     () => (form.errors as Record<string, string>).error,
 );
 
-const isCredit = computed(
-    () => form.sls_payment_condition === 'credit',
-);
+const isCredit = computed(() => form.sls_payment_condition === 'credit');
 
 const updateDueDate = () => {
     const base =
@@ -54,10 +52,7 @@ const updateDueDate = () => {
         return;
     }
 
-    const [year, month, day] = base
-        .substring(0, 10)
-        .split('-')
-        .map(Number);
+    const [year, month, day] = base.substring(0, 10).split('-').map(Number);
 
     if (!year || !month || !day) {
         return;
@@ -98,7 +93,8 @@ const initialize = () => {
     }
 
     const creditDays = Number(props.quote.customer?.clt_credit_days ?? 0);
-    form.sls_date = props.quote.sls_date || new Date().toISOString().split('T')[0];
+    form.sls_date =
+        props.quote.sls_date || new Date().toISOString().split('T')[0];
     form.sls_payment_condition = creditDays > 0 ? 'credit' : 'cash';
     form.sls_credit_days = creditDays > 0 ? creditDays : 0;
     updateDueDate();
@@ -216,9 +212,7 @@ const close = () => {
                         :class="conditionClasses('cash')"
                         @click="selectCondition('cash')"
                     >
-                        <span class="block text-sm font-semibold"
-                            >Contado</span
-                        >
+                        <span class="block text-sm font-semibold">Contado</span>
                         <span class="mt-0.5 block text-[11px] opacity-70"
                             >Pago al momento</span
                         >
@@ -228,9 +222,7 @@ const close = () => {
                         :class="conditionClasses('credit')"
                         @click="selectCondition('credit')"
                     >
-                        <span class="block text-sm font-semibold"
-                            >Crédito</span
-                        >
+                        <span class="block text-sm font-semibold">Crédito</span>
                         <span class="mt-0.5 block text-[11px] opacity-70"
                             >Cuenta por cobrar</span
                         >
@@ -267,10 +259,7 @@ const close = () => {
                         />
                     </div>
                 </div>
-                <p
-                    v-if="form.errors.sls_due_date"
-                    class="text-xs text-red-400"
-                >
+                <p v-if="form.errors.sls_due_date" class="text-xs text-red-400">
                     {{ form.errors.sls_due_date }}
                 </p>
                 <p class="text-sm text-zinc-400">
@@ -285,8 +274,7 @@ const close = () => {
                 class="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-amber-300"
             >
                 Serás redirigido a una nueva factura de contado para registrar
-                el pago. La venta solo se guardará cuando el pago sea
-                procesado.
+                el pago. La venta solo se guardará cuando el pago sea procesado.
             </div>
         </div>
 

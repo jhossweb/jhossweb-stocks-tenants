@@ -109,7 +109,7 @@ class KardexReport extends PdfReport
                 SELECT so.sls_date as fecha,
                        ms.mvs_number as documento,
                        tt.trans_type_description as tipo_transaccion,
-                       ms.mvs_factor as factor,
+                       CAST(ms.mvs_factor AS INTEGER) as factor,
                        ms.mvs_quantity as cantidad,
                        c.clt_name as contraparte,
                        ms.mvs_unit_price as precio_unitario,
@@ -176,7 +176,7 @@ class KardexReport extends PdfReport
                 WHERE mp.mov_pro_code = ? AND mp.mov_war_id = ?
                   AND po.invoice_date < ?
                 UNION ALL
-                SELECT ms.mvs_quantity as cantidad, ms.mvs_factor as factor
+                SELECT ms.mvs_quantity as cantidad, CAST(ms.mvs_factor AS INTEGER) as factor
                 FROM movements_sales ms
                 JOIN sale_orders so ON ms.mvs_number = so.sls_number
                 WHERE ms.mvs_pro_code = ? AND ms.mvs_war_id = ?

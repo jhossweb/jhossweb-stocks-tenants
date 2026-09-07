@@ -27,73 +27,111 @@ class ReceiptService
             fn ($p) => (float) $p['amount'] > 0
         ));
 
+        $bankMovements = $validated['bank_movements'] ?? [];
+
         if (empty($activePayments)) {
             throw new \RuntimeException('Debe ingresar al menos un monto a cobrar.');
         }
 
-        DB::transaction(function () use ($activePayments, $validated) {
+        if (empty($bankMovements)) {
+            throw new \RuntimeException('Debe registrar al menos un movimiento bancario.');
+        }
+
+        DB::transaction(function () use ($activePayments, $bankMovements, $validated) {
+            $payDate = $validated['payment_date'];
+            $payRate = $this->rateService->getBestRateForDate($payDate);
+
+            if (! $payRate) {
+                throw new \RuntimeException('No existe tasa de cambio para la fecha seleccionada.');
+            }
+
+            $docCurrency = $this->resolveDocCurrency($activePayments);
+
+            $convertedTotal = 0.0;
+            $resolvedMovements = [];
+
+            foreach ($bankMovements as $movement) {
+                $payCurrency = strtoupper((string) $movement['currency']);
+                $movementAmount = (float) $movement['amount'];
+
+                if ($movementAmount <= 0) {
+                    continue;
+                }
+
+                $movementInDoc = Rate::convert($movementAmount, $payCurrency, $docCurrency, $payRate);
+                $convertedTotal += $movementInDoc;
+                $resolvedMovements[] = [
+                    'movement' => $movement,
+                    'payCurrency' => $payCurrency,
+                    'amount' => $movementAmount,
+                    'amountInDoc' => $movementInDoc,
+                ];
+            }
+
+            if (empty($resolvedMovements) || round($convertedTotal, 4) <= 0) {
+                throw new \RuntimeException('Debe registrar al menos un movimiento bancario con monto válido.');
+            }
+
             $applyVuelto = (bool) ($validated['apply_vuelto'] ?? false);
-            $remainingBalance = null;
             $excessInDoc = 0.0;
-            $lastActivePayment = null;
-            $lastDocCurrency = 'USD';
-            $lastPayRate = null;
+            $lastAppliedDoc = null;
+            $lastDocCurrency = $docCurrency;
+            $lastPayRate = $payRate;
 
-            foreach ($activePayments as $paymentData) {
-                $payDate = $paymentData['payment_date'] ?? $validated['payment_date'];
-                $payCurrency = $paymentData['payment_currency'] ?? $validated['payment_currency'];
-                $bankId = $paymentData['bank_account_id'] ?? $validated['bank_account_id'];
-                $payMethod = $paymentData['payment_method'] ?? $validated['payment_method'];
-                $payReference = $paymentData['payment_reference'] ?? $validated['payment_reference'];
-                $payDescription = $paymentData['payment_description']
-                    ?? $validated['payment_description']
-                    ?? null;
+            // FIFO: each movement pays the receivables in order, converting to doc currency.
+            $pendingApplicable = $activePayments;
+            $lastReceipt = null;
 
-                $payRate = $this->rateService->getBestRateForDate($payDate);
+            foreach ($resolvedMovements as $index => $resolved) {
+                $movement = $resolved['movement'];
+                $payCurrency = $resolved['payCurrency'];
+                $movementAmount = $resolved['amount'];
+                $amountInDoc = $resolved['amountInDoc'];
+                $bankId = (int) $movement['bank_account_id'];
+                $payMethod = $movement['method'];
+                $payReference = $movement['reference'] ?? '';
+                $payDescription = $movement['description'] ?? null;
 
-                if (! $payRate) {
-                    throw new \RuntimeException('No existe tasa de cambio para la fecha seleccionada.');
+                // Consume the converted movement value across the receivables being collected.
+                $movementDocRemaining = $amountInDoc;
+                $appliedHere = 0.0;
+                $appliedAcrs = [];
+
+                while ($movementDocRemaining > 0 && ! empty($pendingApplicable)) {
+                    $paymentData = $pendingApplicable[0];
+                    $acr = AccountsReceivable::with('saleOrder')->findOrFail($paymentData['acr_id']);
+                    $docAmount = (float) $paymentData['amount'];
+
+                    $apply = min($movementDocRemaining, $docAmount);
+                    if ($apply < 0.0001) {
+                        break;
+                    }
+
+                    $appliedAcrs[] = $paymentData;
+                    $appliedHere += $apply;
+                    $movementDocRemaining -= $apply;
+
+                    if ($apply >= $docAmount - 0.0001) {
+                        array_shift($pendingApplicable);
+                    } else {
+                        $paymentData['amount'] = round($docAmount - $apply, 4);
+                        $pendingApplicable[0] = $paymentData;
+                    }
                 }
 
-                $acr = AccountsReceivable::with('saleOrder')->findOrFail($paymentData['acr_id']);
-
-                if ($remainingBalance === null) {
-                    $remainingBalance = (float) $acr->acr_balance;
-                }
-
-                $paymentAmount = (float) $paymentData['amount'];
-                $docCurrency = $acr->saleOrder->sls_coin ?? 'USD';
-
-                $docDate = $acr->saleOrder->sls_date?->format('Y-m-d')
-                    ?? $acr->saleOrder->created_at?->format('Y-m-d');
-                $docRate = $docDate
-                    ? ($this->rateService->getExactRateForDate($docDate) ?? $payRate)
-                    : $payRate;
-
-                $amountInDocCurrency = round(Rate::convert($paymentAmount, $payCurrency, $docCurrency, $payRate), 4);
-
-                $appliedInDoc = $amountInDocCurrency;
-                if ($applyVuelto && $remainingBalance > 0) {
-                    $appliedInDoc = min($amountInDocCurrency, $remainingBalance);
-                    $excessInDoc += round($amountInDocCurrency - $appliedInDoc, 4);
-                    $remainingBalance = round($remainingBalance - $appliedInDoc, 4);
-                }
-
+                $appliedInPayCurrency = Rate::convert($appliedHere, $docCurrency, $payCurrency, $payRate);
+                $valorcam = $this->rateService->resolveRateForCoin($payDate, $payCurrency);
                 $diferencial = $this->rateService->calculateDiferencial(
-                    $appliedInDoc,
+                    $appliedHere,
                     $payCurrency,
                     $payRate,
-                    $docRate,
+                    $payRate,
                 );
-
-                $amountUsd = round(Rate::convert($appliedInDoc, $payCurrency, 'USD', $payRate), 4);
-
-                $valorcam = $this->rateService->resolveRateForCoin($payDate, $payCurrency);
 
                 $bankTransaction = BankTransaction::create([
                     'btr_bank_account_id' => $bankId,
                     'btr_type' => 'inflow',
-                    'btr_amount' => round(Rate::convert($appliedInDoc, $docCurrency, $payCurrency, $payRate), 4),
+                    'btr_amount' => round($appliedInPayCurrency, 4),
                     'btr_reference' => $payReference,
                     'btr_description' => $payDescription ?: 'Cobro a cliente',
                     'btr_valorcam' => $valorcam,
@@ -104,31 +142,50 @@ class ReceiptService
                     'btr_coin' => $payCurrency,
                 ]);
 
-                $bankTransaction->btr_transactionable()->associate($acr);
-                $bankTransaction->save();
+                if (! empty($appliedAcrs)) {
+                    $firstAcr = $appliedAcrs[0];
+                    $bankTransaction->btr_transactionable()->associate(
+                        AccountsReceivable::with('saleOrder')->findOrFail($firstAcr['acr_id'])
+                    );
+                    $bankTransaction->save();
 
-                $receipt = $acr->registerPayment(
-                    $appliedInDoc,
-                    TypeReceipt::RECEIPT->value,
-                    $bankTransaction->id,
-                    $amountUsd,
-                );
+                    // Register the receipts against each receivable covered by the movement.
+                    $movementDocRemaining = $amountInDoc;
 
-                $receipt->rec_diferencial = $diferencial;
-                $receipt->save();
+                    foreach ($appliedAcrs as $appliedAcr) {
+                        $acr = AccountsReceivable::with('saleOrder')->findOrFail($appliedAcr['acr_id']);
+                        $apply = min($movementDocRemaining, (float) $appliedAcr['amount']);
 
-                $lastActivePayment = $paymentData;
-                $lastDocCurrency = $docCurrency;
-                $lastPayRate = $payRate;
+                        if ($apply < 0.0001) {
+                            continue;
+                        }
+
+                        $receipt = $acr->registerPayment(
+                            $apply,
+                            TypeReceipt::RECEIPT->value,
+                            $bankTransaction->id,
+                            round(Rate::convert($apply, $docCurrency, 'USD', $payRate), 4),
+                        );
+                        $receipt->rec_diferencial = $diferencial;
+                        $receipt->save();
+                        $lastReceipt = $receipt;
+                        $lastAppliedDoc = $appliedAcr;
+                        $movementDocRemaining -= $apply;
+                    }
+                } else {
+                    $bankTransaction->delete();
+                }
+
+                $excessInDoc += $amountInDoc - $appliedHere;
             }
 
-            if ($applyVuelto && $lastActivePayment) {
-                $vueltos = array_filter(
+            if ($applyVuelto && $lastAppliedDoc && $excessInDoc > 0.0001) {
+                $vueltos = array_values(array_filter(
                     $validated['vueltos'] ?? [],
                     fn (array $v): bool => (float) ($v['amount'] ?? 0) > 0
                         && ! empty($v['currency'])
                         && ! empty($v['bank_account_id']),
-                );
+                ));
 
                 if (! empty($vueltos)) {
                     foreach ($vueltos as $vuelto) {
@@ -137,25 +194,47 @@ class ReceiptService
                             $vuelto['currency'],
                             (int) $vuelto['bank_account_id'],
                             $validated,
-                            $lastActivePayment,
+                            $lastAppliedDoc,
                         );
                     }
-                } elseif ($excessInDoc > 0) {
-                    $payCurrency = $lastActivePayment['payment_currency']
-                        ?? $validated['payment_currency'];
-                    $vueltoBankId = (int) ($lastActivePayment['bank_account_id']
-                        ?? $validated['bank_account_id']);
+                } else {
+                    $lastMovement = end($bankMovements);
+                    $payCurrency = strtoupper((string) ($lastMovement['currency'] ?? 'USD'));
+                    $vueltoBankId = (int) ($lastMovement['bank_account_id'] ?? 0);
 
                     $amount = $lastPayRate
                         ? round(Rate::convert($excessInDoc, $lastDocCurrency, $payCurrency, $lastPayRate), 4)
                         : round($excessInDoc, 4);
 
-                    $this->registerVuelto($amount, $payCurrency, $vueltoBankId, $validated, $lastActivePayment);
+                    $this->registerVuelto($amount, $payCurrency, $vueltoBankId, $validated, $lastAppliedDoc);
                 }
             }
         });
 
         DashboardCacheInvalidator::receivables(substr($validated['payment_date'], 0, 7));
+    }
+
+    /**
+     * Resolves the single document currency shared by the receivables being
+     * collected. All selected invoices must share the same currency.
+     *
+     * @param  array<int, array<string, mixed>>  $activePayments
+     */
+    private function resolveDocCurrency(array $activePayments): string
+    {
+        $currencies = [];
+
+        foreach ($activePayments as $paymentData) {
+            $acr = AccountsReceivable::with('saleOrder')->findOrFail($paymentData['acr_id']);
+            $currency = strtoupper((string) ($acr->saleOrder->sls_coin ?? 'USD'));
+            $currencies[$currency] = true;
+        }
+
+        if (count($currencies) > 1) {
+            throw new \RuntimeException('No puede cobrar facturas de monedas distintas en una misma operación.');
+        }
+
+        return array_key_first($currencies) ?: 'USD';
     }
 
     /**
@@ -168,7 +247,9 @@ class ReceiptService
     private function registerVuelto(float $amount, string $currency, int $bankId, array $validated, array $paymentData): void
     {
         $acr = AccountsReceivable::findOrFail($paymentData['acr_id']);
-        $payDate = $paymentData['payment_date'] ?? $validated['payment_date'];
+        $payDate = $validated['payment_date'];
+        $bankMovements = $validated['bank_movements'] ?? [];
+        $lastMovement = end($bankMovements) ?: [];
 
         $valorcam = $this->rateService->resolveRateForCoin($payDate, $currency);
 
@@ -176,12 +257,12 @@ class ReceiptService
             'btr_bank_account_id' => $bankId,
             'btr_type' => BankTransaction::TYPE_OUTFLOW,
             'btr_amount' => round($amount, 4),
-            'btr_reference' => $paymentData['payment_reference'] ?? $validated['payment_reference'],
+            'btr_reference' => $lastMovement['reference'] ?? 'Vuelto',
             'btr_description' => BankTransaction::VUELTO_DESCRIPTION,
             'btr_valorcam' => $valorcam,
             'btr_diferencial' => 0,
             'btr_balance' => 0,
-            'btr_method' => $paymentData['payment_method'] ?? $validated['payment_method'],
+            'btr_method' => $lastMovement['method'] ?? 'EFECTIVO',
             'btr_transaction_date' => $payDate,
             'btr_coin' => $currency,
         ]);

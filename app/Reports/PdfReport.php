@@ -2,16 +2,18 @@
 
 namespace App\Reports;
 
+use App\Models\Company;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 
 abstract class PdfReport
 {
-    protected const COMPANY = 'Vidrialum';
-
     protected function make(string $view, array $data, string $filename): Response
     {
-        $pdf = Pdf::loadView($view, ['company' => self::COMPANY] + $data);
+        $company = Company::current();
+        $companyName = $company?->cmp_name ?? config('app.name');
+
+        $pdf = Pdf::loadView($view, compact('company', 'companyName') + $data);
 
         return $pdf->download($filename);
     }

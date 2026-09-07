@@ -1,0 +1,159 @@
+- generic:
+  - generic:
+    - region "Notifications alt+T":
+      - list
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - list:
+                - listitem:
+                  - link:
+                    - /url: /dashboard
+                    - generic: Laravel Starter Kit
+            - generic:
+              - generic:
+                - generic: Platform
+                - list:
+                  - listitem:
+                    - button:
+                      - generic: Inventory
+                  - listitem:
+                    - button:
+                      - generic: Compras
+                  - listitem:
+                    - button:
+                      - generic: Ventas
+                  - listitem:
+                    - button:
+                      - generic: Finanzas
+                  - listitem:
+                    - button:
+                      - generic: Gastos
+                  - listitem:
+                    - button:
+                      - generic: Nómina
+                  - listitem:
+                    - button:
+                      - generic: Configuración
+            - generic:
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link:
+                        - /url: https://github.com/laravel/vue-starter-kit
+                        - generic: Repository
+                    - listitem:
+                      - link:
+                        - /url: https://laravel.com/docs/starter-kits#vue
+                        - generic: Documentation
+              - list:
+                - listitem:
+                  - button:
+                    - generic: TU
+                    - generic: Test User
+      - main:
+        - generic:
+          - generic:
+            - button:
+              - generic: Toggle sidebar
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /accounts-receivable
+              - generic:
+                - heading [level=1]: Comprobante de Cobro
+                - paragraph: Registro de ingresos y abonos de clientes
+            - generic:
+              - button: Datos
+              - button: Facturas
+              - button: Fondos
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Origen de Fondos
+                  - button: Agregar Movimiento
+                - generic:
+                  - generic:
+                    - generic: "Movimiento #1"
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: Moneda
+                          - combobox:
+                            - generic: USD
+                        - generic:
+                          - generic: Banco y Cuenta
+                          - generic:
+                            - combobox [expanded]:
+                              - generic: Seleccione cuenta bancaria
+                            - button
+                      - generic:
+                        - generic:
+                          - generic: Monto (USD)
+                          - generic:
+                            - spinbutton: "50"
+                            - button: MÁX
+                          - paragraph: "Saldo restante a cancelar: 212.5000 USD"
+                        - generic:
+                          - generic: Tipo de Transacción
+                          - combobox:
+                            - generic: TRANSFERENCIA
+                    - generic:
+                      - generic:
+                        - generic: Referencia / Voucher
+                        - textbox:
+                          - /placeholder: N° de transacción o referencia
+                      - generic:
+                        - generic: Observaciones
+                        - textbox:
+                          - /placeholder: Opcional
+              - generic:
+                - button: Anterior
+                - button: Generar Cobro
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: Total a Liquidar (USD)
+                    - generic: "212.5000"
+                  - generic:
+                    - generic: Total Movimientos (USD)
+                    - generic: "50.0000"
+                  - generic:
+                    - checkbox
+                    - generic: Aplicar vuelto (pagar de más para dar cambio)
+                  - generic:
+                    - generic: Total USD
+                    - generic: "212.5000"
+              - generic:
+                - generic: Movimientos Bancarios
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: USD — TRANSFERENCIA
+                      - generic: Sin referencia
+                    - generic: "50.0000"
+                  - generic:
+                    - generic: Total Movimientos
+                    - generic: 50.0000 USD
+                  - generic: "Abono parcial: quedará saldo pendiente por cobrar"
+  - generic:
+    - generic:
+      - generic:
+        - generic: "6"
+        - generic: "6"
+      - generic:
+        - generic:
+          - generic:
+            - generic: "2"
+            - generic: GET /api/customers/4/pending-receivables
+  - listbox [ref=f3e374]:
+    - option "BANCO PRUEBA 123456789876543 (USD)" [active] [ref=f3e375]:
+      - generic [ref=f3e378]:
+        - generic [ref=f3e379]: BANCO PRUEBA
+        - generic [ref=f3e380]: 123456789876543 (USD)

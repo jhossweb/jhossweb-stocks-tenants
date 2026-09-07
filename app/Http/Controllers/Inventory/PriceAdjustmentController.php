@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Models\PriceHistory;
-use App\Models\Product;
+use App\Repositories\Inventory\ProductPriceRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,20 +12,13 @@ use Inertia\Inertia;
 
 class PriceAdjustmentController extends Controller
 {
+    public function __construct(
+        private readonly ProductPriceRepository $productPrices,
+    ) {}
+
     public function index()
     {
-        $products = Product::all()->map(function ($product) {
-            $latestCost = $product->latestCost();
-            $latestPrice = $product->latestPrice();
-
-            return [
-                'pro_code' => $product->pro_code,
-                'pro_name' => $product->pro_name,
-                'last_cost' => $latestCost ? $latestCost->cost_pro_cost_ref : 0,
-                'last_utility' => $latestPrice ? $latestPrice->price_utility : 0,
-                'last_price' => $latestPrice ? $latestPrice->price_usd : 0,
-            ];
-        });
+        $products = $this->productPrices->adjustmentRows();
 
         return Inertia::render('Inventory/AdjustPrices', [
             'products' => $products,

@@ -92,7 +92,12 @@ const submit = () => {
                 <div class="flex justify-between text-sm">
                     <span class="text-zinc-400">Monto total:</span>
                     <span class="font-medium text-zinc-100">
-                        {{ Number(pending.amount).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}
+                        {{
+                            Number(pending.amount).toLocaleString('en-US', {
+                                minimumFractionDigits: 4,
+                                maximumFractionDigits: 4,
+                            })
+                        }}
                         {{ pending.currency }}
                     </span>
                 </div>
@@ -101,7 +106,12 @@ const submit = () => {
                 >
                     <span class="text-zinc-400">Saldo pendiente:</span>
                     <span class="font-semibold text-amber-400">
-                        {{ Number(pending.amount).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) }}
+                        {{
+                            Number(pending.amount).toLocaleString('en-US', {
+                                minimumFractionDigits: 4,
+                                maximumFractionDigits: 4,
+                            })
+                        }}
                         {{ pending.currency }}
                     </span>
                 </div>

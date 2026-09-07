@@ -1,0 +1,295 @@
+[     -19ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/login:47
+[     629ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5173/?token=4ICk4aLRT9CH' failed:  @ http://127.0.0.1:5173/@vite/client:840
+[     808ms] [ERROR] WebSocket connection to 'ws://localhost:5173/?token=4ICk4aLRT9CH' failed:  @ http://127.0.0.1:5173/@vite/client:850
+[     811ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) 127.0.0.1:5173/ <--[HTTP]--> localhost:5173/ (server)
+  (browser) 127.0.0.1:5173/ <--[WebSocket (failing)]--> localhost:5173/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:8000/login:117
+[    4408ms] [WARNING] [Vue warn]: Property "id" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4413ms] [WARNING] [Vue warn]: Property "invert" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4415ms] [WARNING] [Vue warn]: Property "position" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4419ms] [WARNING] [Vue warn]: Property "hotkey" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4422ms] [WARNING] [Vue warn]: Property "expand" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4426ms] [WARNING] [Vue warn]: Property "closeButton" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4433ms] [WARNING] [Vue warn]: Property "className" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4445ms] [WARNING] [Vue warn]: Property "offset" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4461ms] [WARNING] [Vue warn]: Property "mobileOffset" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4465ms] [WARNING] [Vue warn]: Property "theme" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4467ms] [WARNING] [Vue warn]: Property "richColors" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4475ms] [WARNING] [Vue warn]: Property "duration" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4481ms] [WARNING] [Vue warn]: Property "style" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4486ms] [WARNING] [Vue warn]: Property "visibleToasts" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4489ms] [WARNING] [Vue warn]: Property "toastOptions" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4490ms] [WARNING] [Vue warn]: Property "dir" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4495ms] [WARNING] [Vue warn]: Property "gap" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4501ms] [WARNING] [Vue warn]: Property "icons" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4506ms] [WARNING] [Vue warn]: Property "customAriaLabel" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4510ms] [WARNING] [Vue warn]: Property "containerAriaLabel" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4511ms] [ERROR] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem. @ http://localhost:8000/login:117
+[    4514ms] [WARNING] [Vue warn]: Unhandled error during execution of render function 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4612ms] TypeError: Cannot read properties of null (reading 'useState')
+    at exports.useState (http://127.0.0.1:5173/node_modules/.vite/deps/sonner.js?v=86d369de:749:30)
+    at Proxy.Toaster (http://127.0.0.1:5173/node_modules/.vite/deps/sonner.js?v=86d369de:1731:43)
+    at renderComponentRoot (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:4698:35)
+    at ReactiveEffect.componentUpdateFn [as fn] (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5544:41)
+    at ReactiveEffect.run (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:410:16)
+    at setupRenderEffect (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5615:3)
+    at mountComponent (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5499:10)
+    at processComponent (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5479:8)
+    at patch (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5274:28)
+    at ReactiveEffect.componentUpdateFn [as fn] (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5547:6)
+[    4540ms] [WARNING] [Vue warn]: Property "id" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4544ms] [WARNING] [Vue warn]: Property "invert" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4552ms] [WARNING] [Vue warn]: Property "position" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4557ms] [WARNING] [Vue warn]: Property "hotkey" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4558ms] [WARNING] [Vue warn]: Property "expand" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4560ms] [WARNING] [Vue warn]: Property "closeButton" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4562ms] [WARNING] [Vue warn]: Property "className" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4563ms] [WARNING] [Vue warn]: Property "offset" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4564ms] [WARNING] [Vue warn]: Property "mobileOffset" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4573ms] [WARNING] [Vue warn]: Property "theme" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4574ms] [WARNING] [Vue warn]: Property "richColors" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4575ms] [WARNING] [Vue warn]: Property "duration" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4576ms] [WARNING] [Vue warn]: Property "style" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4577ms] [WARNING] [Vue warn]: Property "visibleToasts" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4578ms] [WARNING] [Vue warn]: Property "toastOptions" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4580ms] [WARNING] [Vue warn]: Property "dir" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4581ms] [WARNING] [Vue warn]: Property "gap" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4582ms] [WARNING] [Vue warn]: Property "icons" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4584ms] [WARNING] [Vue warn]: Property "customAriaLabel" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4585ms] [WARNING] [Vue warn]: Property "containerAriaLabel" was accessed during render but is not defined on instance. 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4586ms] [ERROR] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem. @ http://localhost:8000/login:117
+[    4587ms] [WARNING] [Vue warn]: Unhandled error during execution of render function 
+  at <Anonymous invert=false theme="dark" position="bottom-right"  ... > 
+  at <Sonner> 
+  at <AuthLayout errors= {} name="Laravel" auth= {user: null}  ... > 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4588ms] [WARNING] [Vue warn]: Unhandled error during execution of component update 
+  at <Inertia initialPage= {component: auth/Login, props: Object, url: /login, version: 2453f4ad759a02846a395e47a457f9bb, sharedProps: Array(5)} initialComponent= {layout: Object, __name: Login, props: Object, setup: , __hmrId: ab03e11e} resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://localhost:8000/login:117
+[    4674ms] TypeError: Cannot read properties of null (reading 'useState')
+    at exports.useState (http://127.0.0.1:5173/node_modules/.vite/deps/sonner.js?v=86d369de:749:30)
+    at Proxy.Toaster (http://127.0.0.1:5173/node_modules/.vite/deps/sonner.js?v=86d369de:1731:43)
+    at renderComponentRoot (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:4698:35)
+    at ReactiveEffect.componentUpdateFn [as fn] (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5544:41)
+    at ReactiveEffect.run (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:410:16)
+    at setupRenderEffect (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5615:3)
+    at mountComponent (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5499:10)
+    at processComponent (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5479:8)
+    at patch (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5274:28)
+    at ReactiveEffect.componentUpdateFn [as fn] (http://127.0.0.1:5173/node_modules/.vite/deps/vue.runtime.esm-bundler-8hFEWhD8.js?v=86d369de:5547:6)

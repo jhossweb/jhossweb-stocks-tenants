@@ -34,7 +34,11 @@ export function useExpenses() {
 
     const isBS = (c: string) => c === 'BS' || c === 'VES';
 
-    const openPayModal = (expense: Expense, methods: string[], latestRate: LatestRate | null = null) => {
+    const openPayModal = (
+        expense: Expense,
+        methods: string[],
+        latestRate: LatestRate | null = null,
+    ) => {
         payingExpense.value = expense;
         latestRateRef.value = latestRate;
         originalBalance.value = Number(expense.exp_remaining_balance) || 0;
@@ -46,7 +50,9 @@ export function useExpenses() {
         payForm.amount = String(originalBalance.value);
         payForm.payment_date = today();
         payForm.payment_method = methods.length > 0 ? methods[0] : '';
-        payForm.payment_rate = String(resolveRateForStorage(originalCoin.value, latestRate));
+        payForm.payment_rate = String(
+            resolveRateForStorage(originalCoin.value, latestRate),
+        );
         showPayModal.value = true;
     };
 
@@ -61,7 +67,11 @@ export function useExpenses() {
     };
 
     const estimatedDiferencial = computed(() => {
-        if (!payingExpense.value || !payForm.amount || Number(payForm.amount) <= 0) {
+        if (
+            !payingExpense.value ||
+            !payForm.amount ||
+            Number(payForm.amount) <= 0
+        ) {
             return 0;
         }
 
@@ -86,16 +96,22 @@ export function useExpenses() {
         if (payCoin === 'USD') {
             paidInUsd = payAmount;
             docInUsd = payAmount;
-        } else if ((payCoin === 'COP' && isBS(docCoin)) || (isBS(payCoin) && docCoin === 'COP')) {
-            const amountInExpenseCoin = payCoin === 'COP'
-                ? payAmount / payRate
-                : payAmount * payRate;
+        } else if (
+            (payCoin === 'COP' && isBS(docCoin)) ||
+            (isBS(payCoin) && docCoin === 'COP')
+        ) {
+            const amountInExpenseCoin =
+                payCoin === 'COP' ? payAmount / payRate : payAmount * payRate;
 
-            const latestExpenseRate = docCoin === 'COP'
-                ? Number(latestRateRef.value?.rate_cop || 1)
-                : Number(latestRateRef.value?.rate_usd || 1);
+            const latestExpenseRate =
+                docCoin === 'COP'
+                    ? Number(latestRateRef.value?.rate_cop || 1)
+                    : Number(latestRateRef.value?.rate_usd || 1);
 
-            paidInUsd = latestExpenseRate > 0 ? amountInExpenseCoin / latestExpenseRate : 0;
+            paidInUsd =
+                latestExpenseRate > 0
+                    ? amountInExpenseCoin / latestExpenseRate
+                    : 0;
             docInUsd = docRate > 0 ? amountInExpenseCoin / docRate : 0;
         } else {
             paidInUsd = payRate > 0 ? payAmount / payRate : 0;

@@ -139,7 +139,7 @@ class DashboardService
                 'inflow' => $cashFlowInflow,
                 'outflow' => $cashFlowOutflow,
                 'net' => $cashFlowNet,
-                'trend' => $this->computeTrend($cashFlowNet, $prevNet),
+                'trend' => $this->computeTrendByCurrency($cashFlowNet, $prevNet),
             ],
             'receivables' => [
                 'balance' => collect($receivablesBalance)->map(fn ($item) => $item['balance'])->toArray(),
@@ -260,6 +260,32 @@ class DashboardService
         }
 
         return $net;
+    }
+
+    private function computeTrendByCurrency(array $current, array $previous): array
+    {
+        $currencies = array_unique([...array_keys($current), ...array_keys($previous)]);
+        $trend = [];
+
+        foreach ($currencies as $currency) {
+            $currentNet = $current[$currency] ?? 0.0;
+            $previousNet = $previous[$currency] ?? 0.0;
+
+            if ($previousNet == 0.0) {
+                $trend[$currency] = ['direction' => 'flat', 'percentage' => 0.0];
+
+                continue;
+            }
+
+            $percentage = round((($currentNet - $previousNet) / abs($previousNet)) * 100, 1);
+
+            $trend[$currency] = [
+                'direction' => $percentage > 0 ? 'up' : ($percentage < 0 ? 'down' : 'flat'),
+                'percentage' => abs($percentage),
+            ];
+        }
+
+        return $trend;
     }
 
     private function computeTrend(array $current, array $previous): array
