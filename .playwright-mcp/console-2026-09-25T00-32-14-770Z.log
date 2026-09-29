@@ -1,0 +1,2 @@
+[    1216ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/login:48
+[  522603ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-600-normal.woff2 @ http://repuestos-jhossmotos.lvh.me:8000/dashboard:0

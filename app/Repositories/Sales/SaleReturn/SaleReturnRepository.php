@@ -82,39 +82,24 @@ class SaleReturnRepository
         return Rate::orderBy('rate_date', 'desc')->first();
     }
 
-    public function findUnpaidSalesByCustomer(int $customerId): Collection
+    public function findUnpaidSalesByCustomer(int $customerId, ?int $excludeReturnId = null): Collection
     {
-        $sales = SaleOrder::with(['movements'])
-            ->where('sls_customer_id', $customerId)
+        return SaleOrder::where('sls_customer_id', $customerId)
             ->where('sls_trans_type_code', 'FACV')
-            ->get()
-            ->filter(function ($sale) {
-                foreach ($sale->movements as $movement) {
-                    $returnedQty = MovementsSale::whereHas('saleOrder', function ($q) use ($sale) {
-                        $q->where('sls_reference', $sale->sls_number);
-                    })
-                        ->where('mvs_pro_code', $movement->mvs_pro_code)
-                        ->sum('mvs_quantity');
-
-                    if ($movement->mvs_quantity > $returnedQty) {
-                        return true;
-                    }
+            ->whereDoesntHave('childrenReturns', function ($query) use ($excludeReturnId) {
+                if ($excludeReturnId) {
+                    $query->where('id', '!=', $excludeReturnId);
                 }
-
-                return false;
             })
-            ->values();
-
-        return $sales->map(function ($sale) {
-            return [
+            ->get()
+            ->map(fn ($sale) => [
                 'id' => $sale->id,
                 'sls_number' => $sale->sls_number,
                 'sls_date' => $sale->sls_date,
                 'sls_total' => $sale->sls_total,
                 'sls_coin' => $sale->sls_coin,
                 'sls_valorcam' => $sale->sls_valorcam,
-            ];
-        });
+            ]);
     }
 
     /**

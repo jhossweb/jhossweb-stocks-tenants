@@ -1,0 +1,73 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - region "Notifications alt+T":
+      - list:
+        - listitem [ref=f3e75]:
+          - button "Close toast" [ref=f3e76] [cursor=pointer]
+          - generic [ref=f3e83]: No se pudo conectar. Verifica tu conexión a internet.
+    - generic [ref=f3e5]:
+      - generic [ref=f3e6]:
+        - link "Create your company" [ref=f3e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f3e12]:
+          - heading "Create your company" [level=1] [ref=f3e13]
+          - paragraph [ref=f3e14]: Get started with Vidrialum ERP for your business
+      - generic [ref=f3e15]:
+        - generic [ref=f3e16]:
+          - generic [ref=f3e17]:
+            - generic [ref=f3e18]: Company name
+            - textbox "Company name" [ref=f3e19]:
+              - /placeholder: Vidrialum C.A.
+              - text: Acme Vidrios
+          - generic [ref=f3e85]: "Your workspace: acme-vidrios.lvh.me"
+          - generic [ref=f3e20]:
+            - generic [ref=f3e21]: Your name
+            - textbox "Your name" [ref=f3e22]:
+              - /placeholder: Full name
+              - text: Luis Paredes
+          - generic [ref=f3e23]:
+            - generic [ref=f3e24]: Work email
+            - textbox "Work email" [ref=f3e25]:
+              - /placeholder: email@example.com
+              - text: luis@acmevidrios.com
+          - generic [ref=f3e26]:
+            - generic [ref=f3e27]: Password
+            - generic [ref=f3e28]:
+              - textbox "Password" [ref=f3e29]: secret-password
+              - button "Show password" [ref=f3e30]
+          - generic [ref=f3e34]:
+            - generic [ref=f3e35]: Confirm password
+            - generic [ref=f3e36]:
+              - textbox "Confirm password" [ref=f3e37]: secret-password
+              - button "Show password" [ref=f3e38]
+          - button "Create company" [ref=f3e42]
+        - generic [ref=f3e43]:
+          - text: Already have an account?
+          - link "Back to home" [ref=f3e44] [cursor=pointer]:
+            - /url: /
+  - generic [ref=f3e47]:
+    - generic [ref=f3e48] [cursor=pointer]
+    - generic [ref=f3e49]:
+      - generic [ref=f3e50] [cursor=pointer]: Request
+      - generic [ref=f3e51] [cursor=pointer]: Timeline
+      - generic [ref=f3e52] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=f3e53]: "3"
+      - generic [ref=f3e54] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f3e55]: "0"
+      - generic [ref=f3e56] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f3e57]: "1"
+      - generic [ref=f3e58] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=f3e59]: "1"
+    - generic [ref=f3e60]:
+      - generic [ref=f3e61] [cursor=pointer]
+      - generic [ref=f3e62] [cursor=pointer]
+      - generic [ref=f3e63] [cursor=pointer]
+      - generic [ref=f3e65] [cursor=pointer]
+      - generic [ref=f3e66]: GET /register/company
+      - generic [ref=f3e69] [cursor=pointer]: 494ms
+      - generic [ref=f3e71] [cursor=pointer]: 30MB
+      - generic [ref=f3e73] [cursor=pointer]: 13.x

@@ -1,0 +1,151 @@
+- generic:
+  - generic:
+    - region "Notifications alt+T":
+      - list
+    - generic [aria-hidden]:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - list:
+                - listitem:
+                  - link:
+                    - /url: /dashboard
+                    - generic: Laravel Starter Kit
+            - generic:
+              - generic:
+                - generic: Platform
+                - list:
+                  - listitem:
+                    - button:
+                      - generic: Inventory
+                  - listitem:
+                    - button:
+                      - generic: Compras
+                  - listitem:
+                    - button:
+                      - generic: Ventas
+                  - listitem:
+                    - button:
+                      - generic: Finanzas
+                  - listitem:
+                    - button:
+                      - generic: Gastos
+                  - listitem:
+                    - button:
+                      - generic: Nómina
+                  - listitem:
+                    - button:
+                      - generic: Configuración
+            - generic:
+              - generic:
+                - generic:
+                  - list:
+                    - listitem:
+                      - link:
+                        - /url: https://github.com/laravel/vue-starter-kit
+                        - generic: Repository
+                    - listitem:
+                      - link:
+                        - /url: https://laravel.com/docs/starter-kits#vue
+                        - generic: Documentation
+              - list:
+                - listitem:
+                  - button:
+                    - generic: JM
+                    - generic: jhoss motos
+      - main:
+        - generic:
+          - generic:
+            - button:
+              - generic: Toggle sidebar
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /sale-returns
+              - generic:
+                - heading [level=1]: Nueva Devolución
+                - paragraph: Registro de notas de crédito y devoluciones
+            - button: Guardar
+          - generic:
+            - generic:
+              - generic:
+                - generic: Configuración General
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: N° Devolución
+                      - textbox
+                    - generic:
+                      - generic: Cliente
+                      - button [expanded]: Seleccione cliente
+                    - generic:
+                      - generic:
+                        - generic: Fecha
+                        - textbox: 2026-09-25
+                      - generic:
+                        - generic: Moneda
+                        - combobox
+                    - generic:
+                      - generic:
+                        - generic: Condición de Pago
+                        - combobox
+                      - generic:
+                        - generic: Días Crédito
+                        - spinbutton: "0"
+                    - generic:
+                      - generic: Fecha Vencimiento
+                      - textbox [disabled]: 2026-09-25
+                    - generic:
+                      - generic: Tasa de Cambio
+                      - spinbutton: "860"
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: SUBTOTAL
+                    - generic: "0"
+                  - generic:
+                    - generic: EXENTO
+                    - generic: "0"
+                  - generic:
+                    - generic: IVA
+                    - generic: "0"
+                  - generic:
+                    - generic: Total USD
+                    - generic: "0"
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Detalle de Productos
+                  - button: Agregar Item
+                - generic:
+                  - paragraph: No hay items agregados
+  - generic [aria-hidden]:
+    - generic:
+      - generic:
+        - generic: "3"
+        - generic: "16"
+        - generic: "19"
+        - generic: "1"
+        - generic: "1"
+        - generic: "1"
+      - generic: GET /sale-returns/create
+  - dialog [ref=f8e223]:
+    - generic [ref=f8e224]:
+      - heading "Seleccionar Cliente" [level=2] [ref=f8e225]
+      - paragraph [ref=f8e226]: Busque y seleccione un cliente de la lista
+    - generic [ref=f8e227]:
+      - textbox "Buscar..." [active] [ref=f8e232]
+      - table [ref=f8e234]:
+        - rowgroup [ref=f8e235]:
+          - row [ref=f8e236]:
+            - columnheader "Nombre" [ref=f8e237]
+            - columnheader "Email" [ref=f8e238]
+            - columnheader [ref=f8e239]
+        - rowgroup [ref=f8e240]:
+          - row [ref=f8e241] [cursor=pointer]:
+            - cell "cliente prueba" [ref=f8e242]
+            - cell "cliente@example.com" [ref=f8e243]
+            - cell [ref=f8e244]
+    - button "Close" [ref=f8e248]

@@ -1,0 +1,18 @@
+[    2700ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:50
+[ 1709604ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:50
+[ 1724607ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:51
+[ 1729311ms] [WARNING] [Vue warn]: Extraneous non-props attributes (errors, name, auth, company, tenant, sidebarOpen, flash) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at <Create errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <SidebarInset key=0 class="overflow-x-hidden" > 
+  at <AppContent variant="sidebar" class="overflow-x-hidden" > 
+  at <TooltipProvider delay-duration=0 > 
+  at <SidebarProvider key=1 default-open=true > 
+  at <AppShell variant="sidebar" > 
+  at <AppSidebarLayout breadcrumbs= [] > 
+  at <AppLayout errors= {} name="Laravel" auth= {user: Object}  ... > 
+  at <Inertia initialPage= {component: Finance/Receipts/Create, props: Object, url: /receipts/create, version: f17cda6f1b844667591eea61b6451b9c, sharedProps: Array(7)} initialComponent= {__name: Create, props: Object, setup: , __hmrId: 110e8046, render: } resolveComponent=fn<resolveComponent>  ... > 
+  at <App> @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:121
+[ 1731713ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:51
+[ 1739805ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:51
+[ 1753777ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:51
+[ 1997324ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://repuestos-jhossmotos.lvh.me:8000/_boost/browser-logs @ http://repuestos-jhossmotos.lvh.me:8000/receipts/create:51

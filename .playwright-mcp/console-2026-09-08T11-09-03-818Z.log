@@ -1,0 +1,11 @@
+[   -3563ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/accounts-receivable:50
+[   -3483ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-600-normal.woff2 @ http://localhost:8000/accounts-receivable:261
+[   -3483ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-500-normal.woff2 @ http://localhost:8000/accounts-receivable:261
+[   -3482ms] [INFO] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-400-normal.woff2 @ http://localhost:8000/accounts-receivable:261
+[   -2087ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5173/?token=D6Cj_8z9s9hD' failed:  @ http://127.0.0.1:5173/@vite/client:840
+[   -1918ms] [ERROR] WebSocket connection to 'ws://localhost:5173/?token=D6Cj_8z9s9hD' failed:  @ http://127.0.0.1:5173/@vite/client:850
+[   -1915ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) 127.0.0.1:5173/ <--[HTTP]--> localhost:5173/ (server)
+  (browser) 127.0.0.1:5173/ <--[WebSocket (failing)]--> localhost:5173/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:8000/accounts-receivable:120

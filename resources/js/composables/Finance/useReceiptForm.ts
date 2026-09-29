@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import { useCurrencyConversion } from '@/composables/useCurrencyConversion';
+import { generateUid } from '@/lib/utils';
 import receiptRoutes from '@/routes/receipts';
 
 interface RateRecord {
@@ -74,7 +75,7 @@ export function useReceiptForm(props: ReceiptFormProps) {
 
     function createBlankMovement(): BankMovement {
         return {
-            uid: crypto.randomUUID(),
+            uid: generateUid(),
             bank_account_id: '',
             currency: 'USD',
             amount: 0,

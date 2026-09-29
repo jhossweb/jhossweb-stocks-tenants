@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\AdjustmentReason;
 use App\Models\BankTransaction;
 use App\Models\Expense;
 use App\Models\MovementInventory;
@@ -12,6 +13,7 @@ use App\Models\Rate;
 use App\Models\SaleOrder;
 use App\Observers\BankTransactionObserver;
 use App\Observers\ExpenseObserver;
+use App\Observers\Inventory\AdjustmentReasonObserver;
 use App\Observers\Inventory\MovInventoryObserver;
 use App\Observers\Purchases\MovCostHistoryObserver;
 use App\Observers\Purchases\MovPurchasesObserver;
@@ -45,6 +47,19 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->registerSqliteDateFunctions();
 
+        // En testing el esquema completo (central + negocio + spatie) vive en un
+        // SQLite :memory:. El path de migraciones de tenant se carga solo aquí
+        // para no ensuciar el esquema central en dev. (Fase 6: tests con tenancy real.)
+        if ($this->app->environment('testing')) {
+            $this->loadMigrationsFrom(database_path('migrations/tenant'));
+
+            // La tabla central `tenants`/`domains` (y los modelos Tenant/Domain)
+            // apuntan a la conexión 'central' (pgsql en dev). En testing esa
+            // conexión se redirige al SQLite :memory: para poder probar el alta
+            // de tenants sin tocar la BD real.
+            config(['tenancy.database.central_connection' => 'sqlite']);
+        }
+
         MovementsPurchase::observe(MovPurchasesObserver::class);
         MovementsPurchase::observe(MovCostHistoryObserver::class);
         PurchaseOrder::observe(PurchaseOrderObserver::class);
@@ -56,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
         SaleOrder::observe(SaleOrderObserver::class);
 
         MovementInventory::observe(MovInventoryObserver::class);
+        AdjustmentReason::observe(AdjustmentReasonObserver::class);
     }
 
     /**

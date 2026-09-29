@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Middleware\EnsureCentralAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\InitializeTenancy;
+use App\Http\Middleware\OnlyCentralDomains;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -27,6 +31,26 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        // Middleware de tenancy por subdominio. Se aplica únicamente al grupo
+        // de rutas 'tenant' (ERP + settings), nunca a las rutas centrales
+        // (portal SaaS en localhost). La clase omite la tenancy en testing.
+        // 'central' limita las rutas del portal central a los dominios
+        // centrales (localhost / 127.0.0.1).
+        $middleware->alias([
+            'tenant' => InitializeTenancy::class,
+            'central' => OnlyCentralDomains::class,
+            'admin' => EnsureCentralAdmin::class,
+        ]);
+
+        // La tenancy debe inicializarse antes que la autenticación y el
+        // binding de modelos para que ambos se resuelvan contra el schema
+        // del tenant (y no contra el schema central). Anclamos nuestro
+        // middleware justo antes de la autenticación en la prioridad.
+        $middleware->prependToPriorityList(
+            AuthenticatesRequests::class,
+            InitializeTenancy::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (SymfonyResponse $response, Throwable $exception) {

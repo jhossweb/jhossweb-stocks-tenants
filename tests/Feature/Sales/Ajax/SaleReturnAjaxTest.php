@@ -94,6 +94,29 @@ test('getUnpaidSales returns empty for customer without sales', function () {
         ->assertJsonCount(0);
 });
 
+test('getUnpaidSales excludes invoices that already have a return', function () {
+    SaleOrder::factory()->devv()->create([
+        'sls_customer_id' => $this->customer->id,
+        'sls_reference' => $this->originalSale->sls_number,
+    ]);
+
+    $this->get("/api/customers/{$this->customer->id}/unpaid-sales")
+        ->assertOk()
+        ->assertJsonCount(0);
+});
+
+test('getUnpaidSales keeps invoice when excluding the current return', function () {
+    $return = SaleOrder::factory()->devv()->create([
+        'sls_customer_id' => $this->customer->id,
+        'sls_reference' => $this->originalSale->sls_number,
+    ]);
+
+    $this->get("/api/customers/{$this->customer->id}/unpaid-sales?exclude_return_id={$return->id}")
+        ->assertOk()
+        ->assertJsonCount(1)
+        ->assertJsonFragment(['sls_number' => $this->originalSale->sls_number]);
+});
+
 test('getSaleOrderByNumber returns a sale', function () {
     $this->get("/api/sale-orders/by-number/{$this->originalSale->sls_number}")
         ->assertOk()

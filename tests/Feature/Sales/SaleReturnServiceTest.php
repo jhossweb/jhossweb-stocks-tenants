@@ -167,6 +167,41 @@ test('store throws exception when quantity exceeds available', function () {
         ->toThrow(RuntimeException::class, 'excede la disponible');
 });
 
+test('store throws exception when invoice already has a return', function () {
+    $customer = Customer::factory()->create();
+
+    $originalSale = SaleOrder::factory()->facv()->create([
+        'sls_customer_id' => $customer->id,
+    ]);
+
+    SaleOrder::factory()->devv()->create([
+        'sls_customer_id' => $customer->id,
+        'sls_reference' => $originalSale->sls_number,
+    ]);
+
+    $dto = SaleReturnDTO::fromArray([
+        'sls_number' => 'DEV-004',
+        'sls_date' => '2026-06-15',
+        'sls_customer_id' => (string) $customer->id,
+        'sls_valorcam' => '1.0',
+        'sls_coin' => 'USD',
+        'sls_reference' => $originalSale->sls_number,
+        'sls_subtotal' => '100.00',
+        'sls_exento' => '0.00',
+        'sls_iva' => '16.00',
+        'sls_total' => '116.00',
+        'sls_payment_condition' => 'cash',
+        'sls_credit_days' => 0,
+        'sls_due_date' => '2026-06-15',
+        'items' => [],
+    ]);
+
+    $service = app(SaleReturnService::class);
+
+    expect(fn () => $service->store($dto))
+        ->toThrow(RuntimeException::class, 'ya tiene una devolución');
+});
+
 test('destroy removes sale order and movements', function () {
     $customer = Customer::factory()->create();
     $warehouse = Warehouse::factory()->create(['id' => 1]);

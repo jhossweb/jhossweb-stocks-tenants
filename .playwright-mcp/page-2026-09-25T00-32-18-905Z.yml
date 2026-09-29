@@ -1,0 +1,66 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "Log in to your account" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e12]:
+          - heading "Log in to your account" [level=1] [ref=e13]
+          - paragraph [ref=e14]: Enter your email and password below to log in
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: Email address
+            - textbox "Email address" [active] [ref=e19]:
+              - /placeholder: email@example.com
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - generic [ref=e22]: Password
+              - link "Forgot password?" [ref=e23] [cursor=pointer]:
+                - /url: /forgot-password
+            - generic [ref=e24]:
+              - textbox "Password" [ref=e25]
+              - button "Show password" [ref=e26]
+          - generic [ref=e31]:
+            - checkbox "Remember me" [ref=e32]:
+              - checkbox [ref=e33]
+            - generic [ref=e34]: Remember me
+          - button "Log in" [ref=e35]
+        - generic [ref=e36]:
+          - text: Don't have an account?
+          - link "Sign up" [ref=e37] [cursor=pointer]:
+            - /url: /register
+  - generic [ref=e40]:
+    - generic [ref=e41] [cursor=pointer]
+    - generic [ref=e42]:
+      - generic [ref=e43] [cursor=pointer]: Request
+      - generic [ref=e44] [cursor=pointer]: Timeline
+      - generic [ref=e45] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=e46]: "3"
+      - generic [ref=e47] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=e48]: "3"
+      - generic [ref=e49] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=e50]: "2"
+      - generic [ref=e51] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=e52]: "1"
+      - generic [ref=e53] [cursor=pointer]:
+        - generic: Cache
+        - generic [ref=e54]: "1"
+      - generic [ref=e55] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=e56]: "1"
+    - generic [ref=e57]:
+      - generic [ref=e58] [cursor=pointer]
+      - generic [ref=e59] [cursor=pointer]
+      - generic [ref=e60] [cursor=pointer]
+      - generic [ref=e62] [cursor=pointer]
+      - generic [ref=e63]: GET /login
+      - generic [ref=e66] [cursor=pointer]: 649ms
+      - generic [ref=e68] [cursor=pointer]: 33MB
+      - generic [ref=e70] [cursor=pointer]: 13.x

@@ -1,0 +1,130 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f1e3]:
+      - generic [ref=f1e6]:
+        - list [ref=f1e8]:
+          - listitem [ref=f1e9]:
+            - link "Laravel Starter Kit" [ref=f1e10] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=f1e17]:
+          - generic [ref=f1e18]: Platform
+          - list [ref=f1e19]:
+            - listitem [ref=f1e20]:
+              - button "Inventory" [ref=f1e21]
+            - listitem [ref=f1e31]:
+              - button "Compras" [ref=f1e32]
+            - listitem [ref=f1e40]:
+              - button "Ventas" [ref=f1e41]
+            - listitem [ref=f1e50]:
+              - button "Finanzas" [ref=f1e51]
+            - listitem [ref=f1e59]:
+              - button "Gastos" [ref=f1e60]
+            - listitem [ref=f1e67]:
+              - button "Nómina" [ref=f1e68]
+            - listitem [ref=f1e75]:
+              - button "Configuración" [ref=f1e76]
+        - generic [ref=f1e83]:
+          - list [ref=f1e86]:
+            - listitem [ref=f1e87]:
+              - link "Repository" [ref=f1e88] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=f1e95]:
+              - link "Documentation" [ref=f1e96] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=f1e100]:
+            - listitem [ref=f1e101]:
+              - button "JM jhoss motos" [ref=f1e102]:
+                - generic [ref=f1e103]: JM
+                - generic [ref=f1e105]: jhoss motos
+      - main [ref=f1e110]:
+        - button "Toggle sidebar" [ref=f1e113]
+        - generic [ref=f1e115]:
+          - generic [ref=f1e116]:
+            - generic [ref=f1e117]:
+              - link [ref=f1e118] [cursor=pointer]:
+                - /url: /inventory/adjustments
+              - generic [ref=f1e121]:
+                - heading "Nuevo Ajuste de Inventario" [level=1] [ref=f1e122]
+                - paragraph [ref=f1e123]: Salida de productos por merma, deterioro o vencido
+            - button "Guardar" [ref=f1e124]
+          - generic [ref=f1e129]:
+            - generic [ref=f1e130]:
+              - generic [ref=f1e131]:
+                - generic [ref=f1e132]: Configuración del Ajuste
+                - generic [ref=f1e137]:
+                  - generic [ref=f1e138]:
+                    - generic [ref=f1e139]: N° Ajuste
+                    - textbox [ref=f1e140]
+                  - generic [ref=f1e141]:
+                    - generic [ref=f1e142]: Almacén
+                    - combobox [ref=f1e143]:
+                      - option "Seleccione almacén..." [selected]
+                      - option "ALMACÉN 001"
+                    - paragraph [ref=f1e144]: Debe seleccionar un almacén
+                  - generic [ref=f1e145]:
+                    - generic [ref=f1e146]: Fecha
+                    - textbox [ref=f1e147]: 2026-09-25
+                  - generic [ref=f1e148]:
+                    - generic [ref=f1e149]: Notas
+                    - textbox "Motivo del ajuste..." [ref=f1e150]
+              - generic [ref=f1e155]:
+                - paragraph [ref=f1e156]: Importante
+                - paragraph [ref=f1e157]: Este ajuste descontará del inventario la cantidad indicada. Seleccione la razón correcta para cada producto.
+            - generic [ref=f1e159]:
+              - generic [ref=f1e160]:
+                - generic [ref=f1e161]: Productos a Ajustar
+                - button "Agregar Item" [disabled] [ref=f1e162]
+              - table [ref=f1e166]:
+                - rowgroup [ref=f1e167]:
+                  - row [ref=f1e168]:
+                    - columnheader "Producto" [ref=f1e169]
+                    - columnheader "Razón de Ajuste" [ref=f1e170]
+                    - columnheader "Stock Actual" [ref=f1e171]
+                    - columnheader "Cantidad" [ref=f1e172]
+                    - columnheader [ref=f1e173]
+                - rowgroup [ref=f1e174]:
+                  - row [ref=f1e175]:
+                    - cell [ref=f1e176]:
+                      - button "Seleccione producto" [ref=f1e177]
+                    - cell "Seleccione..." [ref=f1e178]:
+                      - combobox [ref=f1e179]:
+                        - option "Seleccione..." [selected]
+                    - cell "-" [ref=f1e180]
+                    - cell [ref=f1e182]:
+                      - spinbutton [ref=f1e184]: "1"
+                    - cell [ref=f1e185]:
+                      - button "Eliminar fila" [ref=f1e186]
+  - generic [ref=f1e192]:
+    - generic [ref=f1e193] [cursor=pointer]
+    - generic [ref=f1e194]:
+      - generic [ref=f1e195] [cursor=pointer]: Request
+      - generic [ref=f1e196] [cursor=pointer]: Timeline
+      - generic [ref=f1e197] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=f1e198]: "3"
+      - generic [ref=f1e199] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f1e200]: "11"
+      - generic [ref=f1e201] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f1e202]: "14"
+      - generic [ref=f1e203] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f1e204]: "1"
+      - generic [ref=f1e205] [cursor=pointer]:
+        - generic: Cache
+        - generic [ref=f1e206]: "1"
+      - generic [ref=f1e207] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=f1e208]: "1"
+    - generic [ref=f1e209]:
+      - generic [ref=f1e210] [cursor=pointer]
+      - generic [ref=f1e211] [cursor=pointer]
+      - generic [ref=f1e212] [cursor=pointer]
+      - generic [ref=f1e214] [cursor=pointer]
+      - generic [ref=f1e215]: GET /inventory/adjustments/create
+      - generic [ref=f1e218] [cursor=pointer]: 836ms
+      - generic [ref=f1e220] [cursor=pointer]: 34MB
+      - generic [ref=f1e222] [cursor=pointer]: 13.x

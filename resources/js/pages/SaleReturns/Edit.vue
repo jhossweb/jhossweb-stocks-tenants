@@ -121,7 +121,7 @@ const fetchUnpaidSales = async (customerId: number) => {
     salesError.value = '';
 
     try {
-        const res = await fetch(`/api/customers/${customerId}/unpaid-sales`);
+        const res = await fetch(`/api/customers/${customerId}/unpaid-sales?exclude_return_id=${props.saleReturn.id}`);
 
         if (!res.ok) {
             const err = await res.json().catch(() => ({ error: 'Error del servidor' }));

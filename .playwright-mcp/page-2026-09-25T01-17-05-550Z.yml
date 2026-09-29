@@ -1,0 +1,138 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f8e3]:
+      - generic [ref=f8e6]:
+        - list [ref=f8e8]:
+          - listitem [ref=f8e9]:
+            - link "Laravel Starter Kit" [ref=f8e10] [cursor=pointer]:
+              - /url: /dashboard
+        - generic [ref=f8e17]:
+          - generic [ref=f8e18]: Platform
+          - list [ref=f8e19]:
+            - listitem [ref=f8e20]:
+              - button "Inventory" [ref=f8e21]
+            - listitem [ref=f8e31]:
+              - button "Compras" [ref=f8e32]
+            - listitem [ref=f8e40]:
+              - button "Ventas" [ref=f8e41]
+            - listitem [ref=f8e50]:
+              - button "Finanzas" [ref=f8e51]
+            - listitem [ref=f8e59]:
+              - button "Gastos" [ref=f8e60]
+            - listitem [ref=f8e67]:
+              - button "Nómina" [ref=f8e68]
+            - listitem [ref=f8e75]:
+              - button "Configuración" [ref=f8e76]
+        - generic [ref=f8e83]:
+          - list [ref=f8e86]:
+            - listitem [ref=f8e87]:
+              - link "Repository" [ref=f8e88] [cursor=pointer]:
+                - /url: https://github.com/laravel/vue-starter-kit
+            - listitem [ref=f8e95]:
+              - link "Documentation" [ref=f8e96] [cursor=pointer]:
+                - /url: https://laravel.com/docs/starter-kits#vue
+          - list [ref=f8e100]:
+            - listitem [ref=f8e101]:
+              - button "JM jhoss motos" [ref=f8e102]:
+                - generic [ref=f8e103]: JM
+                - generic [ref=f8e105]: jhoss motos
+      - main [ref=f8e110]:
+        - button "Toggle sidebar" [ref=f8e113]
+        - generic [ref=f8e115]:
+          - generic [ref=f8e116]:
+            - generic [ref=f8e117]:
+              - link [ref=f8e118] [cursor=pointer]:
+                - /url: /sale-returns
+              - generic [ref=f8e121]:
+                - heading "Nueva Devolución" [level=1] [ref=f8e122]
+                - paragraph [ref=f8e123]: Registro de notas de crédito y devoluciones
+            - button "Guardar" [ref=f8e124]
+          - generic [ref=f8e129]:
+            - generic [ref=f8e130]:
+              - generic [ref=f8e131]:
+                - generic [ref=f8e132]: Configuración General
+                - generic [ref=f8e137]:
+                  - generic [ref=f8e138]:
+                    - generic [ref=f8e139]: N° Devolución
+                    - textbox [ref=f8e140]
+                  - generic [ref=f8e141]:
+                    - generic [ref=f8e142]: Cliente
+                    - button "Seleccione cliente" [ref=f8e143]
+                  - generic [ref=f8e144]:
+                    - generic [ref=f8e145]:
+                      - generic [ref=f8e146]: Fecha
+                      - textbox [ref=f8e147]: 2026-09-25
+                    - generic [ref=f8e148]:
+                      - generic [ref=f8e149]: Moneda
+                      - combobox [ref=f8e150]:
+                        - option "USD" [selected]
+                        - option "COP"
+                        - option "BS"
+                        - option "EUR"
+                  - generic [ref=f8e151]:
+                    - generic [ref=f8e152]:
+                      - generic [ref=f8e153]: Condición de Pago
+                      - combobox [ref=f8e154]:
+                        - option "Contado" [selected]
+                        - option "Crédito"
+                    - generic [ref=f8e155]:
+                      - generic [ref=f8e156]: Días Crédito
+                      - spinbutton [ref=f8e157]: "0"
+                  - generic [ref=f8e158]:
+                    - generic [ref=f8e159]: Fecha Vencimiento
+                    - textbox [disabled]: 2026-09-25
+                  - generic [ref=f8e160]:
+                    - generic [ref=f8e161]: Tasa de Cambio
+                    - spinbutton [ref=f8e162]: "860"
+              - generic [ref=f8e166]:
+                - generic [ref=f8e167]:
+                  - generic [ref=f8e168]: SUBTOTAL
+                  - generic [ref=f8e169]: "0"
+                - generic [ref=f8e170]:
+                  - generic [ref=f8e171]: EXENTO
+                  - generic [ref=f8e172]: "0"
+                - generic [ref=f8e173]:
+                  - generic [ref=f8e174]: IVA
+                  - generic [ref=f8e175]: "0"
+                - generic [ref=f8e176]:
+                  - generic [ref=f8e177]: Total USD
+                  - generic [ref=f8e178]: "0"
+            - generic [ref=f8e180]:
+              - generic [ref=f8e181]:
+                - generic [ref=f8e182]: Detalle de Productos
+                - button "Agregar Item" [ref=f8e183]
+              - paragraph [ref=f8e187]: No hay items agregados
+  - generic [ref=f8e190]:
+    - generic [ref=f8e191] [cursor=pointer]
+    - generic [ref=f8e192]:
+      - generic [ref=f8e193] [cursor=pointer]: Request
+      - generic [ref=f8e194] [cursor=pointer]: Timeline
+      - generic [ref=f8e195] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=f8e196]: "3"
+      - generic [ref=f8e197] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f8e198]: "16"
+      - generic [ref=f8e199] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f8e200]: "19"
+      - generic [ref=f8e201] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f8e202]: "1"
+      - generic [ref=f8e203] [cursor=pointer]:
+        - generic: Cache
+        - generic [ref=f8e204]: "1"
+      - generic [ref=f8e205] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=f8e206]: "1"
+    - generic [ref=f8e207]:
+      - generic [ref=f8e208] [cursor=pointer]
+      - generic [ref=f8e209] [cursor=pointer]
+      - generic [ref=f8e210] [cursor=pointer]
+      - generic [ref=f8e212] [cursor=pointer]
+      - generic [ref=f8e213]: GET /sale-returns/create
+      - generic [ref=f8e216] [cursor=pointer]: 1.01s
+      - generic [ref=f8e218] [cursor=pointer]: 34MB
+      - generic [ref=f8e220] [cursor=pointer]: 13.x

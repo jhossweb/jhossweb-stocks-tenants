@@ -1,0 +1,66 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=f4e5]:
+      - generic [ref=f4e6]:
+        - link "Log in to your account" [ref=f4e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f4e12]:
+          - heading "Log in to your account" [level=1] [ref=f4e13]
+          - paragraph [ref=f4e14]: Enter your email and password below to log in
+      - generic [ref=f4e15]:
+        - generic [ref=f4e16]:
+          - generic [ref=f4e17]:
+            - generic [ref=f4e18]: Email address
+            - textbox "Email address" [active] [ref=f4e19]:
+              - /placeholder: email@example.com
+          - generic [ref=f4e20]:
+            - generic [ref=f4e21]:
+              - generic [ref=f4e22]: Password
+              - link "Forgot password?" [ref=f4e23] [cursor=pointer]:
+                - /url: /forgot-password
+            - generic [ref=f4e24]:
+              - textbox "Password" [ref=f4e25]
+              - button "Show password" [ref=f4e26]
+          - generic [ref=f4e31]:
+            - checkbox "Remember me" [ref=f4e32]:
+              - checkbox [ref=f4e33]
+            - generic [ref=f4e34]: Remember me
+          - button "Log in" [ref=f4e35]
+        - generic [ref=f4e36]:
+          - text: Don't have an account?
+          - link "Sign up" [ref=f4e37] [cursor=pointer]:
+            - /url: /register
+  - generic [ref=f4e40]:
+    - generic [ref=f4e41] [cursor=pointer]
+    - generic [ref=f4e42]:
+      - generic [ref=f4e43] [cursor=pointer]: Request
+      - generic [ref=f4e44] [cursor=pointer]: Timeline
+      - generic [ref=f4e45] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=f4e46]: "3"
+      - generic [ref=f4e47] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=f4e48]: "4"
+      - generic [ref=f4e49] [cursor=pointer]:
+        - generic: Models
+        - generic [ref=f4e50]: "3"
+      - generic [ref=f4e51] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=f4e52]: "1"
+      - generic [ref=f4e53] [cursor=pointer]:
+        - generic: Cache
+        - generic [ref=f4e54]: "2"
+      - generic [ref=f4e55] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=f4e56]: "1"
+    - generic [ref=f4e57]:
+      - generic [ref=f4e58] [cursor=pointer]
+      - generic [ref=f4e59] [cursor=pointer]
+      - generic [ref=f4e60] [cursor=pointer]
+      - generic [ref=f4e62] [cursor=pointer]
+      - generic [ref=f4e63]: GET /login
+      - generic [ref=f4e66] [cursor=pointer]: 658ms
+      - generic [ref=f4e68] [cursor=pointer]: 33MB
+      - generic [ref=f4e70] [cursor=pointer]: 13.x

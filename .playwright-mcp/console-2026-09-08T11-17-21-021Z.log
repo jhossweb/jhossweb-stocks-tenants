@@ -1,0 +1,5 @@
+[     711ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://localhost:8000/_boost/browser-logs @ http://localhost:8000/register/company:59
+[   15979ms] [ERROR] Access to XMLHttpRequest at 'http://acme-vidrios.lvh.me:8000/login' (redirected from 'http://localhost:8000/register/company') from origin 'http://localhost:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:8000/register/company:0
+[   16017ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://acme-vidrios.lvh.me:8000/login:0
+[   16032ms] HttpNetworkError: Network error (http://localhost:8000/register/company)
+    at xhr.onerror (http://127.0.0.1:5173/node_modules/.vite/deps/@inertiajs_vue3.js?v=c7670b40:3126:31)

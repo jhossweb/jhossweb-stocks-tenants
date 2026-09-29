@@ -1,0 +1,8 @@
+[     915ms] [ERROR] Access to script at 'http://127.0.0.1:5173/@vite/client' from origin 'http://acme-vidrios.lvh.me:8000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://acme-vidrios.lvh.me:8000/login:0
+[     916ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:5173/@vite/client:0
+[     916ms] [ERROR] Access to script at 'http://127.0.0.1:5173/resources/js/app.ts' from origin 'http://acme-vidrios.lvh.me:8000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://acme-vidrios.lvh.me:8000/login:0
+[     916ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:5173/resources/js/app.ts:0
+[     916ms] [ERROR] Access to script at 'http://127.0.0.1:5173/resources/js/pages/auth/Login.vue' from origin 'http://acme-vidrios.lvh.me:8000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://acme-vidrios.lvh.me:8000/login:0
+[     921ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:5173/resources/js/pages/auth/Login.vue:0
+[    1370ms] [LOG] 🔍 Browser logger active (MCP server detected). Posting to: http://acme-vidrios.lvh.me:8000/_boost/browser-logs @ http://acme-vidrios.lvh.me:8000/login:59
+[   14392ms] [ERROR] Failed to load resource: the server responded with a status of 419 (unknown status) @ http://acme-vidrios.lvh.me:8000/login:0

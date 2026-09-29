@@ -48,3 +48,69 @@ export interface PriceHistoryResponse {
     };
     history: PriceHistoryEntry[];
 }
+
+export interface AdjustmentReason {
+    id: number;
+    adjr_code: string;
+    adjr_name: string;
+    adjr_description: string | null;
+}
+
+export interface AdjustmentProductStock {
+    war_id: number;
+    cant: number;
+}
+
+export interface AdjustmentProduct {
+    pro_code: string;
+    pro_name: string;
+    pro_und: string | null;
+    pro_iva: string | null;
+    pro_type: string | null;
+    stocks: AdjustmentProductStock[];
+    total_stock: number;
+}
+
+export interface InventoryAdjustmentItem {
+    id?: number;
+    min_pro_code: string;
+    min_war_id: number;
+    min_quantity: number;
+    min_reason_id: string;
+}
+
+export interface InventoryAdjustmentMovement {
+    id: number;
+    min_pro_code: string;
+    min_war_id: number;
+    min_quantity: number;
+    min_reason_id: number;
+    product?: AdjustmentProduct | null;
+    warehouse?: Warehouse | null;
+    reason?: AdjustmentReason | null;
+}
+
+export interface InventoryAdjustment {
+    id: number;
+    inv_number: string;
+    inv_date: string;
+    inv_notes: string | null;
+    inv_status: string;
+    created_at: string;
+    movements: InventoryAdjustmentMovement[];
+}
+
+export interface InventoryAdjustmentPaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
+export interface InventoryAdjustmentPage {
+    data: InventoryAdjustment[];
+    links: InventoryAdjustmentPaginationLink[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+}

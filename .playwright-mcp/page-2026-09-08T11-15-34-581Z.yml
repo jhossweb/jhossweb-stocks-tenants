@@ -1,0 +1,74 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T":
+      - list
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - link "Create your company" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e12]:
+          - heading "Create your company" [level=1] [ref=e13]
+          - paragraph [ref=e14]: Get started with Vidrialum ERP for your business
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: Company name
+            - textbox "Company name" [ref=e19]:
+              - /placeholder: Vidrialum C.A.
+              - text: Acme Vidrios
+          - generic [ref=e76]: "Your workspace: acme-vidrios.lvh.me"
+          - generic [ref=e20]:
+            - generic [ref=e21]: Your name
+            - textbox "Your name" [ref=e22]:
+              - /placeholder: Full name
+              - text: Luis Paredes
+          - generic [ref=e23]:
+            - generic [ref=e24]: Work email
+            - textbox "Work email" [ref=e25]:
+              - /placeholder: email@example.com
+              - text: luis@acmevidrios.com
+          - generic [ref=e26]:
+            - generic [ref=e27]: Password
+            - generic [ref=e28]:
+              - textbox "Password" [ref=e29]: secret-password
+              - button "Show password" [ref=e30]
+          - generic [ref=e34]:
+            - generic [ref=e35]: Confirm password
+            - generic [ref=e36]:
+              - textbox "Confirm password" [ref=e37]: secret-password
+              - button "Show password" [ref=e38]
+          - button "Loading Create company" [disabled]:
+            - status "Loading"
+            - text: Create company
+        - generic [ref=e43]:
+          - text: Already have an account?
+          - link "Back to home" [ref=e44] [cursor=pointer]:
+            - /url: /
+  - generic [ref=e47]:
+    - generic [ref=e48] [cursor=pointer]
+    - generic [ref=e49]:
+      - generic [ref=e50] [cursor=pointer]: Request
+      - generic [ref=e51] [cursor=pointer]: Timeline
+      - generic [ref=e52] [cursor=pointer]:
+        - generic: Views
+        - generic [ref=e53]: "3"
+      - generic [ref=e54] [cursor=pointer]:
+        - generic: Queries
+        - generic [ref=e55]: "0"
+      - generic [ref=e56] [cursor=pointer]:
+        - generic: Inertia
+        - generic [ref=e57]: "1"
+      - generic [ref=e58] [cursor=pointer]:
+        - generic: Http client
+        - generic [ref=e59]: "1"
+    - generic [ref=e60]:
+      - generic [ref=e61] [cursor=pointer]
+      - generic [ref=e62] [cursor=pointer]
+      - generic [ref=e63] [cursor=pointer]
+      - generic [ref=e65] [cursor=pointer]
+      - generic [ref=e67] [cursor=pointer]:
+        - generic [ref=e68]: "2"
+        - generic [ref=e69]: GET /register/company
+      - generic [ref=e70] [cursor=pointer]: 569ms
+      - generic [ref=e72] [cursor=pointer]: 30MB
+      - generic [ref=e74] [cursor=pointer]: 13.x

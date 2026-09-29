@@ -21,6 +21,10 @@ class SaleReturnService
             throw new \RuntimeException('La factura de venta referenciada no existe o no es válida.');
         }
 
+        if ($originalSale->childrenReturns()->exists()) {
+            throw new \RuntimeException('Esta factura ya tiene una devolución registrada.');
+        }
+
         $transactionType = TransactionType::where('trans_type_code', 'DEVV')->first();
 
         if (! $transactionType) {

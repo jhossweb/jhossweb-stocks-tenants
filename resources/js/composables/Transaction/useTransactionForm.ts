@@ -26,6 +26,7 @@ interface Product {
 
 interface Warehouse {
     id: number;
+    war_name?: string;
     [key: string]: unknown;
 }
 

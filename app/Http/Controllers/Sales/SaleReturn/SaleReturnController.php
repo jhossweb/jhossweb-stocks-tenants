@@ -118,11 +118,13 @@ class SaleReturnController extends Controller
         }
     }
 
-    public function getUnpaidSales(Customer $customer): JsonResponse
+    public function getUnpaidSales(Customer $customer, Request $request): JsonResponse
     {
         try {
+            $excludeReturnId = $request->integer('exclude_return_id', 0) ?: null;
+
             return response()->json(
-                $this->saleReturnRepository->findUnpaidSalesByCustomer($customer->id)
+                $this->saleReturnRepository->findUnpaidSalesByCustomer($customer->id, $excludeReturnId)
             );
         } catch (\Exception $e) {
             return response()->json(

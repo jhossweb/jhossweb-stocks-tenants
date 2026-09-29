@@ -25,4 +25,15 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    server: {
+        // En dev las páginas se sirven desde subdominios {slug}.lvh.me:8000,
+        // pero los assets vienen del servidor Vite (127.0.0.1:5173). Sin esto,
+        // los scripts se bloquean por CORS y el JS no hidrata (forms nativos → 419).
+        cors: {
+            origin: [
+                /^https?:\/\/(?:[^/.]+\.)*lvh\.me(?::\d+)?$/,
+                /^https?:\/\/localhost(?::\d+)?$/,
+            ],
+        },
+    },
 });

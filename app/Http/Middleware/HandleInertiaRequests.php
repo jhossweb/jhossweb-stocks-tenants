@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,12 +36,20 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $isTenant = tenancy()->initialized;
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Solo disponibles cuando un tenant está inicializado
+            // (en el portal central quedan como null).
+            'company' => fn () => $isTenant ? Company::current() : null,
+            'tenant' => fn () => $isTenant
+                ? ['id' => tenant('id'), 'domain' => tenant()->domains->first()?->domain]
+                : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'flash' => [
                 'success' => $request->session()->get('success'),
