@@ -2,11 +2,14 @@
 
 namespace App\Repositories\Dashboard;
 
+use App\Concerns\ResolvesMonthRange;
 use App\Models\AccountsPayable;
 use Illuminate\Support\Facades\DB;
 
 class PayableKpiRepository
 {
+    use ResolvesMonthRange;
+
     public function balanceByCurrency(): array
     {
         return AccountsPayable::query()
@@ -26,7 +29,7 @@ class PayableKpiRepository
 
     public function paidByCurrency(?string $month): array
     {
-        $month ??= now()->format('Y-m');
+        [$from, $to] = $this->monthBounds($month);
 
         return AccountsPayable::query()
             ->selectRaw('po.invoice_coin, SUM(bt.btr_amount) as total')
@@ -36,7 +39,8 @@ class PayableKpiRepository
                 $join->on('bt.btr_transactionable_id', '=', 'ap.id')
                     ->where('bt.btr_transactionable_type', '=', 'App\Models\AccountsPayable');
             })
-            ->whereRaw("TO_CHAR(bt.btr_transaction_date, 'YYYY-MM') = ?", [$month])
+            ->where('bt.btr_transaction_date', '>=', $from)
+            ->where('bt.btr_transaction_date', '<', $to)
             ->groupBy('po.invoice_coin')
             ->pluck('total', 'invoice_coin')
             ->toArray();

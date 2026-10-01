@@ -3,6 +3,7 @@
 namespace App\Repositories\Dashboard;
 
 use App\Models\SaleOrder;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
@@ -56,7 +57,10 @@ class SalesKpiRepository
             ])
             ->with(['customer:id,clt_name'])
             ->where('sls_trans_type_code', self::INVOICE_TYPE)
-            ->whereBetween('sls_date', [$from, $to])
+            // Intervalo semiabierto: 'to' llega como Y-m-d y en SQLite la fecha
+            // se guarda con hora, así que <= $to dejaría fuera todo el último día.
+            ->where('sls_date', '>=', $from)
+            ->where('sls_date', '<', CarbonImmutable::parse($to)->addDay()->toDateString())
             ->orderByDesc('sls_date')
             ->orderByDesc('id')
             ->paginate($perPage)

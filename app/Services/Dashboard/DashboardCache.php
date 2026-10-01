@@ -2,10 +2,21 @@
 
 namespace App\Services\Dashboard;
 
+use App\Concerns\ScopesCacheToTenant;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Caché read-through de los KPI de dashboard.
+ *
+ * Todas las claves pasan por ScopesCacheToTenant: config/tenancy.php desactiva
+ * `CacheTenancyBootstrapper` porque CACHE_STORE=file no soporta tags, así que
+ * una clave escrita por un tenant la leería cualquier otro. Los KPI son
+ * exactamente los datos que no deben filtrarse entre empresas.
+ */
 class DashboardCache
 {
+    use ScopesCacheToTenant;
+
     private const TTL = 60;
 
     private array $items = [];
@@ -13,10 +24,10 @@ class DashboardCache
     public function prefetch(string $month): void
     {
         $keys = $this->allKeys($month);
-        $values = Cache::many($keys);
+        $values = Cache::many(array_map($this->tenantCacheKey(...), $keys));
 
-        foreach ($keys as $key) {
-            $this->items[$key] = $values[$key] ?? null;
+        foreach ($keys as $index => $key) {
+            $this->items[$key] = $values[$this->tenantCacheKey($key)] ?? null;
         }
     }
 
@@ -32,7 +43,7 @@ class DashboardCache
 
     public function set(string $key, mixed $value): void
     {
-        Cache::put($key, $value, self::TTL);
+        Cache::put($this->tenantCacheKey($key), $value, self::TTL);
         $this->items[$key] = $value;
     }
 
@@ -54,6 +65,7 @@ class DashboardCache
             "dashboard:purchases:total:{$month}",
             "dashboard:purchases:pending:{$month}",
             "dashboard:purchases:supplier_count:{$month}",
+            "dashboard:expenses:by_category:{$month}",
             // Previous month (for trend computation)
             "dashboard:expenses:fijo:{$prev}",
             "dashboard:expenses:variable:{$prev}",

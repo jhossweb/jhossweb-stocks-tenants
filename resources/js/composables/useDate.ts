@@ -8,15 +8,17 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
 
 export function formatDate(dateStr: string | null | undefined): string {
     if (!dateStr) {
-return '-';
-}
+        return '-';
+    }
 
-    const dateStrNormalized = dateStr.includes('T') ? dateStr : dateStr + 'T12:00:00';
+    const dateStrNormalized = dateStr.includes('T')
+        ? dateStr
+        : dateStr + 'T12:00:00';
     const date = new Date(dateStrNormalized);
 
     if (isNaN(date.getTime())) {
-return '-';
-}
+        return '-';
+    }
 
     return dateFormatter.format(date);
 }

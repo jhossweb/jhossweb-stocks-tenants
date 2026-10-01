@@ -2,12 +2,15 @@
 
 namespace App\Repositories\Dashboard;
 
+use App\Concerns\ResolvesMonthRange;
 use App\Enum\TypeCoin;
 use App\Models\BankTransaction;
 use Carbon\CarbonImmutable;
 
 class CashFlowKpiRepository
 {
+    use ResolvesMonthRange;
+
     public function inflowByCurrency(string $month): array
     {
         return $this->sumByTypeAndCoin('inflow', $month);
@@ -85,7 +88,8 @@ class CashFlowKpiRepository
         $start = $end->subMonths($months - 1);
 
         $transactions = BankTransaction::query()
-            ->whereBetween('btr_transaction_date', [$start->toDateString(), $end->endOfMonth()->toDateString()])
+            ->where('btr_transaction_date', '>=', $start->toDateString())
+            ->where('btr_transaction_date', '<', $end->addMonthNoOverflow()->toDateString())
             ->get(['btr_transaction_date', 'btr_type', 'btr_coin', 'btr_amount']);
 
         $series = [];
@@ -104,14 +108,15 @@ class CashFlowKpiRepository
 
     public function byAccount(string $type, ?string $month): array
     {
-        [$from, $to] = $this->monthRange($month ??= now()->format('Y-m'));
+        [$from, $to] = $this->monthBounds($month);
 
         return BankTransaction::query()
             ->selectRaw('ba.bank_name, ba.bank_currency, bt.btr_coin, SUM(bt.btr_amount) as total')
             ->from('bank_transactions as bt')
             ->join('bank_accounts as ba', 'bt.btr_bank_account_id', '=', 'ba.id')
             ->where('bt.btr_type', $type)
-            ->whereBetween('bt.btr_transaction_date', [$from, $to])
+            ->where('bt.btr_transaction_date', '>=', $from)
+            ->where('bt.btr_transaction_date', '<', $to)
             ->groupBy('ba.id', 'ba.bank_name', 'ba.bank_currency', 'bt.btr_coin')
             ->orderByDesc('total')
             ->get()
@@ -125,7 +130,7 @@ class CashFlowKpiRepository
      */
     public function netByAccount(?string $month): array
     {
-        [$from, $to] = $this->monthRange($month ??= now()->format('Y-m'));
+        [$from, $to] = $this->monthBounds($month);
 
         return BankTransaction::query()
             ->selectRaw(
@@ -133,7 +138,8 @@ class CashFlowKpiRepository
             )
             ->from('bank_transactions as bt')
             ->join('bank_accounts as ba', 'bt.btr_bank_account_id', '=', 'ba.id')
-            ->whereBetween('bt.btr_transaction_date', [$from, $to])
+            ->where('bt.btr_transaction_date', '>=', $from)
+            ->where('bt.btr_transaction_date', '<', $to)
             ->groupBy('ba.id', 'ba.bank_name', 'ba.bank_currency')
             ->orderByDesc('total')
             ->get()
@@ -145,24 +151,15 @@ class CashFlowKpiRepository
             ->toArray();
     }
 
-    /**
-     * @return array{0: string, 1: string} [from, to]
-     */
-    private function monthRange(string $month): array
-    {
-        $start = CarbonImmutable::createFromFormat('Y-m', $month)->startOfMonth();
-
-        return [$start->toDateString(), $start->endOfMonth()->toDateString()];
-    }
-
     private function sumByTypeAndCoin(string $type, string $month): array
     {
-        [$from, $to] = $this->monthRange($month);
+        [$from, $to] = $this->monthBounds($month);
 
         return BankTransaction::query()
             ->selectRaw('btr_coin, SUM(btr_amount) as total')
             ->where('btr_type', $type)
-            ->whereBetween('btr_transaction_date', [$from, $to])
+            ->where('btr_transaction_date', '>=', $from)
+            ->where('btr_transaction_date', '<', $to)
             ->groupBy('btr_coin')
             ->pluck('total', 'btr_coin')
             ->toArray();

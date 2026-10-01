@@ -13,7 +13,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { index, update } from '@/routes/admin/tenants';
-import type { TenantEditProps, TenantPlan, TenantStatus } from '@/types/Tenancy';
+import type {
+    TenantEditProps,
+    TenantPlan,
+    TenantStatus,
+} from '@/types/Tenancy';
 
 const props = defineProps<TenantEditProps>();
 

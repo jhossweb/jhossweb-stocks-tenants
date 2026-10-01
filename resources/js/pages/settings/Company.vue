@@ -61,10 +61,12 @@ const submit = () => {
             description="Información fiscal y comercial que se utilizará en facturas y reportes del sistema."
         />
 
-        <Card class="bg-zinc-950 border-zinc-800 shadow-xl">
+        <Card class="border-zinc-800 bg-zinc-950 shadow-xl">
             <CardHeader class="border-b border-zinc-800">
-                <CardTitle class="flex items-center gap-2 text-lg font-bold text-zinc-100">
-                    <Building2 class="w-5 h-5 text-indigo-500" />
+                <CardTitle
+                    class="flex items-center gap-2 text-lg font-bold text-zinc-100"
+                >
+                    <Building2 class="h-5 w-5 text-indigo-500" />
                     Información de la Empresa
                 </CardTitle>
                 <CardDescription class="text-zinc-500">
@@ -84,7 +86,7 @@ const submit = () => {
                                 v-model="form.cmp_name"
                                 type="text"
                                 placeholder="Vidrialum C.A."
-                                class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 transition-all"
+                                class="border-zinc-800 bg-zinc-900 transition-all focus:ring-indigo-600"
                                 required
                             />
                             <InputError :message="form.errors.cmp_name" />
@@ -99,7 +101,7 @@ const submit = () => {
                                 v-model="form.cmp_rif"
                                 type="text"
                                 placeholder="J-12345678-9"
-                                class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 transition-all"
+                                class="border-zinc-800 bg-zinc-900 transition-all focus:ring-indigo-600"
                                 required
                             />
                             <InputError :message="form.errors.cmp_rif" />
@@ -115,7 +117,7 @@ const submit = () => {
                             v-model="form.cmp_address"
                             rows="3"
                             placeholder="Av. Principal, Sector Industrial, Caracas"
-                            class="flex w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 transition-all resize-none"
+                            class="flex w-full resize-none rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 transition-all placeholder:text-zinc-600 focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:outline-none"
                             required
                         ></textarea>
                         <InputError :message="form.errors.cmp_address" />
@@ -131,7 +133,7 @@ const submit = () => {
                                 v-model="form.cmp_phone"
                                 type="tel"
                                 placeholder="+58 212 555 1234"
-                                class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 transition-all"
+                                class="border-zinc-800 bg-zinc-900 transition-all focus:ring-indigo-600"
                                 required
                             />
                             <InputError :message="form.errors.cmp_phone" />
@@ -146,7 +148,7 @@ const submit = () => {
                                 v-model="form.cmp_email"
                                 type="email"
                                 placeholder="contacto@vidrialum.com"
-                                class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 transition-all"
+                                class="border-zinc-800 bg-zinc-900 transition-all focus:ring-indigo-600"
                                 required
                             />
                             <InputError :message="form.errors.cmp_email" />
@@ -163,7 +165,7 @@ const submit = () => {
                                 v-model="form.cmp_website"
                                 type="url"
                                 placeholder="https://vidrialum.com"
-                                class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 transition-all"
+                                class="border-zinc-800 bg-zinc-900 transition-all focus:ring-indigo-600"
                             />
                             <InputError :message="form.errors.cmp_website" />
                         </div>
@@ -177,13 +179,15 @@ const submit = () => {
                                 v-model="form.cmp_logo"
                                 type="text"
                                 placeholder="/images/logo.png"
-                                class="bg-zinc-900 border-zinc-800 focus:ring-indigo-600 transition-all"
+                                class="border-zinc-800 bg-zinc-900 transition-all focus:ring-indigo-600"
                             />
                             <InputError :message="form.errors.cmp_logo" />
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-end gap-4 pt-4 border-t border-zinc-800">
+                    <div
+                        class="flex items-center justify-end gap-4 border-t border-zinc-800 pt-4"
+                    >
                         <span
                             v-if="form.recentlySuccessful"
                             class="text-sm text-emerald-400"
@@ -193,10 +197,13 @@ const submit = () => {
                         <Button
                             type="submit"
                             :disabled="form.processing"
-                            class="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/20"
+                            class="bg-indigo-600 text-white shadow-lg shadow-indigo-900/20 hover:bg-indigo-500"
                         >
-                            <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-                            <Save v-else class="w-4 h-4 mr-2" />
+                            <Loader2
+                                v-if="form.processing"
+                                class="mr-2 h-4 w-4 animate-spin"
+                            />
+                            <Save v-else class="mr-2 h-4 w-4" />
                             Guardar Cambios
                         </Button>
                     </div>

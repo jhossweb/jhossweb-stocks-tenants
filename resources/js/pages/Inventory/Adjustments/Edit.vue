@@ -305,12 +305,13 @@ const openConfirmModal = () => {
                                 class="text-xs text-amber-600/80 dark:text-amber-400/80"
                             >
                                 Cada renglón necesita una razón (merma,
-                                deterioro, vencido). Ejecutá
+                                deterioro, vencido). Un administrador puede
+                                cargarlas con
                                 <code
-                                    >php artisan db:seed
-                                    --class=AdjustmentReasonSeeder</code
+                                    >php artisan tenants:run db:seed
+                                    --tenants=&lt;tenant&gt;
+                                    --argument=--class=TenantCatalogSeeder</code
                                 >
-                                o pedí a un administrador que las cargue.
                             </p>
                         </div>
                     </div>

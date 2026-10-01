@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\AccountPayments;
 use App\Models\AccountsPayable;
-use App\Models\AdjustmentReason;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\MovementsPurchase;
@@ -38,23 +37,7 @@ class DatabaseSeeder extends Seeder
         Product::factory()->count(100)->create();
         Supplier::factory()->count(10)->create();
 
-        AdjustmentReason::create([
-            'adjr_code' => 'MERMA',
-            'adjr_name' => 'Merma',
-            'adjr_description' => 'Pérdida de producto por merma',
-        ]);
-
-        AdjustmentReason::create([
-            'adjr_code' => 'DETERIORO',
-            'adjr_name' => 'Deterioro',
-            'adjr_description' => 'Producto dañado o en mal estado',
-        ]);
-
-        AdjustmentReason::create([
-            'adjr_code' => 'VENCIDO',
-            'adjr_name' => 'Vencido',
-            'adjr_description' => 'Producto vencido',
-        ]);
+        $this->call(AdjustmentReasonSeeder::class);
 
         $purchaseOrders = PurchaseOrder::factory()->count(10)->create();
         foreach ($purchaseOrders as $purchaseOrder) {

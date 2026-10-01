@@ -264,6 +264,7 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
+    /*
     {
         title: 'Nómina',
         href: '#',
@@ -290,7 +291,7 @@ const mainNavItems: NavItem[] = [
                 href: '/employees',
             },
         ],
-    },
+    },*/
     {
         title: 'Configuración',
         href: '#',

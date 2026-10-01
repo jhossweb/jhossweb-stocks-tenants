@@ -8,13 +8,30 @@ export interface CurrencyMap {
 export interface TrendData {
     direction: 'up' | 'down' | 'flat';
     percentage: number;
+    /**
+     * false cuando no hay tasa cargada y el porcentaje se calculó sobre una
+     * suma de monedas heterogéneas. La UI debe advertirlo en vez de
+     * presentarlo como una variación real.
+     */
+    reliable?: boolean;
 }
 
 export type TrendByCurrency = Record<string, TrendData>;
 
 export type MonthlyNetSeries = Record<string, CurrencyMap>;
 
-export interface ExpenseKpis {
+/**
+ * Equivalente en dólares de un total multi-moneda, convertible con la tasa
+ * más reciente registrada. `usd: null` significa que no hay ninguna tasa
+ * cargada, no que el total sea cero.
+ */
+export interface UsdData {
+    usd: number | null;
+    rate_date: string | null;
+    has_rate: boolean;
+}
+
+export interface ExpenseKpis extends UsdData {
     total: CurrencyMap;
     pending: CurrencyMap;
     trend: TrendData;
@@ -24,6 +41,11 @@ export interface CashFlowKpis {
     inflow: CurrencyMap;
     outflow: CurrencyMap;
     net: CurrencyMap;
+    usd: {
+        inflow: number | null;
+        outflow: number | null;
+        net: number | null;
+    };
     trend: TrendByCurrency;
 }
 
@@ -34,7 +56,7 @@ export interface ApArKpis {
     paid?: CurrencyMap;
 }
 
-export interface ProfitLossItem {
+export interface ProfitLossItem extends UsdData {
     total: CurrencyMap;
     trend: TrendData;
 }
@@ -49,12 +71,12 @@ export interface ProfitLossKpis {
 
 export interface DashboardKpis {
     profitLoss: ProfitLossKpis;
-    expensesFijo: { total: CurrencyMap; trend: TrendData };
-    expensesVariable: { total: CurrencyMap; trend: TrendData };
+    expensesFijo: UsdData & { total: CurrencyMap; trend: TrendData };
+    expensesVariable: UsdData & { total: CurrencyMap; trend: TrendData };
     cashFlow: CashFlowKpis;
     receivables: ApArKpis;
     payables: ApArKpis;
-    purchases: {
+    purchases: UsdData & {
         total: CurrencyMap;
         trend: TrendData;
         supplierCount: number;
@@ -113,9 +135,24 @@ export interface PurchasesPage {
     total: number;
 }
 
-export interface CategoryAggregate {
+export interface CategoryAggregate extends UsdData {
     total: CurrencyMap;
     trend?: TrendData;
+}
+
+/** Una categoría de gasto con su participación en el total del período. */
+export interface ExpenseCategoryRow {
+    category_id: number;
+    exc_name: string;
+    exc_type: string;
+    amounts: CurrencyMap;
+    usd: number | null;
+    share_pct: number;
+}
+
+export interface ExpenseBreakdown extends UsdData {
+    total_by_currency: CurrencyMap;
+    categories: ExpenseCategoryRow[];
 }
 
 export interface CategoryAggregates {

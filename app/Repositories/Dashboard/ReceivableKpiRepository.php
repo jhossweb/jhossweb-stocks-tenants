@@ -2,11 +2,14 @@
 
 namespace App\Repositories\Dashboard;
 
+use App\Concerns\ResolvesMonthRange;
 use App\Models\AccountsReceivable;
 use Illuminate\Support\Facades\DB;
 
 class ReceivableKpiRepository
 {
+    use ResolvesMonthRange;
+
     public function balanceByCurrency(): array
     {
         return AccountsReceivable::query()
@@ -26,7 +29,7 @@ class ReceivableKpiRepository
 
     public function collectedByCurrency(?string $month): array
     {
-        $month ??= now()->format('Y-m');
+        [$from, $to] = $this->monthBounds($month);
 
         return AccountsReceivable::query()
             ->selectRaw('so.sls_coin, SUM(bt.btr_amount) as total')
@@ -36,7 +39,8 @@ class ReceivableKpiRepository
                 $join->on('bt.btr_transactionable_id', '=', 'ar.id')
                     ->where('bt.btr_transactionable_type', '=', 'App\Models\AccountsReceivable');
             })
-            ->whereRaw("TO_CHAR(bt.btr_transaction_date, 'YYYY-MM') = ?", [$month])
+            ->where('bt.btr_transaction_date', '>=', $from)
+            ->where('bt.btr_transaction_date', '<', $to)
             ->groupBy('so.sls_coin')
             ->pluck('total', 'sls_coin')
             ->toArray();

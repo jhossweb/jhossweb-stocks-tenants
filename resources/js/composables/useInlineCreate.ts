@@ -67,8 +67,7 @@ export function useInlineCreate<T extends { id: number }>(
 
             if (!response.ok) {
                 errors.value = {
-                    general:
-                        'Ocurrió un error inesperado. Intente nuevamente.',
+                    general: 'Ocurrió un error inesperado. Intente nuevamente.',
                 };
 
                 return null;

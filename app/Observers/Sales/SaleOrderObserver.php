@@ -12,7 +12,10 @@ class SaleOrderObserver
 {
     public function created(SaleOrder $saleOrder): void
     {
-        DashboardCacheInvalidator::receivables($saleOrder->sls_date?->format('Y-m'));
+        $month = $saleOrder->sls_date?->format('Y-m');
+
+        DashboardCacheInvalidator::receivables($month);
+        DashboardCacheInvalidator::profitLoss($month);
 
         if ($saleOrder->sls_trans_type_code === 'FACV') {
             $rate = Rate::where('rate_date', $saleOrder->sls_date ?? $saleOrder->created_at?->format('Y-m-d'))->first()
@@ -35,7 +38,10 @@ class SaleOrderObserver
 
     public function updated(SaleOrder $saleOrder): void
     {
-        DashboardCacheInvalidator::receivables($saleOrder->sls_date?->format('Y-m'));
+        $month = $saleOrder->sls_date?->format('Y-m');
+
+        DashboardCacheInvalidator::receivables($month);
+        DashboardCacheInvalidator::profitLoss($month);
 
         $accountsReceivable = $saleOrder->accountsReceivable;
         if ($accountsReceivable) {
@@ -67,7 +73,10 @@ class SaleOrderObserver
 
     public function deleted(SaleOrder $saleOrder): void
     {
-        DashboardCacheInvalidator::receivables($saleOrder->sls_date?->format('Y-m'));
+        $month = $saleOrder->sls_date?->format('Y-m');
+
+        DashboardCacheInvalidator::receivables($month);
+        DashboardCacheInvalidator::profitLoss($month);
         $saleOrder->accountsReceivable()?->delete();
     }
 }

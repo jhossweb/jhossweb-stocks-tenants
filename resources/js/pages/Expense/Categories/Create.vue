@@ -43,10 +43,7 @@ const submit = () => {
                 Hay problemas con el envío:
             </p>
             <ul class="list-inside list-disc text-xs text-destructive/80">
-                <li
-                    v-for="(error, key) in form.errors"
-                    :key="key"
-                >
+                <li v-for="(error, key) in form.errors" :key="key">
                     {{ error }}
                 </li>
             </ul>
@@ -60,22 +57,50 @@ const submit = () => {
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Nombre</label>
-                    <Input type="text" v-model="form.exc_name" class="w-full" placeholder="Ej: Servicios Públicos" />
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                        >Nombre</label
+                    >
+                    <Input
+                        type="text"
+                        v-model="form.exc_name"
+                        class="w-full"
+                        placeholder="Ej: Servicios Públicos"
+                    />
                     <InputError :message="form.errors.exc_name" />
                 </div>
 
                 <div>
-                    <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Tipo</label>
-                    <select v-model="form.exc_type" class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-                        <option v-for="type in typeOptions" :key="type" :value="type">{{ type }}</option>
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                        >Tipo</label
+                    >
+                    <select
+                        v-model="form.exc_type"
+                        class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+                    >
+                        <option
+                            v-for="type in typeOptions"
+                            :key="type"
+                            :value="type"
+                        >
+                            {{ type }}
+                        </option>
                     </select>
                     <InputError :message="form.errors.exc_type" />
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Descripción</label>
-                    <textarea v-model="form.exc_description" rows="3" class="bg-background border-input flex w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" placeholder="Opcional"></textarea>
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                        >Descripción</label
+                    >
+                    <textarea
+                        v-model="form.exc_description"
+                        rows="3"
+                        class="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+                        placeholder="Opcional"
+                    ></textarea>
                     <InputError :message="form.errors.exc_description" />
                 </div>
             </div>

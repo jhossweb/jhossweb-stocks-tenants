@@ -150,6 +150,12 @@ test('compras diarias card shows today purchases by currency', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
 
+    // Fecha fija a mitad de mes: el test siembra también una compra de "ayer",
+    // que debe seguir dentro del rango mensual por defecto. Sin congelar el
+    // reloj, el día 1 de cada mes esa compra cae en el mes anterior y el
+    // test falla por calendario, no por la consulta.
+    $this->travelTo(now()->startOfMonth()->addDays(14));
+
     $today = now()->format('Y-m-d');
 
     PurchaseOrder::factory()->create(['invoice_date' => $today, 'invoice_coin' => 'USD', 'invoice_total' => 50, 'invoice_status' => 'paid']);

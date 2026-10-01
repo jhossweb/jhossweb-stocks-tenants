@@ -2,18 +2,23 @@
 
 namespace App\Services\Dashboard;
 
+use App\Concerns\ResolvesMonthRange;
 use App\Models\SaleOrder;
 use App\Repositories\Dashboard\ExpenseKpiRepository;
+use App\Services\Finance\RateService;
 
 class ProfitLossService
 {
+    use ResolvesMonthRange;
+
     public function __construct(
         protected ExpenseKpiRepository $expenseKpiRepo,
+        protected RateService $rateService,
     ) {}
 
     public function getProfitLoss(string $month): array
     {
-        $prevMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
+        $prevMonth = $this->previousMonth($month);
 
         $revenue = $this->revenueByCurrency($month);
         $prevRevenue = $this->revenueByCurrency($prevMonth);
@@ -33,33 +38,36 @@ class ProfitLossService
         return [
             'revenue' => [
                 'total' => $revenue,
-                'trend' => $this->computeTrend($revenue, $prevRevenue),
+                'trend' => $this->trend($revenue, $prevRevenue),
             ],
             'cogs' => [
                 'total' => $cogs,
-                'trend' => $this->computeTrend($cogs, $prevCogs),
+                'trend' => $this->trend($cogs, $prevCogs),
             ],
             'grossProfit' => [
                 'total' => $grossProfit,
-                'trend' => $this->computeTrend($grossProfit, $prevGrossProfit),
+                'trend' => $this->trend($grossProfit, $prevGrossProfit),
             ],
             'expenses' => [
                 'total' => $expenses,
-                'trend' => $this->computeTrend($expenses, $prevExpenses),
+                'trend' => $this->trend($expenses, $prevExpenses),
             ],
             'netProfit' => [
                 'total' => $netProfit,
-                'trend' => $this->computeTrend($netProfit, $prevNetProfit),
+                'trend' => $this->trend($netProfit, $prevNetProfit),
             ],
         ];
     }
 
     private function revenueByCurrency(string $month): array
     {
+        [$from, $to] = $this->monthBounds($month);
+
         return SaleOrder::query()
             ->selectRaw('sale_orders.sls_coin, SUM(sale_orders.sls_total) as total')
             ->where('sale_orders.sls_trans_type_code', 'FACV')
-            ->whereRaw("TO_CHAR(sale_orders.sls_date, 'YYYY-MM') = ?", [$month])
+            ->where('sale_orders.sls_date', '>=', $from)
+            ->where('sale_orders.sls_date', '<', $to)
             ->groupBy('sale_orders.sls_coin')
             ->pluck('total', 'sls_coin')
             ->map(fn ($v) => (float) $v)
@@ -68,6 +76,8 @@ class ProfitLossService
 
     private function cogsByCurrency(string $month): array
     {
+        [$from, $to] = $this->monthBounds($month);
+
         return SaleOrder::query()
             ->selectRaw('sale_orders.sls_coin, SUM(movements_sales.mvs_quantity * movements_sales.mvs_unit_price_ref) as total')
             ->join('movements_sales', function ($join) {
@@ -76,7 +86,8 @@ class ProfitLossService
             })
             ->where('sale_orders.sls_trans_type_code', 'FACV')
             ->where('movements_sales.mvs_factor', '-1')
-            ->whereRaw("TO_CHAR(sale_orders.sls_date, 'YYYY-MM') = ?", [$month])
+            ->where('sale_orders.sls_date', '>=', $from)
+            ->where('sale_orders.sls_date', '<', $to)
             ->groupBy('sale_orders.sls_coin')
             ->pluck('total', 'sls_coin')
             ->map(fn ($v) => (float) $v)
@@ -95,20 +106,13 @@ class ProfitLossService
         return $diff;
     }
 
-    private function computeTrend(array $current, array $previous): array
+    /**
+     * @param  array<string, float>  $current
+     * @param  array<string, float>  $previous
+     * @return array{direction: string, percentage: float, reliable: bool}
+     */
+    private function trend(array $current, array $previous): array
     {
-        $totalCurrent = array_sum($current);
-        $totalPrevious = array_sum($previous);
-
-        if ($totalPrevious <= 0) {
-            return ['direction' => 'flat', 'percentage' => 0];
-        }
-
-        $percentage = round((($totalCurrent - $totalPrevious) / $totalPrevious) * 100, 1);
-
-        return [
-            'direction' => $percentage > 0 ? 'up' : ($percentage < 0 ? 'down' : 'flat'),
-            'percentage' => abs($percentage),
-        ];
+        return TrendCalculator::compute($current, $previous, $this->rateService->getLatestRate());
     }
 }

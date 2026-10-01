@@ -7,12 +7,14 @@ namespace App\Jobs\Tenant;
 use App\Models\Company;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\TenantCatalogSeeder;
 use Spatie\Permission\Models\Role;
 
 /**
  * Se ejecuta en el pipeline de TenantCreated (después de migrar el schema).
  * Crea los datos iniciales del tenant a partir de la columna `data`:
- * fila de company + usuario admin verificado con rol 'admin' de spatie.
+ * catálogo mínimo + fila de company + usuario admin verificado con rol 'admin'
+ * de spatie.
  *
  * Recibe el tenant por CONSTRUCTOR (patrón de los jobs de stancl/tenancy):
  * JobPipeline hace `new ProvisionTenantData($tenant)` y luego
@@ -36,6 +38,14 @@ class ProvisionTenantData
         $adminName = $payload['admin_name'] ?? $tenant->getAttribute('admin_name');
         $adminEmail = $payload['admin_email'] ?? $tenant->getAttribute('admin_email');
         $adminPasswordHash = $payload['admin_password'] ?? $tenant->getAttribute('admin_password');
+
+        // Catálogo mínimo antes de cualquier otra cosa: sin tipos de
+        // transacción no se numeran facturas ni ajustes, y sin almacén no se
+        // puede registrar un ajuste. Un tenant con el catálogo vacío queda
+        // inservible (selectores vacíos en compras, ventas e inventario).
+        $tenant->run(function (): void {
+            (new TenantCatalogSeeder)->run();
+        });
 
         if ($companyName === null && $adminEmail === null) {
             return;

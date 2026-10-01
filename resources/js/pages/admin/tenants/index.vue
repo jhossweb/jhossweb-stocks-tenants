@@ -83,11 +83,11 @@ const removeTenant = (tenant: TenantRow) => {
                             <tr
                                 class="border-b text-left text-muted-foreground"
                             >
-                                <th class="pb-3 pr-4 font-medium">Empresa</th>
-                                <th class="pb-3 pr-4 font-medium">Dominio</th>
-                                <th class="pb-3 pr-4 font-medium">Plan</th>
-                                <th class="pb-3 pr-4 font-medium">Estado</th>
-                                <th class="pb-3 pr-4 font-medium">Creado</th>
+                                <th class="pr-4 pb-3 font-medium">Empresa</th>
+                                <th class="pr-4 pb-3 font-medium">Dominio</th>
+                                <th class="pr-4 pb-3 font-medium">Plan</th>
+                                <th class="pr-4 pb-3 font-medium">Estado</th>
+                                <th class="pr-4 pb-3 font-medium">Creado</th>
                                 <th class="pb-3 text-right font-medium">
                                     Acciones
                                 </th>
@@ -123,9 +123,7 @@ const removeTenant = (tenant: TenantRow) => {
                                         {{ statusLabel[tenant.status] }}
                                     </span>
                                 </td>
-                                <td
-                                    class="py-3 pr-4 text-muted-foreground"
-                                >
+                                <td class="py-3 pr-4 text-muted-foreground">
                                     {{ tenant.created_at?.slice(0, 10) ?? '—' }}
                                 </td>
                                 <td class="py-3 text-right">

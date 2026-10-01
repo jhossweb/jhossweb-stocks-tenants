@@ -19,7 +19,12 @@ class TransactionTypeSeeder extends Seeder
         ];
 
         foreach ($transactionTypes as $transactionType) {
-            TransactionType::create($transactionType);
+            // firstOrCreate sobre trans_type_code: no pisa el `trans_last_number`
+            // de los folios ya emitidos si el seeder corre de nuevo.
+            TransactionType::firstOrCreate(
+                ['trans_type_code' => $transactionType['trans_type_code']],
+                $transactionType,
+            );
         }
     }
 }

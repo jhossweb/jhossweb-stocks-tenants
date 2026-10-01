@@ -27,6 +27,28 @@ class LegacyVidrialumImporter
     private const EXCLUDED_TABLES = ['transaction_types'];
 
     /**
+     * Tablas maestras que el provisioning del tenant siembra como placeholder y
+     * que el legacy reemplaza con su catálogo real. Se vacían antes de copiar
+     * porque `copyTable()` inserta sin truncar: si no, los ids placeholder
+     * chocan con los del legacy y además quedan filas basura ('Indefinida',
+     * 'Almacén Principal', las categorías de gasto genéricas).
+     *
+     * `company` entra por el mismo motivo: el provisioning crea un placeholder
+     * con cmp_rif SIN-RIF y el legacy trae los datos reales.
+     *
+     * `transaction_types` NO va acá a propósito: está en EXCLUDED_TABLES, el
+     * legacy no la tiene y la siembra TransactionTypeSeeder.
+     */
+    private const PROVISIONING_PLACEHOLDERS = [
+        'company',
+        'brands',
+        'categories',
+        'warehouses',
+        'expense_categories',
+        'adjustment_reasons',
+    ];
+
+    /**
      * Schema donde se archivan las tablas de negocio del ERP legacy
      * (resultado de la limpieza de `public`, Fase 6 del plan SaaS).
      */
@@ -163,7 +185,8 @@ class LegacyVidrialumImporter
 
         // La company que crea el pipeline de provisioning es un placeholder
         // (cmp_rif SIN-RIF); la legacy trae los datos reales de la empresa.
-        if ($table === 'company') {
+        // Ídem para el catálogo maestro placeholder de TenantCatalogSeeder.
+        if (in_array($table, self::PROVISIONING_PLACEHOLDERS, true)) {
             DB::table($table)->delete();
         }
 

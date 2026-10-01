@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { RateNotice } from '@/types/Finance/Rate';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -19,6 +20,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            rateNotice: RateNotice | null;
             [key: string]: unknown;
         };
     }

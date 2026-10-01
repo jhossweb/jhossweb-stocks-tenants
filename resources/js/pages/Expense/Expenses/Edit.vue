@@ -1,13 +1,28 @@
 <script setup lang="ts">
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { ArrowLeft, Save, DollarSign, Loader2, ChevronDown, ChevronUp, Banknote, XCircle } from 'lucide-vue-next';
+import {
+    ArrowLeft,
+    Save,
+    DollarSign,
+    Loader2,
+    ChevronDown,
+    ChevronUp,
+    Banknote,
+    XCircle,
+} from 'lucide-vue-next';
 import { ref } from 'vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import InputError from '@/components/InputError.vue';
 import Input from '@/components/ui/input/Input.vue';
 import { formatDate } from '@/composables/useDate';
 import { usePayment } from '@/composables/usePayment';
-import type { Expense, ExpenseCategory, BankAccount, BankTransaction, LatestRate } from '@/types/Expense';
+import type {
+    Expense,
+    ExpenseCategory,
+    BankAccount,
+    BankTransaction,
+    LatestRate,
+} from '@/types/Expense';
 
 defineOptions({
     layout: {
@@ -43,8 +58,8 @@ const form = useForm({
 
 const updateExchangeRate = () => {
     if (!props.latestRate) {
-return;
-}
+        return;
+    }
 
     form.exp_coin = form.exp_coin;
 };
@@ -63,16 +78,25 @@ const submit = () => {
     <div class="flex h-full flex-1 flex-col gap-6 p-4 md:p-8">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <Link href="/expenses" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                    <ArrowLeft class="w-6 h-6" />
+                <Link
+                    href="/expenses"
+                    class="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
+                >
+                    <ArrowLeft class="h-6 w-6" />
                 </Link>
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
+                    <h1
+                        class="flex items-center gap-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white"
+                    >
                         <DollarSign class="h-8 w-8 text-primary" />
                         Editar Gasto
                     </h1>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                        {{ isPaid ? 'Este gasto ya fue pagado — solo vista informativa.' : 'Modifica los datos del gasto.' }}
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        {{
+                            isPaid
+                                ? 'Este gasto ya fue pagado — solo vista informativa.'
+                                : 'Modifica los datos del gasto.'
+                        }}
                     </p>
                 </div>
             </div>
@@ -80,73 +104,152 @@ const submit = () => {
                 v-if="!isPaid"
                 @click="submit"
                 :disabled="form.processing"
-                class="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-lg font-semibold transition-all disabled:opacity-50 shadow-lg"
+                class="inline-flex items-center rounded-lg bg-primary px-5 py-2.5 font-semibold text-white shadow-lg transition-all disabled:opacity-50"
             >
-                <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
-                <Save v-else class="w-4 h-4 mr-2" />
+                <Loader2
+                    v-if="form.processing"
+                    class="mr-2 h-4 w-4 animate-spin"
+                />
+                <Save v-else class="mr-2 h-4 w-4" />
                 {{ form.processing ? 'Guardando...' : 'Guardar Cambios' }}
             </button>
         </div>
 
-        <div v-if="isPaid" class="bg-green-500/10 border border-green-500/20 p-4 rounded-xl">
-            <p class="text-sm text-green-400 font-semibold">Este gasto está pagado. Los campos son de solo lectura.</p>
+        <div
+            v-if="isPaid"
+            class="rounded-xl border border-green-500/20 bg-green-500/10 p-4"
+        >
+            <p class="text-sm font-semibold text-green-400">
+                Este gasto está pagado. Los campos son de solo lectura.
+            </p>
         </div>
 
-        <div v-if="Object.keys(form.errors).length > 0" class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
-            <p class="text-sm text-red-400 font-bold mb-1">Hay problemas con el envío:</p>
-            <ul class="list-disc list-inside text-xs text-red-300">
-                <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+        <div
+            v-if="Object.keys(form.errors).length > 0"
+            class="rounded-xl border border-red-500/20 bg-red-500/10 p-4"
+        >
+            <p class="mb-1 text-sm font-bold text-red-400">
+                Hay problemas con el envío:
+            </p>
+            <ul class="list-inside list-disc text-xs text-red-300">
+                <li v-for="(error, key) in form.errors" :key="key">
+                    {{ error }}
+                </li>
             </ul>
         </div>
 
-        <div class="rounded-xl border border-sidebar-border bg-white shadow-sm dark:bg-gray-900 p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+            class="rounded-xl border border-sidebar-border bg-white p-6 shadow-sm dark:bg-gray-900"
+        >
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Categoría</label>
-                    <select v-model="form.exp_category_id" :disabled="isPaid" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring" :class="{ 'opacity-60 cursor-not-allowed': isPaid }">
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Categoría</label
+                    >
+                    <select
+                        v-model="form.exp_category_id"
+                        :disabled="isPaid"
+                        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:outline-none"
+                        :class="{ 'cursor-not-allowed opacity-60': isPaid }"
+                    >
                         <option value="">Seleccione categoría</option>
-                        <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.exc_name }} ({{ cat.exc_type }})</option>
+                        <option
+                            v-for="cat in categories"
+                            :key="cat.id"
+                            :value="cat.id"
+                        >
+                            {{ cat.exc_name }} ({{ cat.exc_type }})
+                        </option>
                     </select>
                     <InputError :message="form.errors.exp_category_id" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Monto</label>
-                    <Input type="number" step="0.0001" min="0.0001" v-model="form.exp_amount" class="w-full" :disabled="isPaid" />
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Monto</label
+                    >
+                    <Input
+                        type="number"
+                        step="0.0001"
+                        min="0.0001"
+                        v-model="form.exp_amount"
+                        class="w-full"
+                        :disabled="isPaid"
+                    />
                     <InputError :message="form.errors.exp_amount" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Moneda</label>
-                    <select v-model="form.exp_coin" :disabled="isPaid" @change="updateExchangeRate" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring" :class="{ 'opacity-60 cursor-not-allowed': isPaid }">
-                        <option v-for="coin in coinOptions" :key="coin" :value="coin">{{ coin }}</option>
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Moneda</label
+                    >
+                    <select
+                        v-model="form.exp_coin"
+                        :disabled="isPaid"
+                        @change="updateExchangeRate"
+                        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:outline-none"
+                        :class="{ 'cursor-not-allowed opacity-60': isPaid }"
+                    >
+                        <option
+                            v-for="coin in coinOptions"
+                            :key="coin"
+                            :value="coin"
+                        >
+                            {{ coin }}
+                        </option>
                     </select>
                     <InputError :message="form.errors.exp_coin" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fecha del Gasto</label>
-                    <Input type="date" v-model="form.exp_date" class="w-full" :disabled="isPaid" />
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Fecha del Gasto</label
+                    >
+                    <Input
+                        type="date"
+                        v-model="form.exp_date"
+                        class="w-full"
+                        :disabled="isPaid"
+                    />
                     <InputError :message="form.errors.exp_date" />
                 </div>
 
                 <div class="md:col-span-2 lg:col-span-3">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Descripción</label>
-                    <textarea v-model="form.exp_description" rows="3" :disabled="isPaid" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring" :class="{ 'opacity-60 cursor-not-allowed': isPaid }"></textarea>
+                    <label
+                        class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >Descripción</label
+                    >
+                    <textarea
+                        v-model="form.exp_description"
+                        rows="3"
+                        :disabled="isPaid"
+                        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:outline-none"
+                        :class="{ 'cursor-not-allowed opacity-60': isPaid }"
+                    ></textarea>
                     <InputError :message="form.errors.exp_description" />
                 </div>
             </div>
         </div>
 
-        <div v-if="expense.payments?.length" class="rounded-xl border border-sidebar-border bg-white shadow-sm dark:bg-gray-900 p-6">
-            <button @click="showPayments = !showPayments" class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                <Banknote class="w-4 h-4" />
+        <div
+            v-if="expense.payments?.length"
+            class="rounded-xl border border-sidebar-border bg-white p-6 shadow-sm dark:bg-gray-900"
+        >
+            <button
+                @click="showPayments = !showPayments"
+                class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+                <Banknote class="h-4 w-4" />
                 Historial de Pagos ({{ expense.payments.length }})
-                <ChevronDown v-if="!showPayments" class="w-4 h-4" />
-                <ChevronUp v-else class="w-4 h-4" />
+                <ChevronDown v-if="!showPayments" class="h-4 w-4" />
+                <ChevronUp v-else class="h-4 w-4" />
             </button>
             <div v-if="showPayments" class="mt-3 overflow-x-auto">
-                <table class="w-full text-sm text-left">
+                <table class="w-full text-left text-sm">
                     <thead class="text-xs text-gray-500 uppercase">
                         <tr class="border-b dark:border-gray-700">
                             <th class="px-4 py-2">Fecha</th>
@@ -160,16 +263,45 @@ const submit = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="pmt in expense.payments" :key="pmt.id" class="border-b dark:border-gray-800">
-                            <td class="px-4 py-2">{{ formatDate(pmt.created_at) }}</td>
-                            <td class="px-4 py-2 font-medium">{{ Number(pmt.btr_amount).toLocaleString() }}</td>
+                        <tr
+                            v-for="pmt in expense.payments"
+                            :key="pmt.id"
+                            class="border-b dark:border-gray-800"
+                        >
+                            <td class="px-4 py-2">
+                                {{ formatDate(pmt.created_at) }}
+                            </td>
+                            <td class="px-4 py-2 font-medium">
+                                {{ Number(pmt.btr_amount).toLocaleString() }}
+                            </td>
                             <td class="px-4 py-2">{{ pmt.btr_coin }}</td>
                             <td class="px-4 py-2">{{ pmt.btr_valorcam }}</td>
                             <td class="px-4 py-2">{{ pmt.btr_reference }}</td>
-                            <td class="px-4 py-2">{{ pmt.bank_account?.bank_name ?? '-' }}</td>
+                            <td class="px-4 py-2">
+                                {{ pmt.bank_account?.bank_name ?? '-' }}
+                            </td>
                             <td class="px-4 py-2 text-right">
-                                <span v-if="pmt.btr_diferencial && Number(pmt.btr_diferencial) !== 0" class="font-semibold" :class="Number(pmt.btr_diferencial) > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'">
-                                    {{ Number(pmt.btr_diferencial) > 0 ? '+' : '' }}${{ Math.abs(Number(pmt.btr_diferencial)).toFixed(4) }}
+                                <span
+                                    v-if="
+                                        pmt.btr_diferencial &&
+                                        Number(pmt.btr_diferencial) !== 0
+                                    "
+                                    class="font-semibold"
+                                    :class="
+                                        Number(pmt.btr_diferencial) > 0
+                                            ? 'text-green-600 dark:text-green-400'
+                                            : 'text-orange-600 dark:text-orange-400'
+                                    "
+                                >
+                                    {{
+                                        Number(pmt.btr_diferencial) > 0
+                                            ? '+'
+                                            : ''
+                                    }}${{
+                                        Math.abs(
+                                            Number(pmt.btr_diferencial),
+                                        ).toFixed(4)
+                                    }}
                                 </span>
                                 <span v-else class="text-gray-400">—</span>
                             </td>
@@ -178,10 +310,16 @@ const submit = () => {
                                     v-if="!isPaid"
                                     variant="ghost"
                                     size="sm"
-                                    class="text-red-500 hover:text-red-700 dark:text-red-400 h-6 px-2"
-                                    @click="router.post(`/expenses/${expense.id}/cancel-payment`, { bank_transaction_id: pmt.id }, { preserveScroll: true })"
+                                    class="h-6 px-2 text-red-500 hover:text-red-700 dark:text-red-400"
+                                    @click="
+                                        router.post(
+                                            `/expenses/${expense.id}/cancel-payment`,
+                                            { bank_transaction_id: pmt.id },
+                                            { preserveScroll: true },
+                                        )
+                                    "
                                 >
-                                    <XCircle class="w-3 h-3 mr-1" />
+                                    <XCircle class="mr-1 h-3 w-3" />
                                     Cancelar
                                 </Button>
                             </td>
@@ -191,23 +329,46 @@ const submit = () => {
             </div>
         </div>
 
-        <div v-if="isPaid" class="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
+        <div
+            v-if="isPaid"
+            class="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
+        >
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <span class="text-gray-500 dark:text-gray-400">Total:</span>
-                    <span class="ml-2 font-semibold text-gray-900 dark:text-white">{{ Number(expense.exp_amount).toLocaleString() }} {{ expense.exp_coin }}</span>
+                    <span
+                        class="ml-2 font-semibold text-gray-900 dark:text-white"
+                        >{{ Number(expense.exp_amount).toLocaleString() }}
+                        {{ expense.exp_coin }}</span
+                    >
                 </div>
                 <div>
-                    <span class="text-gray-500 dark:text-gray-400">Pagado:</span>
-                    <span class="ml-2 font-semibold text-green-600 dark:text-green-400">{{ Number(expense.exp_paid_amount).toLocaleString() }} {{ expense.exp_coin }}</span>
+                    <span class="text-gray-500 dark:text-gray-400"
+                        >Pagado:</span
+                    >
+                    <span
+                        class="ml-2 font-semibold text-green-600 dark:text-green-400"
+                        >{{ Number(expense.exp_paid_amount).toLocaleString() }}
+                        {{ expense.exp_coin }}</span
+                    >
                 </div>
                 <div>
-                    <span class="text-gray-500 dark:text-gray-400">Fecha de pago:</span>
-                    <span class="ml-2 font-medium text-gray-900 dark:text-white">{{ expense.exp_payment_date }}</span>
+                    <span class="text-gray-500 dark:text-gray-400"
+                        >Fecha de pago:</span
+                    >
+                    <span
+                        class="ml-2 font-medium text-gray-900 dark:text-white"
+                        >{{ expense.exp_payment_date }}</span
+                    >
                 </div>
                 <div>
-                    <span class="text-gray-500 dark:text-gray-400">Saldo pendiente:</span>
-                    <span class="ml-2 font-semibold text-green-600 dark:text-green-400">0 {{ expense.exp_coin }}</span>
+                    <span class="text-gray-500 dark:text-gray-400"
+                        >Saldo pendiente:</span
+                    >
+                    <span
+                        class="ml-2 font-semibold text-green-600 dark:text-green-400"
+                        >0 {{ expense.exp_coin }}</span
+                    >
                 </div>
             </div>
         </div>

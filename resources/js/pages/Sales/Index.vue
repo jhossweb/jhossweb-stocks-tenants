@@ -202,7 +202,9 @@ defineProps<{
                             <div
                                 v-if="link.url === null"
                                 class="cursor-not-allowed rounded border border-zinc-700 px-4 py-2 text-sm text-zinc-500"
-                            >{{ decodeLabel(link.label) }}</div>
+                            >
+                                {{ decodeLabel(link.label) }}
+                            </div>
                             <Link
                                 v-else
                                 :href="link.url"
@@ -211,7 +213,8 @@ defineProps<{
                                     'border-indigo-600 bg-indigo-600 font-bold text-white':
                                         link.active,
                                 }"
-                            >{{ decodeLabel(link.label) }}</Link>
+                                >{{ decodeLabel(link.label) }}</Link
+                            >
                         </template>
                     </div>
                 </div>

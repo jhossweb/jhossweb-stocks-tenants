@@ -122,8 +122,8 @@ const confirmDelete = (account: BankAccount) => {
 
 const executeDelete = () => {
     if (!deletingAccount.value) {
-return;
-}
+        return;
+    }
 
     const id = deletingAccount.value.id;
     deletingAccount.value = null;
@@ -141,33 +141,42 @@ const cancelDelete = () => {
 <template>
     <Head title="Cuentas Bancarias" />
 
-    <div class="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans">
-        <div class="max-w-7xl mx-auto space-y-6">
-            <div class="flex items-center justify-between bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl">
+    <div class="min-h-screen bg-zinc-950 p-4 font-sans text-zinc-100 md:p-8">
+        <div class="mx-auto max-w-7xl space-y-6">
+            <div
+                class="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"
+            >
                 <div class="flex items-center gap-4">
                     <Link
                         href="/dashboard/finanzas"
-                        class="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white"
+                        class="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
                     >
-                        <ArrowLeft class="w-6 h-6" />
+                        <ArrowLeft class="h-6 w-6" />
                     </Link>
                     <div>
                         <h1 class="text-xl font-bold">Cuentas Bancarias</h1>
-                        <p class="text-xs text-zinc-500">Administra tus cuentas bancarias para transacciones financieras.</p>
+                        <p class="text-xs text-zinc-500">
+                            Administra tus cuentas bancarias para transacciones
+                            financieras.
+                        </p>
                     </div>
                 </div>
                 <Button
                     @click="openCreateModal"
-                    class="inline-flex items-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-all shadow-lg shadow-indigo-900/20"
+                    class="inline-flex items-center rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white shadow-lg shadow-indigo-900/20 transition-all hover:bg-indigo-500"
                 >
-                    <PlusCircle class="w-4 h-4 mr-2" /> Añadir Banco
+                    <PlusCircle class="mr-2 h-4 w-4" /> Añadir Banco
                 </Button>
             </div>
 
-            <div class="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
+            <div
+                class="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-sm"
+            >
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
+                        <thead
+                            class="border-b border-zinc-800 bg-zinc-950 text-[10px] font-bold text-zinc-500 uppercase"
+                        >
                             <tr>
                                 <th class="px-4 py-4 text-left">Banco</th>
                                 <th class="px-4 py-4 text-left">Nro. Cuenta</th>
@@ -175,74 +184,107 @@ const cancelDelete = () => {
                                 <th class="px-4 py-4 text-center">Moneda</th>
                                 <th class="px-4 py-4 text-right">Saldo</th>
                                 <th class="px-4 py-4 text-center">Estado</th>
-                                <th class="px-4 py-4 w-12"></th>
+                                <th class="w-12 px-4 py-4"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-800">
                             <tr v-if="bankAccounts.length === 0">
-                                <td colspan="7" class="px-4 py-12 text-center text-zinc-500">
-                                    <Building2 class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
+                                <td
+                                    colspan="7"
+                                    class="px-4 py-12 text-center text-zinc-500"
+                                >
+                                    <Building2
+                                        class="mx-auto mb-4 h-12 w-12 text-zinc-600"
+                                    />
                                     <p>No hay cuentas bancarias registradas</p>
                                 </td>
                             </tr>
                             <tr
                                 v-for="account in bankAccounts"
                                 :key="account.id"
-                                class="hover:bg-zinc-800/30 transition-colors"
+                                class="transition-colors hover:bg-zinc-800/30"
                             >
                                 <td class="px-4 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="p-2 bg-zinc-800 rounded-lg">
-                                            <CreditCard class="w-4 h-4 text-zinc-400" />
+                                        <div class="rounded-lg bg-zinc-800 p-2">
+                                            <CreditCard
+                                                class="h-4 w-4 text-zinc-400"
+                                            />
                                         </div>
-                                        <span class="font-medium">{{ account.bank_name }}</span>
+                                        <span class="font-medium">{{
+                                            account.bank_name
+                                        }}</span>
                                     </div>
                                 </td>
-                                <td class="px-4 py-4 font-mono text-xs text-zinc-400">
+                                <td
+                                    class="px-4 py-4 font-mono text-xs text-zinc-400"
+                                >
                                     {{ account.bank_account_number }}
                                 </td>
-                                <td class="px-4 py-4 text-zinc-400">{{ account.bank_type }}</td>
+                                <td class="px-4 py-4 text-zinc-400">
+                                    {{ account.bank_type }}
+                                </td>
                                 <td class="px-4 py-4 text-center">
-                                    <span class="px-2 py-1 rounded bg-zinc-800 text-zinc-300 text-xs">
+                                    <span
+                                        class="rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-300"
+                                    >
                                         {{ account.bank_currency }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-4 text-right font-mono text-zinc-200">
+                                <td
+                                    class="px-4 py-4 text-right font-mono text-zinc-200"
+                                >
                                     {{ account.formatted_balance }}
                                 </td>
                                 <td class="px-4 py-4 text-center">
                                     <span
-                                        class="text-xs px-2 py-1 rounded-full font-medium uppercase"
-                                        :class="account.bank_status
-                                            ? 'bg-green-900/30 text-green-400'
-                                            : 'bg-red-900/30 text-red-400'"
+                                        class="rounded-full px-2 py-1 text-xs font-medium uppercase"
+                                        :class="
+                                            account.bank_status
+                                                ? 'bg-green-900/30 text-green-400'
+                                                : 'bg-red-900/30 text-red-400'
+                                        "
                                     >
-                                        {{ account.bank_status ? 'Activa' : 'Inactiva' }}
+                                        {{
+                                            account.bank_status
+                                                ? 'Activa'
+                                                : 'Inactiva'
+                                        }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-center">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger as-child>
-                                            <Button variant="ghost" size="icon" class="h-8 w-8 text-zinc-400 hover:text-white">
-                                                <MoreHorizontal class="w-4 h-4" />
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                class="h-8 w-8 text-zinc-400 hover:text-white"
+                                            >
+                                                <MoreHorizontal
+                                                    class="h-4 w-4"
+                                                />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent
                                             align="end"
-                                            class="bg-zinc-900 border border-zinc-800 text-zinc-100"
+                                            class="border border-zinc-800 bg-zinc-900 text-zinc-100"
                                         >
-                                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                            <DropdownMenuSeparator class="bg-zinc-800" />
+                                            <DropdownMenuLabel
+                                                >Acciones</DropdownMenuLabel
+                                            >
+                                            <DropdownMenuSeparator
+                                                class="bg-zinc-800"
+                                            />
                                             <DropdownMenuItem
                                                 @click="openEditModal(account)"
-                                                class="hover:bg-zinc-800 cursor-pointer"
+                                                class="cursor-pointer hover:bg-zinc-800"
                                             >
                                                 <Pencil class="mr-2 h-4 w-4" />
                                                 Editar
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 @click="confirmDelete(account)"
-                                                class="text-red-400 hover:bg-zinc-800 hover:text-red-300 cursor-pointer"
+                                                class="cursor-pointer text-red-400 hover:bg-zinc-800 hover:text-red-300"
                                             >
                                                 <Trash2 class="mr-2 h-4 w-4" />
                                                 Eliminar
@@ -260,77 +302,131 @@ const cancelDelete = () => {
 
     <!-- Create / Edit Dialog -->
     <Dialog v-model:open="isDialogOpen">
-        <DialogContent class="bg-zinc-900 border border-zinc-800 text-zinc-100 sm:max-w-[500px]">
+        <DialogContent
+            class="border border-zinc-800 bg-zinc-900 text-zinc-100 sm:max-w-[500px]"
+        >
             <DialogHeader>
                 <DialogTitle class="text-zinc-100">
                     {{ editingAccount ? 'Editar Banco' : 'Añadir Nuevo Banco' }}
                 </DialogTitle>
                 <DialogDescription class="text-zinc-400">
-                    Ingresa los detalles de la cuenta bancaria. Haz clic en guardar cuando termines.
+                    Ingresa los detalles de la cuenta bancaria. Haz clic en
+                    guardar cuando termines.
                 </DialogDescription>
             </DialogHeader>
 
             <div class="grid gap-4 py-4">
                 <div class="space-y-2">
-                    <Label for="bank_name" class="text-zinc-300">Nombre Banco</Label>
+                    <Label for="bank_name" class="text-zinc-300"
+                        >Nombre Banco</Label
+                    >
                     <Input
                         id="bank_name"
                         v-model="form.bank_name"
                         placeholder="Ej: Banesco, Banco de Venezuela"
-                        class="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                        class="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-500"
                         :class="{ 'border-red-500': form.errors.bank_name }"
                     />
-                    <p v-if="form.errors.bank_name" class="text-xs text-red-400">{{ form.errors.bank_name }}</p>
+                    <p
+                        v-if="form.errors.bank_name"
+                        class="text-xs text-red-400"
+                    >
+                        {{ form.errors.bank_name }}
+                    </p>
                 </div>
                 <div class="space-y-2">
-                    <Label for="bank_account_number" class="text-zinc-300">Nro. Cuenta</Label>
+                    <Label for="bank_account_number" class="text-zinc-300"
+                        >Nro. Cuenta</Label
+                    >
                     <Input
                         id="bank_account_number"
                         v-model="form.bank_account_number"
                         placeholder="0102XXXXXXXXXXXX"
-                        class="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-                        :class="{ 'border-red-500': form.errors.bank_account_number }"
+                        class="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-500"
+                        :class="{
+                            'border-red-500': form.errors.bank_account_number,
+                        }"
                     />
-                    <p v-if="form.errors.bank_account_number" class="text-xs text-red-400">{{ form.errors.bank_account_number }}</p>
+                    <p
+                        v-if="form.errors.bank_account_number"
+                        class="text-xs text-red-400"
+                    >
+                        {{ form.errors.bank_account_number }}
+                    </p>
                 </div>
                 <div class="space-y-2">
                     <Label class="text-zinc-300">Tipo</Label>
                     <Select v-model="form.bank_type">
-                        <SelectTrigger class="bg-zinc-800/50 border-zinc-700 text-zinc-100">
+                        <SelectTrigger
+                            class="border-zinc-700 bg-zinc-800/50 text-zinc-100"
+                        >
                             <SelectValue placeholder="Selecciona tipo" />
                         </SelectTrigger>
-                        <SelectContent class="bg-zinc-900 border-zinc-700 text-zinc-100">
-                            <SelectItem v-for="type in types" :key="type" :value="type">
+                        <SelectContent
+                            class="border-zinc-700 bg-zinc-900 text-zinc-100"
+                        >
+                            <SelectItem
+                                v-for="type in types"
+                                :key="type"
+                                :value="type"
+                            >
                                 {{ type }}
                             </SelectItem>
                         </SelectContent>
                     </Select>
-                    <p v-if="form.errors.bank_type" class="text-xs text-red-400">{{ form.errors.bank_type }}</p>
+                    <p
+                        v-if="form.errors.bank_type"
+                        class="text-xs text-red-400"
+                    >
+                        {{ form.errors.bank_type }}
+                    </p>
                 </div>
                 <div class="space-y-2">
                     <Label class="text-zinc-300">Moneda</Label>
                     <Select v-model="form.bank_currency">
-                        <SelectTrigger class="bg-zinc-800/50 border-zinc-700 text-zinc-100">
+                        <SelectTrigger
+                            class="border-zinc-700 bg-zinc-800/50 text-zinc-100"
+                        >
                             <SelectValue placeholder="Selecciona moneda" />
                         </SelectTrigger>
-                        <SelectContent class="bg-zinc-900 border-zinc-700 text-zinc-100">
-                            <SelectItem v-for="currency in currencies" :key="currency" :value="currency">
+                        <SelectContent
+                            class="border-zinc-700 bg-zinc-900 text-zinc-100"
+                        >
+                            <SelectItem
+                                v-for="currency in currencies"
+                                :key="currency"
+                                :value="currency"
+                            >
                                 {{ currency }}
                             </SelectItem>
                         </SelectContent>
                     </Select>
-                    <p v-if="form.errors.bank_currency" class="text-xs text-red-400">{{ form.errors.bank_currency }}</p>
+                    <p
+                        v-if="form.errors.bank_currency"
+                        class="text-xs text-red-400"
+                    >
+                        {{ form.errors.bank_currency }}
+                    </p>
                 </div>
                 <div class="space-y-2">
-                    <Label for="bank_description" class="text-zinc-300">Descripción</Label>
+                    <Label for="bank_description" class="text-zinc-300"
+                        >Descripción</Label
+                    >
                     <Input
                         id="bank_description"
                         v-model="form.bank_description"
                         placeholder="Opcional"
-                        class="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
-                        :class="{ 'border-red-500': form.errors.bank_description }"
+                        class="border-zinc-700 bg-zinc-800/50 text-zinc-100 placeholder:text-zinc-500"
+                        :class="{
+                            'border-red-500': form.errors.bank_description,
+                        }"
                     />
-                    <p v-if="form.errors.bank_description" class="text-xs text-red-400">{{ form.errors.bank_description }}</p>
+                    <p
+                        v-if="form.errors.bank_description"
+                        class="text-xs text-red-400"
+                    >
+                        {{ form.errors.bank_description }}
+                    </p>
                 </div>
                 <div class="flex items-center gap-2">
                     <input
@@ -339,7 +435,9 @@ const cancelDelete = () => {
                         type="checkbox"
                         class="h-4 w-4 rounded border-zinc-600 bg-zinc-800 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <Label for="bank_status" class="text-zinc-300">Activa</Label>
+                    <Label for="bank_status" class="text-zinc-300"
+                        >Activa</Label
+                    >
                 </div>
             </div>
 
@@ -355,7 +453,7 @@ const cancelDelete = () => {
                 <Button
                     type="submit"
                     :disabled="form.processing"
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white"
+                    class="bg-indigo-600 text-white hover:bg-indigo-500"
                     @click="saveAccount"
                 >
                     {{ form.processing ? 'Guardando...' : 'Guardar' }}
@@ -366,12 +464,19 @@ const cancelDelete = () => {
 
     <!-- Delete Confirmation Dialog -->
     <Dialog v-model:open="showDeleteConfirm">
-        <DialogContent class="bg-zinc-900 border border-zinc-800 text-zinc-100 sm:max-w-[400px]">
+        <DialogContent
+            class="border border-zinc-800 bg-zinc-900 text-zinc-100 sm:max-w-[400px]"
+        >
             <DialogHeader>
-                <DialogTitle class="text-zinc-100">Eliminar Cuenta Bancaria</DialogTitle>
+                <DialogTitle class="text-zinc-100"
+                    >Eliminar Cuenta Bancaria</DialogTitle
+                >
                 <DialogDescription class="text-zinc-400">
-                    ¿Estás seguro de eliminar la cuenta <span class="text-zinc-200 font-medium">{{ deletingAccount?.bank_name }}</span>?
-                    Esta acción no se puede deshacer.
+                    ¿Estás seguro de eliminar la cuenta
+                    <span class="font-medium text-zinc-200">{{
+                        deletingAccount?.bank_name
+                    }}</span
+                    >? Esta acción no se puede deshacer.
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -385,7 +490,7 @@ const cancelDelete = () => {
                 </Button>
                 <Button
                     type="submit"
-                    class="bg-red-600 hover:bg-red-500 text-white"
+                    class="bg-red-600 text-white hover:bg-red-500"
                     :disabled="form.processing"
                     @click="executeDelete"
                 >

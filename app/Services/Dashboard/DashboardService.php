@@ -2,12 +2,16 @@
 
 namespace App\Services\Dashboard;
 
+use App\DTOs\Dashboard\UsdSummary;
 use App\Repositories\Dashboard\CashFlowKpiRepository;
 use App\Repositories\Dashboard\ExpenseKpiRepository;
 use App\Repositories\Dashboard\PayableKpiRepository;
 use App\Repositories\Dashboard\PurchaseKpiRepository;
 use App\Repositories\Dashboard\ReceivableKpiRepository;
 use App\Repositories\Dashboard\SalesKpiRepository;
+use App\Repositories\Inventory\InventoryKpiRepository;
+use App\Services\Finance\RateService;
+use Illuminate\Support\Arr;
 
 class DashboardService
 {
@@ -18,13 +22,15 @@ class DashboardService
         protected PayableKpiRepository $payableKpiRepo,
         protected PurchaseKpiRepository $purchaseKpiRepo,
         protected SalesKpiRepository $salesKpiRepo,
+        protected InventoryKpiRepository $inventoryKpiRepo,
         protected ProfitLossService $profitLossService,
+        protected RateService $rateService,
     ) {}
 
     public function getKpis(?string $month): array
     {
         $month ??= now()->format('Y-m');
-        $prevMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
+        $prevMonth = $this->previousMonth($month);
 
         $cache = new DashboardCache;
         $cache->prefetch($month);
@@ -125,34 +131,49 @@ class DashboardService
         $cashFlowNet = $this->computeNetByCurrency($cashFlowInflow, $cashFlowOutflow);
         $prevNet = $this->computeNetByCurrency($prevInflow, $prevOutflow);
 
+        $expensesFijoUsd = $this->toUsdSummary($expensesFijo);
+        $expensesVariableUsd = $this->toUsdSummary($expensesVariable);
+        $purchasesUsd = $this->toUsdSummary($purchasesTotal);
+
         return [
-            'profitLoss' => $profitLoss,
+            'profitLoss' => $this->withUsd($profitLoss),
             'expensesFijo' => [
                 'total' => $expensesFijo,
+                'usd' => $expensesFijoUsd->usd,
+                'rate_date' => $expensesFijoUsd->rateDate,
                 'trend' => $this->computeTrend($expensesFijo, $expensesFijoPrev),
             ],
             'expensesVariable' => [
                 'total' => $expensesVariable,
+                'usd' => $expensesVariableUsd->usd,
+                'rate_date' => $expensesVariableUsd->rateDate,
                 'trend' => $this->computeTrend($expensesVariable, $expensesVariablePrev),
             ],
             'cashFlow' => [
                 'inflow' => $cashFlowInflow,
                 'outflow' => $cashFlowOutflow,
                 'net' => $cashFlowNet,
+                'usd' => [
+                    'inflow' => $this->toUsdSummary($cashFlowInflow)->usd,
+                    'outflow' => $this->toUsdSummary($cashFlowOutflow)->usd,
+                    'net' => $this->toUsdSummary($cashFlowNet)->usd,
+                ],
                 'trend' => $this->computeTrendByCurrency($cashFlowNet, $prevNet),
             ],
             'receivables' => [
-                'balance' => collect($receivablesBalance)->map(fn ($item) => $item['balance'])->toArray(),
-                'balance_usd' => collect($receivablesBalance)->map(fn ($item) => $item['balance_usd'])->toArray(),
+                'balance' => Arr::pluck($receivablesBalance, 'balance'),
+                'balance_usd' => Arr::pluck($receivablesBalance, 'balance_usd'),
                 'collected' => $read("dashboard:receivables:collected:{$month}", fn () => $this->receivableKpiRepo->collectedByCurrency($month)),
             ],
             'payables' => [
-                'balance' => collect($payablesBalance)->map(fn ($item) => $item['balance'])->toArray(),
-                'balance_usd' => collect($payablesBalance)->map(fn ($item) => $item['balance_usd'])->toArray(),
+                'balance' => Arr::pluck($payablesBalance, 'balance'),
+                'balance_usd' => Arr::pluck($payablesBalance, 'balance_usd'),
                 'paid' => $read("dashboard:payables:paid:{$month}", fn () => $this->payableKpiRepo->paidByCurrency($month)),
             ],
             'purchases' => [
                 'total' => $purchasesTotal,
+                'usd' => $purchasesUsd->usd,
+                'rate_date' => $purchasesUsd->rateDate,
                 'trend' => $this->computeTrend($purchasesTotal, $purchasesPrevTotal),
                 'supplierCount' => $purchasesSupplierCount,
                 'pending' => $purchasesPending,
@@ -163,7 +184,7 @@ class DashboardService
     public function getCategoryAggregates(?string $month): array
     {
         $month ??= now()->format('Y-m');
-        $prevMonth = date('Y-m', strtotime("{$month}-01 -1 month"));
+        $prevMonth = $this->previousMonth($month);
 
         $cache = new DashboardCache;
         $cache->prefetch($month);
@@ -221,23 +242,163 @@ class DashboardService
         );
 
         return [
-            'ventas' => [
-                'total' => $ventasHoy,
-            ],
+            'ventas' => $this->aggregate($ventasHoy),
             'gastos' => [
-                'total' => $gastosTotal,
+                ...$this->aggregate($gastosTotal),
                 'trend' => $this->computeTrend($gastosTotal, $gastosPrevTotal),
             ],
-            'finanzas' => [
-                'total' => collect($receivablesBalance)->map(fn ($item) => $item['balance'])->toArray(),
-            ],
+            'finanzas' => $this->aggregate(Arr::pluck($receivablesBalance, 'balance')),
             'compras' => [
-                'total' => $purchasesTotal,
+                ...$this->aggregate($purchasesTotal),
                 'trend' => $this->computeTrend($purchasesTotal, $purchasesPrevTotal),
             ],
+            'inventario' => $this->aggregate($this->inventoryKpiRepo->inventoryValue()),
         ];
     }
 
+    /**
+     * Desglose de gastos por categoría del período, con participación porcentual.
+     *
+     * Una fila por categoría con su desglose por moneda anidado, para que el
+     * frontend pueda ordenar y comparar sin tener que reagrupar.
+     *
+     * @return array{usd: float|null, rate_date: string|null, has_rate: bool,
+     *               total_by_currency: array<string, float>,
+     *               categories: array<int, array{category_id: int, exc_name: string,
+     *               exc_type: string, amounts: array<string, float>,
+     *               usd: float|null, share_pct: float}>}
+     */
+    public function getExpenseBreakdown(?string $month = null): array
+    {
+        $month ??= now()->format('Y-m');
+
+        $cache = new DashboardCache;
+        $cache->prefetch($month);
+
+        $key = "dashboard:expenses:by_category:{$month}";
+
+        if (! $cache->has($key)) {
+            $cache->set($key, $this->expenseKpiRepo->totalByCategory($month));
+        }
+
+        $rows = $cache->get($key, []);
+
+        $summary = $this->toUsdSummary($this->mergeAmounts(Arr::pluck($rows, 'amounts')));
+
+        $categories = array_map(function (array $row) {
+            $usd = $this->toUsdSummary($row['amounts'])->usd;
+
+            $row['usd'] = $usd;
+
+            return $row;
+        }, $rows);
+
+        // El denominador del % tiene que ser la misma magnitud que el
+        // numerador. Sin tasa no existe equivalente USD: se ordena por el
+        // monto nativo y el % queda en 0 en vez de repartir un total sin sentido.
+        $denominator = $summary->usd !== null ? $summary->usd : 0.0;
+
+        foreach ($categories as $index => $category) {
+            $categories[$index]['share_pct'] = $denominator > 0
+                ? round(($category['usd'] / $denominator) * 100, 1)
+                : 0.0;
+        }
+
+        usort($categories, fn (array $a, array $b) => [
+            $b['usd'] ?? 0,
+            $this->rawTotal($b['amounts']),
+        ] <=> [
+            $a['usd'] ?? 0,
+            $this->rawTotal($a['amounts']),
+        ]);
+
+        return [
+            ...$summary->toArray(),
+            'total_by_currency' => $summary->byCurrency,
+            'categories' => $categories,
+        ];
+    }
+
+    /**
+     * Envuelve cada bloque `{total, trend}` de un KPI con su equivalente USD.
+     *
+     * @param  array<string, array{total: array<string, float>, trend: array<string, mixed>}>  $profitLoss
+     * @return array<string, array{total: array<string, float>, trend: array<string, mixed>, usd: float|null, rate_date: string|null}>
+     */
+    private function withUsd(array $profitLoss): array
+    {
+        foreach ($profitLoss as $key => $item) {
+            $summary = $this->toUsdSummary($item['total']);
+
+            $profitLoss[$key]['usd'] = $summary->usd;
+            $profitLoss[$key]['rate_date'] = $summary->rateDate;
+        }
+
+        return $profitLoss;
+    }
+
+    /**
+     * @param  array<string, float>  $byCurrency
+     * @return array{total: array<string, float>, usd: float|null, rate_date: string|null, has_rate: bool}
+     */
+    private function aggregate(array $byCurrency): array
+    {
+        $summary = $this->toUsdSummary($byCurrency);
+
+        return [
+            'total' => $summary->byCurrency,
+            'usd' => $summary->usd,
+            'rate_date' => $summary->rateDate,
+            'has_rate' => $summary->hasRate(),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $byCurrency
+     */
+    private function toUsdSummary(array $byCurrency): UsdSummary
+    {
+        return UsdSummary::from($byCurrency, $this->rateService->getLatestRate());
+    }
+
+    /**
+     * @param  array<int, array<string, float>>  $sets
+     * @return array<string, float>
+     */
+    private function mergeAmounts(array $sets): array
+    {
+        $merged = [];
+
+        foreach ($sets as $set) {
+            foreach ($set as $coin => $amount) {
+                $merged[$coin] = ($merged[$coin] ?? 0) + (float) $amount;
+            }
+        }
+
+        return $merged;
+    }
+
+    /**
+     * Suma de montos sin conversión. Solo sirve como desempate/ordenamiento
+     * cuando no hay tasa: sumar monedas distintas no es un total contable.
+     *
+     * @param  array<string, float>  $byCurrency
+     */
+    private function rawTotal(array $byCurrency): float
+    {
+        return (float) array_sum(array_map('floatval', $byCurrency));
+    }
+
+    private function previousMonth(string $month): string
+    {
+        return date('Y-m', strtotime("{$month}-01 -1 month"));
+    }
+
+    /**
+     * @param  array<string, float>  $a
+     * @param  array<string, float>  $b
+     * @return array<string, float>
+     */
     private function sumByCurrency(array $a, array $b): array
     {
         $currencies = array_unique([...array_keys($a), ...array_keys($b)]);
@@ -250,6 +411,11 @@ class DashboardService
         return $result;
     }
 
+    /**
+     * @param  array<string, float>  $inflow
+     * @param  array<string, float>  $outflow
+     * @return array<string, float>
+     */
     private function computeNetByCurrency(array $inflow, array $outflow): array
     {
         $currencies = array_unique([...array_keys($inflow), ...array_keys($outflow)]);
@@ -262,6 +428,11 @@ class DashboardService
         return $net;
     }
 
+    /**
+     * @param  array<string, float>  $current
+     * @param  array<string, float>  $previous
+     * @return array<string, array{direction: string, percentage: float}>
+     */
     private function computeTrendByCurrency(array $current, array $previous): array
     {
         $currencies = array_unique([...array_keys($current), ...array_keys($previous)]);
@@ -288,20 +459,15 @@ class DashboardService
         return $trend;
     }
 
+    /**
+     * Tendencia de un total multi-moneda, comparable en USD.
+     *
+     * @param  array<string, float>  $current
+     * @param  array<string, float>  $previous
+     * @return array{direction: string, percentage: float, reliable: bool}
+     */
     private function computeTrend(array $current, array $previous): array
     {
-        $totalCurrent = array_sum($current);
-        $totalPrevious = array_sum($previous);
-
-        if ($totalPrevious <= 0) {
-            return ['direction' => 'flat', 'percentage' => 0];
-        }
-
-        $percentage = round((($totalCurrent - $totalPrevious) / $totalPrevious) * 100, 1);
-
-        return [
-            'direction' => $percentage > 0 ? 'up' : ($percentage < 0 ? 'down' : 'flat'),
-            'percentage' => abs($percentage),
-        ];
+        return TrendCalculator::compute($current, $previous, $this->rateService->getLatestRate());
     }
 }

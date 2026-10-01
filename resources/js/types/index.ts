@@ -4,3 +4,4 @@ export * from './ui';
 export * from './Finance/Payment';
 export * from './Finance/Receipt';
 export * from './Finance/PaymentHistory';
+export * from './Finance/Rate';

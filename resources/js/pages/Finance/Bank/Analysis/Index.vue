@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, BarChart3, X, Calendar, ArrowUpFromLine, ArrowDownFromLine, Landmark } from 'lucide-vue-next';
+import {
+    ArrowLeft,
+    BarChart3,
+    X,
+    Calendar,
+    ArrowUpFromLine,
+    ArrowDownFromLine,
+    Landmark,
+} from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import { Input } from '@/components/ui/input';
 import {
@@ -46,8 +54,8 @@ const friendlySourceName = (type: string | null | undefined): string => {
     };
 
     if (!type) {
-return '—';
-}
+        return '—';
+    }
 
     return map[type] ?? type.split('\\').pop() ?? type;
 };
@@ -74,16 +82,23 @@ let timeoutId: ReturnType<typeof setTimeout>;
 watch([bankAccountId, dateFrom, dateTo], () => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-        router.get(bankTransactionAnalysisRoutes.index.url({
-            query: {
-                bank_account_id: bankAccountId.value === 'all' ? null : bankAccountId.value,
-                date_from: dateFrom.value || null,
-                date_to: dateTo.value || null,
-            }
-        }), {}, {
-            preserveState: true,
-            replace: true,
-        });
+        router.get(
+            bankTransactionAnalysisRoutes.index.url({
+                query: {
+                    bank_account_id:
+                        bankAccountId.value === 'all'
+                            ? null
+                            : bankAccountId.value,
+                    date_from: dateFrom.value || null,
+                    date_to: dateTo.value || null,
+                },
+            }),
+            {},
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
     }, 300);
 });
 
@@ -97,54 +112,80 @@ const clearFilters = () => {
 <template>
     <Head title="Análisis de Movimientos Bancarios" />
 
-    <div class="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans">
-        <div class="max-w-7xl mx-auto space-y-6">
-            <div class="flex items-center justify-between bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl">
+    <div class="min-h-screen bg-zinc-950 p-4 font-sans text-zinc-100 md:p-8">
+        <div class="mx-auto max-w-7xl space-y-6">
+            <div
+                class="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl"
+            >
                 <div class="flex items-center gap-4">
-                    <Link href="/finance" class="p-2 hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-white">
-                        <ArrowLeft class="w-6 h-6" />
+                    <Link
+                        href="/finance"
+                        class="rounded-full p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                        <ArrowLeft class="h-6 w-6" />
                     </Link>
                     <div>
-                        <h1 class="text-xl font-bold">Análisis de Movimientos Bancarios</h1>
-                        <p class="text-xs text-zinc-500">Visualiza y analiza todos los movimientos de ingresos y egresos bancarios.</p>
+                        <h1 class="text-xl font-bold">
+                            Análisis de Movimientos Bancarios
+                        </h1>
+                        <p class="text-xs text-zinc-500">
+                            Visualiza y analiza todos los movimientos de
+                            ingresos y egresos bancarios.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl shadow-sm">
-                <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div
+                class="rounded-xl border border-zinc-800 bg-zinc-900 p-4 shadow-sm"
+            >
+                <div
+                    class="flex flex-col items-stretch justify-between gap-4 md:flex-row md:items-center"
+                >
                     <div class="flex flex-wrap items-center gap-3">
                         <Select v-model="bankAccountId">
-                            <SelectTrigger class="w-[220px] bg-zinc-800 border-zinc-700 text-zinc-100">
-                                <Landmark class="h-4 w-4 mr-2 text-zinc-400" />
+                            <SelectTrigger
+                                class="w-[220px] border-zinc-700 bg-zinc-800 text-zinc-100"
+                            >
+                                <Landmark class="mr-2 h-4 w-4 text-zinc-400" />
                                 <SelectValue placeholder="Todos los bancos" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">Todos los bancos</SelectItem>
-                                <SelectItem v-for="bank in bankAccounts" :key="bank.id" :value="String(bank.id)">
+                                <SelectItem value="all"
+                                    >Todos los bancos</SelectItem
+                                >
+                                <SelectItem
+                                    v-for="bank in bankAccounts"
+                                    :key="bank.id"
+                                    :value="String(bank.id)"
+                                >
                                     {{ bank.bank_name }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
 
                         <div class="flex items-center gap-2">
-                            <Calendar class="h-4 w-4 text-zinc-400 shrink-0" />
+                            <Calendar class="h-4 w-4 shrink-0 text-zinc-400" />
                             <Input
                                 v-model="dateFrom"
                                 type="date"
-                                class="w-[160px] bg-zinc-800 border-zinc-700 text-zinc-100"
+                                class="w-[160px] border-zinc-700 bg-zinc-800 text-zinc-100"
                                 placeholder="Desde"
                             />
                             <span class="text-zinc-500">—</span>
                             <Input
                                 v-model="dateTo"
                                 type="date"
-                                class="w-[160px] bg-zinc-800 border-zinc-700 text-zinc-100"
+                                class="w-[160px] border-zinc-700 bg-zinc-800 text-zinc-100"
                                 placeholder="Hasta"
                             />
                         </div>
 
-                        <button v-if="bankAccountId !== 'all' || dateFrom || dateTo" @click="clearFilters" class="inline-flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-red-400 transition-colors rounded-lg hover:bg-zinc-800">
+                        <button
+                            v-if="bankAccountId !== 'all' || dateFrom || dateTo"
+                            @click="clearFilters"
+                            class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-red-400"
+                        >
                             <X class="h-4 w-4" />
                             Limpiar Filtros
                         </button>
@@ -152,10 +193,14 @@ const clearFilters = () => {
                 </div>
             </div>
 
-            <div class="bg-zinc-900 rounded-xl border border-zinc-800 shadow-sm overflow-hidden">
+            <div
+                class="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-sm"
+            >
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-zinc-950 text-zinc-500 text-[10px] uppercase font-bold border-b border-zinc-800">
+                        <thead
+                            class="border-b border-zinc-800 bg-zinc-950 text-[10px] font-bold text-zinc-500 uppercase"
+                        >
                             <tr>
                                 <th class="px-4 py-4 text-left">Fecha</th>
                                 <th class="px-4 py-4 text-left">Banco</th>
@@ -170,58 +215,121 @@ const clearFilters = () => {
                         </thead>
                         <tbody class="divide-y divide-zinc-800">
                             <tr v-if="transactions.data.length === 0">
-                                <td colspan="9" class="px-4 py-12 text-center text-zinc-500">
-                                    <BarChart3 class="w-12 h-12 mx-auto text-zinc-600 mb-4" />
+                                <td
+                                    colspan="9"
+                                    class="px-4 py-12 text-center text-zinc-500"
+                                >
+                                    <BarChart3
+                                        class="mx-auto mb-4 h-12 w-12 text-zinc-600"
+                                    />
                                     <p>No hay movimientos registrados</p>
                                 </td>
                             </tr>
-                            <tr v-for="txn in transactions.data" :key="txn.id" class="hover:bg-zinc-800/30 transition-colors">
-                                <td class="px-4 py-4 whitespace-nowrap font-mono text-xs text-zinc-300">
+                            <tr
+                                v-for="txn in transactions.data"
+                                :key="txn.id"
+                                class="transition-colors hover:bg-zinc-800/30"
+                            >
+                                <td
+                                    class="px-4 py-4 font-mono text-xs whitespace-nowrap text-zinc-300"
+                                >
                                     {{ formatDate(txn.created_at) }}
                                 </td>
-                                <td class="px-4 py-4 whitespace-nowrap font-medium text-zinc-200">
+                                <td
+                                    class="px-4 py-4 font-medium whitespace-nowrap text-zinc-200"
+                                >
                                     {{ txn.bank_account?.bank_name ?? '—' }}
                                 </td>
                                 <td class="px-4 py-4 text-center">
-                                    <span class="text-xs px-2 py-1 rounded-full inline-flex items-center gap-1"
-                                        :class="txn.btr_type === 'inflow'
-                                            ? 'bg-green-900/30 text-green-400'
-                                            : 'bg-red-900/30 text-red-400'">
-                                        <ArrowUpFromLine v-if="txn.btr_type === 'inflow'" class="h-3 w-3" />
-                                        <ArrowDownFromLine v-else class="h-3 w-3" />
-                                        {{ txn.btr_type === 'inflow' ? 'Ingreso' : 'Egreso' }}
+                                    <span
+                                        class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs"
+                                        :class="
+                                            txn.btr_type === 'inflow'
+                                                ? 'bg-green-900/30 text-green-400'
+                                                : 'bg-red-900/30 text-red-400'
+                                        "
+                                    >
+                                        <ArrowUpFromLine
+                                            v-if="txn.btr_type === 'inflow'"
+                                            class="h-3 w-3"
+                                        />
+                                        <ArrowDownFromLine
+                                            v-else
+                                            class="h-3 w-3"
+                                        />
+                                        {{
+                                            txn.btr_type === 'inflow'
+                                                ? 'Ingreso'
+                                                : 'Egreso'
+                                        }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-4 text-right font-mono tabular-nums text-zinc-200">
+                                <td
+                                    class="px-4 py-4 text-right font-mono text-zinc-200 tabular-nums"
+                                >
                                     ${{ parseFloat(txn.btr_amount).toFixed(4) }}
                                 </td>
-                                <td class="px-4 py-4 text-right font-mono tabular-nums text-zinc-400">
-                                    ${{ parseFloat(txn.btr_balance).toFixed(4) }}
+                                <td
+                                    class="px-4 py-4 text-right font-mono text-zinc-400 tabular-nums"
+                                >
+                                    ${{
+                                        parseFloat(txn.btr_balance).toFixed(4)
+                                    }}
                                 </td>
-                                <td class="px-4 py-4 font-mono text-xs text-zinc-300">
+                                <td
+                                    class="px-4 py-4 font-mono text-xs text-zinc-300"
+                                >
                                     {{ txn.btr_reference }}
                                 </td>
-                                <td class="px-4 py-4 max-w-[200px] truncate text-zinc-400" :title="txn.btr_description ?? ''">
+                                <td
+                                    class="max-w-[200px] truncate px-4 py-4 text-zinc-400"
+                                    :title="txn.btr_description ?? ''"
+                                >
                                     {{ txn.btr_description ?? '—' }}
                                 </td>
                                 <td class="px-4 py-4 text-center">
-                                    <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                                    <span
+                                        class="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300"
+                                    >
                                         {{ txn.btr_coin ?? '—' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-xs text-zinc-500">
-                                    {{ friendlySourceName(txn.btr_transactionable_type) }}
+                                    {{
+                                        friendlySourceName(
+                                            txn.btr_transactionable_type,
+                                        )
+                                    }}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div v-if="transactions.links.length > 3" class="px-6 py-4 border-t border-zinc-800 flex justify-center">
+                <div
+                    v-if="transactions.links.length > 3"
+                    class="flex justify-center border-t border-zinc-800 px-6 py-4"
+                >
                     <div class="flex gap-1">
-                        <template v-for="(link, key) in transactions.links" :key="key">
-                            <div v-if="link.url === null" class="px-4 py-2 text-sm text-zinc-500 border border-zinc-700 rounded cursor-not-allowed" v-html="link.label"></div>
-                            <Link v-else :href="link.url" class="px-4 py-2 text-sm border border-zinc-700 rounded hover:bg-zinc-800 transition-colors text-zinc-300" :class="{ 'bg-indigo-600 text-white border-indigo-600 font-bold': link.active }" v-html="link.label"></Link>
+                        <template
+                            v-for="(link, key) in transactions.links"
+                            :key="key"
+                        >
+                            <div
+                                v-if="link.url === null"
+                                class="cursor-not-allowed rounded border border-zinc-700 px-4 py-2 text-sm text-zinc-500"
+                                v-html="link.label"
+                            ></div>
+                            <Link
+                                v-else
+                                :href="link.url"
+                                class="rounded border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800"
+                                :class="{
+                                    'border-indigo-600 bg-indigo-600 font-bold text-white':
+                                        link.active,
+                                }"
+                                v-html="link.label"
+                            ></Link>
                         </template>
                     </div>
                 </div>

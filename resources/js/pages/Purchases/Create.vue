@@ -186,9 +186,9 @@ const selectSupplier = (supplier: Supplier) => {
     }
 };
 
-const supplierModalRef = ref<InstanceType<
-    typeof SupplierCreateModal
-> | null>(null);
+const supplierModalRef = ref<InstanceType<typeof SupplierCreateModal> | null>(
+    null,
+);
 
 const openSupplierModal = () => {
     supplierModalRef.value?.open();
@@ -426,7 +426,7 @@ const columns: ColumnConfig[] = [
                                     <button
                                         type="button"
                                         @click="openSupplierModal"
-                                        class="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-800 bg-zinc-950/50 px-3 py-2.5 text-sm font-semibold text-zinc-400 hover:text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500/40 transition-all"
+                                        class="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-zinc-800 bg-zinc-950/50 px-3 py-2.5 text-sm font-semibold text-zinc-400 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-400"
                                     >
                                         + Nuevo Proveedor
                                     </button>

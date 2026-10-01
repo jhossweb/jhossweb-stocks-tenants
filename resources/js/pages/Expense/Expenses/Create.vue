@@ -38,34 +38,37 @@ const valorcam = ref(props.latestRate ? Number(props.latestRate.rate_usd) : 1);
 
 const getBestRateForDate = (date: string): RateData | null => {
     if (!props.rates || props.rates.length === 0) {
-return null;
-}
+        return null;
+    }
 
-    const exact = props.rates.find(r => r.rate_date === date);
+    const exact = props.rates.find((r) => r.rate_date === date);
 
     if (exact) {
-return exact;
-}
+        return exact;
+    }
 
     const past = props.rates
-        .filter(r => r.rate_date < date)
+        .filter((r) => r.rate_date < date)
         .sort((a, b) => b.rate_date.localeCompare(a.rate_date));
 
     return past.length > 0 ? past[0] : props.rates[0];
 };
 
-const resolveRateValue = (coin: string, rate: RateData | LatestRate): number => {
+const resolveRateValue = (
+    coin: string,
+    rate: RateData | LatestRate,
+): number => {
     if (coin === 'USD' || coin === 'BS' || coin === 'VES') {
-return Number(rate.rate_usd);
-}
+        return Number(rate.rate_usd);
+    }
 
     if (coin === 'COP') {
-return Number(rate.rate_cop);
-}
+        return Number(rate.rate_cop);
+    }
 
     if (coin === 'EUR') {
-return Number(rate.rate_eur);
-}
+        return Number(rate.rate_eur);
+    }
 
     return Number(rate.rate_usd);
 };
@@ -126,10 +129,7 @@ onMounted(() => {
                 Hay problemas con el envío:
             </p>
             <ul class="list-inside list-disc text-xs text-destructive/80">
-                <li
-                    v-for="(error, key) in form.errors"
-                    :key="key"
-                >
+                <li v-for="(error, key) in form.errors" :key="key">
                     {{ error }}
                 </li>
             </ul>
@@ -137,48 +137,103 @@ onMounted(() => {
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div class="flex flex-col gap-6 lg:col-span-4">
-                <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div
+                    class="rounded-xl border bg-card text-card-foreground shadow-sm"
+                >
                     <div class="flex items-center gap-2 border-b px-6 py-4">
                         <Landmark class="size-4 text-primary" />
-                        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        <span
+                            class="text-xs font-bold tracking-wider text-muted-foreground uppercase"
+                        >
                             Configuración General
                         </span>
                     </div>
                     <div class="flex flex-col gap-5 p-6">
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Categoría</label>
-                            <select v-model="form.exp_category_id" class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >Categoría</label
+                            >
+                            <select
+                                v-model="form.exp_category_id"
+                                class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+                            >
                                 <option value="">Seleccione categoría</option>
-                                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.exc_name }} ({{ cat.exc_type }})</option>
+                                <option
+                                    v-for="cat in categories"
+                                    :key="cat.id"
+                                    :value="cat.id"
+                                >
+                                    {{ cat.exc_name }} ({{ cat.exc_type }})
+                                </option>
                             </select>
-                            <InputError :message="form.errors.exp_category_id" />
+                            <InputError
+                                :message="form.errors.exp_category_id"
+                            />
                         </div>
 
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Monto</label>
-                            <Input type="number" step="0.0001" min="0.0001" v-model="form.exp_amount" class="w-full" placeholder="0.0000" />
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >Monto</label
+                            >
+                            <Input
+                                type="number"
+                                step="0.0001"
+                                min="0.0001"
+                                v-model="form.exp_amount"
+                                class="w-full"
+                                placeholder="0.0000"
+                            />
                             <InputError :message="form.errors.exp_amount" />
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha</label>
-                                <Input type="date" v-model="form.exp_date" class="w-full" @change="handleExchangeUpdate" />
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Fecha</label
+                                >
+                                <Input
+                                    type="date"
+                                    v-model="form.exp_date"
+                                    class="w-full"
+                                    @change="handleExchangeUpdate"
+                                />
                                 <InputError :message="form.errors.exp_date" />
                             </div>
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Moneda</label>
-                                <select v-model="form.exp_coin" class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" @change="handleExchangeUpdate">
-                                    <option v-for="coin in coinOptions" :key="coin" :value="coin">{{ coin }}</option>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Moneda</label
+                                >
+                                <select
+                                    v-model="form.exp_coin"
+                                    class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+                                    @change="handleExchangeUpdate"
+                                >
+                                    <option
+                                        v-for="coin in coinOptions"
+                                        :key="coin"
+                                        :value="coin"
+                                    >
+                                        {{ coin }}
+                                    </option>
                                 </select>
                                 <InputError :message="form.errors.exp_coin" />
                             </div>
                         </div>
 
                         <div class="rounded-lg border bg-muted/30 p-4">
-                            <label class="mb-1.5 block text-xs font-bold uppercase text-muted-foreground">Tasa de Cambio</label>
+                            <label
+                                class="mb-1.5 block text-xs font-bold text-muted-foreground uppercase"
+                                >Tasa de Cambio</label
+                            >
                             <div class="mb-2 text-xs text-muted-foreground">
-                                Tasa del día: <span class="font-semibold text-primary">{{ valorcam }}</span>
+                                Tasa del día:
+                                <span class="font-semibold text-primary">{{
+                                    valorcam
+                                }}</span>
                             </div>
                             <Input
                                 v-model="valorcam"
@@ -191,30 +246,53 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <div class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg">
-                    <Calculator class="absolute -bottom-4 -right-4 size-24 text-primary-foreground/10" />
+                <div
+                    class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg"
+                >
+                    <Calculator
+                        class="absolute -right-4 -bottom-4 size-24 text-primary-foreground/10"
+                    />
                     <div class="relative z-10 flex flex-col gap-3">
-                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                        <div
+                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
+                        >
                             <span>MONTO</span>
-                            <span class="font-bold">{{ amountFormatted().toFixed(4) }}</span>
+                            <span class="font-bold">{{
+                                amountFormatted().toFixed(4)
+                            }}</span>
                         </div>
-                        <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
-                            <span class="text-sm font-bold uppercase">Total {{ form.exp_coin }}</span>
-                            <span class="text-3xl font-black tabular-nums">{{ amountFormatted().toFixed(4) }}</span>
+                        <div
+                            class="flex items-end justify-between border-t border-primary-foreground/10 pt-3"
+                        >
+                            <span class="text-sm font-bold uppercase"
+                                >Total {{ form.exp_coin }}</span
+                            >
+                            <span class="text-3xl font-black tabular-nums">{{
+                                amountFormatted().toFixed(4)
+                            }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-8">
-                <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                <div
+                    class="rounded-xl border bg-card text-card-foreground shadow-sm"
+                >
                     <div class="flex items-center gap-2 border-b px-6 py-4">
-                        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        <span
+                            class="text-xs font-bold tracking-wider text-muted-foreground uppercase"
+                        >
                             Descripción
                         </span>
                     </div>
                     <div class="p-6">
-                        <textarea v-model="form.exp_description" rows="6" class="bg-background border-input flex w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2" placeholder="Describa el gasto"></textarea>
+                        <textarea
+                            v-model="form.exp_description"
+                            rows="6"
+                            class="flex w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+                            placeholder="Describa el gasto"
+                        ></textarea>
                         <InputError :message="form.errors.exp_description" />
                     </div>
                 </div>

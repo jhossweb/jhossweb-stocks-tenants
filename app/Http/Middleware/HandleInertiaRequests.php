@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Company;
+use App\Services\Finance\RateService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -51,6 +52,11 @@ class HandleInertiaRequests extends Middleware
                 ? ['id' => tenant('id'), 'domain' => tenant()->domains->first()?->domain]
                 : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            // Aviso de tasa de cambio ausente/vencida. Solo en tenant: en el
+            // portal central la tabla `rates` no existe en el schema public.
+            'rateNotice' => fn () => $isTenant
+                ? app(RateService::class)->notice()?->toArray()
+                : null,
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

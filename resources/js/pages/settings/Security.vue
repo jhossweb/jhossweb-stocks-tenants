@@ -174,7 +174,11 @@ onUnmounted(() => clearTwoFactorAuthData());
             </p>
 
             <div class="relative inline">
-                <Form method="delete" :action="disable().url" #default="{ processing }">
+                <Form
+                    method="delete"
+                    :action="disable().url"
+                    #default="{ processing }"
+                >
                     <Button
                         variant="destructive"
                         type="submit"

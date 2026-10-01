@@ -2,19 +2,28 @@
 
 namespace App\Services\Finance;
 
+use App\Concerns\ScopesCacheToTenant;
+use App\DTOs\Finance\Rate\RateNotice;
+use App\Enum\Finanzas\RateSeverity;
 use App\Models\Rate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class RateService
 {
+    use ScopesCacheToTenant;
+
+    private const CACHE_KEY = 'rates:v2';
+
+    private const CACHE_TTL = 3600;
+
     /**
      * Obtiene la tasa más reciente (con caché de 1 hora).
      * Cachea un array plano para evitar __PHP_Incomplete_Class con driver database.
      */
     public function getLatestRate(): ?Rate
     {
-        $cached = Cache::remember('rates:v2', 3600, function () {
+        $cached = Cache::remember(self::tenantCacheKey(self::CACHE_KEY), self::CACHE_TTL, function () {
             $rate = Rate::orderBy('rate_date', 'desc')->first();
 
             return $rate?->toArray();
@@ -25,6 +34,52 @@ class RateService
         }
 
         return (new Rate)->forceFill($cached);
+    }
+
+    /**
+     * Aviso de tasa ausente o vencida, o null si la tasa está al día.
+     *
+     * No cuesta una query extra: si hay tasa para hoy, la más reciente ES la de
+     * hoy, así que alcanza con mirar getLatestRate() (ya cacheado). La cache la
+     * invalida RateObserver al crear/actualizar/borrar una tasa, así que el
+     * aviso desaparece en la request siguiente a registrar la tasa.
+     */
+    public function notice(): ?RateNotice
+    {
+        if (config('rates.notice_enabled') !== true) {
+            return null;
+        }
+
+        $rate = $this->getLatestRate();
+
+        if ($rate === null) {
+            return new RateNotice(
+                lastRateDate: null,
+                daysStale: null,
+                severity: RateSeverity::CRITICAL,
+                message: 'No hay ninguna tasa de cambio registrada. Las conversiones y el diferencial cambiario se calcularán con valores por defecto.',
+            );
+        }
+
+        // Negativo si la tasa tiene fecha futura: no se avisa, está al día.
+        // round() porque diffInDays devuelve float en Carbon 3 y truncar un
+        // 2.9999999 a 2 mostraría un día menos de los reales.
+        $daysStale = (int) round($rate->rate_date->startOfDay()->diffInDays(now()->startOfDay()));
+
+        if ($daysStale <= (int) config('rates.stale_after_days')) {
+            return null;
+        }
+
+        $criticalAfter = (int) config('rates.critical_after_days');
+
+        return new RateNotice(
+            lastRateDate: $rate->rate_date->format('Y-m-d'),
+            daysStale: $daysStale,
+            severity: $daysStale > $criticalAfter ? RateSeverity::CRITICAL : RateSeverity::WARNING,
+            message: $daysStale === 1
+                ? 'La tasa de cambio no se actualiza desde ayer. Registrá la de hoy para no operar con valores viejos.'
+                : "La tasa de cambio no se actualiza hace {$daysStale} días. Registrá la tasa vigente para que ventas, compras y cobranza no calculen sobre valores viejos.",
+        );
     }
 
     /**

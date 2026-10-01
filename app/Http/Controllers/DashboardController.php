@@ -22,13 +22,8 @@ class DashboardController extends Controller
     {
         $month = $request->input('month', now()->format('Y-m'));
 
-        $categoryAggregates = $this->dashboardService->getCategoryAggregates($month);
-        $categoryAggregates['inventario'] = [
-            'total' => $this->inventoryKpiRepository->inventoryValue(),
-        ];
-
         return Inertia::render('Dashboard', [
-            'categoryAggregates' => $categoryAggregates,
+            'categoryAggregates' => $this->dashboardService->getCategoryAggregates($month),
             'selectedMonth' => $month,
         ]);
     }
@@ -54,6 +49,11 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard/Gastos', [
             'kpis' => $this->dashboardService->getKpis($month),
+            // El desglose por categoría es la parte pesada: va diferido para que
+            // las cards de arriba pinten de inmediato.
+            'expenseBreakdown' => Inertia::defer(
+                fn () => $this->dashboardService->getExpenseBreakdown($month)
+            ),
             'selectedMonth' => $month,
         ]);
     }

@@ -18,7 +18,10 @@ export function formFieldError(form: { errors: unknown }, path: string) {
 }
 
 export function generateUid(): string {
-    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    if (
+        typeof crypto !== 'undefined' &&
+        typeof crypto.randomUUID === 'function'
+    ) {
         return crypto.randomUUID();
     }
 

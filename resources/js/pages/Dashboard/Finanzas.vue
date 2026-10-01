@@ -31,7 +31,6 @@ const { monthOptions, goTo, changeMonth } = useDashboardMonth(
     props.selectedMonth,
     '/dashboard/finanzas',
 );
-
 </script>
 
 <template>
@@ -69,7 +68,7 @@ const { monthOptions, goTo, changeMonth } = useDashboardMonth(
                 :trend="kpis.profitLoss.grossProfit.trend"
                 variant="success"
                 :icon="TrendingUp"
-                @click="goTo('/analytics/products')"
+                @click="goTo('/analytics/purchases-total')"
             />
             <KpiCard
                 label="Ganancia Neta"

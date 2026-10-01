@@ -34,7 +34,9 @@ defineProps<{
     <div class="space-y-6">
         <Form
             method="post"
-            :action="email().url" v-slot="{ errors, processing }">
+            :action="email().url"
+            v-slot="{ errors, processing }"
+        >
             <div class="grid gap-2">
                 <Label for="email">Email address</Label>
                 <Input

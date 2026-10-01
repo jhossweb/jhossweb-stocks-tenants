@@ -17,7 +17,7 @@ const { suppliers } = defineProps<{
     suppliers: {
         data: Supplier[];
         links: any[];
-    }
+    };
 }>();
 </script>
 
@@ -25,17 +25,21 @@ const { suppliers } = defineProps<{
     <Head title="Listado de Proveedores" />
 
     <div class="mx-auto flex max-w-7xl flex-col gap-6 p-4 md:p-8">
-        <div class="flex items-center justify-between rounded-xl border bg-card px-6 py-4 shadow-sm">
+        <div
+            class="flex items-center justify-between rounded-xl border bg-card px-6 py-4 shadow-sm"
+        >
             <div class="flex items-center gap-4">
                 <Link
                     href="/dashboard"
-                    class="text-muted-foreground hover:text-foreground rounded-full p-2 transition-colors hover:bg-accent"
+                    class="rounded-full p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 >
                     <ArrowLeft class="size-5" />
                 </Link>
                 <div>
                     <h1 class="text-xl font-bold">Proveedores</h1>
-                    <p class="text-xs text-muted-foreground">Gestiona los proveedores registrados en el sistema.</p>
+                    <p class="text-xs text-muted-foreground">
+                        Gestiona los proveedores registrados en el sistema.
+                    </p>
                 </div>
             </div>
             <Link
@@ -49,7 +53,9 @@ const { suppliers } = defineProps<{
         <div class="overflow-hidden rounded-xl border bg-card shadow-sm">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="border-b bg-muted/50 text-[10px] font-bold uppercase text-muted-foreground">
+                    <thead
+                        class="border-b bg-muted/50 text-[10px] font-bold text-muted-foreground uppercase"
+                    >
                         <tr>
                             <th class="px-4 py-4 text-left">Nombre</th>
                             <th class="px-4 py-4 text-left">Días Créd.</th>
@@ -61,34 +67,83 @@ const { suppliers } = defineProps<{
                     </thead>
                     <tbody class="divide-y">
                         <tr v-if="suppliers.data.length === 0">
-                            <td colspan="6" class="px-4 py-12 text-center text-muted-foreground">
-                                <Building2 class="mx-auto mb-4 size-12 text-muted-foreground/30" />
+                            <td
+                                colspan="6"
+                                class="px-4 py-12 text-center text-muted-foreground"
+                            >
+                                <Building2
+                                    class="mx-auto mb-4 size-12 text-muted-foreground/30"
+                                />
                                 <p>No hay proveedores registrados</p>
                             </td>
                         </tr>
-                        <tr v-for="supplier in suppliers.data" :key="supplier.id" class="hover:bg-muted/30 transition-colors">
+                        <tr
+                            v-for="supplier in suppliers.data"
+                            :key="supplier.id"
+                            class="transition-colors hover:bg-muted/30"
+                        >
                             <td class="px-4 py-4 font-medium whitespace-nowrap">
                                 {{ supplier.supplier_name }}
                             </td>
-                            <td class="px-4 py-4 text-muted-foreground whitespace-nowrap">
-                                <span :class="supplier.supplier_credit_days > 0 ? 'text-amber-400' : 'text-zinc-500'">{{ supplier.supplier_credit_days }} días</span>
+                            <td
+                                class="px-4 py-4 whitespace-nowrap text-muted-foreground"
+                            >
+                                <span
+                                    :class="
+                                        supplier.supplier_credit_days > 0
+                                            ? 'text-amber-400'
+                                            : 'text-zinc-500'
+                                    "
+                                    >{{
+                                        supplier.supplier_credit_days
+                                    }}
+                                    días</span
+                                >
                             </td>
-                            <td class="px-4 py-4 text-muted-foreground">{{ supplier.supplier_phone }}</td>
-                            <td class="px-4 py-4 text-muted-foreground">{{ supplier.supplier_email }}</td>
-                            <td class="max-w-[200px] truncate px-4 py-4 text-muted-foreground">{{ supplier.supplier_address }}</td>
+                            <td class="px-4 py-4 text-muted-foreground">
+                                {{ supplier.supplier_phone }}
+                            </td>
+                            <td class="px-4 py-4 text-muted-foreground">
+                                {{ supplier.supplier_email }}
+                            </td>
+                            <td
+                                class="max-w-[200px] truncate px-4 py-4 text-muted-foreground"
+                            >
+                                {{ supplier.supplier_address }}
+                            </td>
                             <td class="px-4 py-4 text-center">
-                                <Link :href="`/suppliers/${supplier.id}/edit`" class="text-xs text-primary hover:text-primary/80">Editar</Link>
+                                <Link
+                                    :href="`/suppliers/${supplier.id}/edit`"
+                                    class="text-xs text-primary hover:text-primary/80"
+                                    >Editar</Link
+                                >
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div v-if="suppliers.links.length > 3" class="flex justify-center border-t px-6 py-4">
+            <div
+                v-if="suppliers.links.length > 3"
+                class="flex justify-center border-t px-6 py-4"
+            >
                 <div class="flex gap-1">
                     <template v-for="(link, key) in suppliers.links" :key="key">
-                        <div v-if="link.url === null" class="cursor-not-allowed rounded border px-4 py-2 text-sm text-muted-foreground" v-html="link.label"></div>
-                        <Link v-else :href="link.url" class="rounded border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent" :class="{ 'border-primary bg-primary font-bold text-primary-foreground': link.active }"><span v-html="link.label"></span></Link>
+                        <div
+                            v-if="link.url === null"
+                            class="cursor-not-allowed rounded border px-4 py-2 text-sm text-muted-foreground"
+                            v-html="link.label"
+                        ></div>
+                        <Link
+                            v-else
+                            :href="link.url"
+                            class="rounded border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent"
+                            :class="{
+                                'border-primary bg-primary font-bold text-primary-foreground':
+                                    link.active,
+                            }"
+                            ><span v-html="link.label"></span
+                        ></Link>
                     </template>
                 </div>
             </div>

@@ -4,14 +4,20 @@ import type { Component } from 'vue';
 import { computed, useAttrs } from 'vue';
 import TrendBadge from '@/components/Dashboard/TrendBadge.vue';
 import { Card, CardContent } from '@/components/ui/card';
-import { currencySymbol } from '@/composables/Finance/useCoinFormat';
+import {
+    formatDisplayAmount,
+    useAmountsDisplay,
+} from '@/composables/Dashboard/useAmountsDisplay';
 import type { CurrencyMap, TrendData } from '@/types/Dashboard';
 
 const props = defineProps<{
     label: string;
     amounts: CurrencyMap;
+    /** Equivalente en USD. `null` cuando no hay tasa cargada. */
+    usd?: number | null;
     trend?: TrendData;
     primaryCurrency?: string;
+    isUsdMode?: boolean;
     variant?: 'default' | 'success' | 'danger' | 'info';
     icon?: Component;
 }>();
@@ -52,39 +58,12 @@ const tone = computed(() => {
     }
 });
 
-const currencyEntries = computed<[string, number][]>(() => {
-    return Object.entries(props.amounts)
-        .filter(
-            ([, value]) => value !== undefined && value !== null && value !== 0,
-        )
-        .sort(([, a], [, b]) => b - a) as [string, number][];
-});
-
-const primaryEntry = computed<[string, number] | undefined>(() => {
-    const primary = props.primaryCurrency ?? 'USD';
-    const found = currencyEntries.value.find(
-        ([currency]) => currency === primary,
-    );
-
-    if (found) {
-        return found;
-    }
-
-    return currencyEntries.value[0];
-});
-
-const secondaryEntries = computed<[string, number][]>(() => {
-    return currencyEntries.value.filter(
-        ([currency]) => currency !== primaryEntry.value?.[0],
-    );
-});
-
-function formatAmount(value: number): string {
-    return new Intl.NumberFormat('es', {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4,
-    }).format(value);
-}
+const { entries, primary, isEmpty, usdUnavailable } = useAmountsDisplay(
+    () => props.amounts,
+    () => props.usd,
+    () => props.isUsdMode ?? true,
+    () => props.primaryCurrency ?? 'USD',
+);
 
 function handleActivation() {
     if (!clickable.value) {
@@ -143,27 +122,30 @@ function onKeydown(event: KeyboardEvent) {
                 <TrendBadge :trend="trend" />
             </div>
 
-            <template v-if="primaryEntry">
+            <template v-if="primary && !isEmpty">
                 <div
                     class="text-2xl font-semibold tracking-tight tabular-nums"
                     :class="tone.value"
                 >
-                    {{ currencySymbol(primaryEntry[0])
-                    }}{{ formatAmount(primaryEntry[1]) }}
+                    {{ formatDisplayAmount(primary.currency, primary.value) }}
                 </div>
 
                 <div
-                    v-if="secondaryEntries.length > 0"
+                    v-if="entries.length > 1"
                     class="flex flex-wrap gap-x-4 gap-y-1"
                 >
                     <span
-                        v-for="[currency, amount] in secondaryEntries"
-                        :key="currency"
+                        v-for="entry in entries.filter((e) => !e.isPrimary)"
+                        :key="entry.currency"
                         class="text-sm text-muted-foreground tabular-nums"
                     >
-                        {{ currencySymbol(currency) }}{{ formatAmount(amount) }}
+                        {{ formatDisplayAmount(entry.currency, entry.value) }}
                     </span>
                 </div>
+
+                <p v-if="usdUnavailable" class="text-xs text-muted-foreground">
+                    Sin tasa cargada: se muestra el desglose por moneda
+                </p>
             </template>
             <div v-else class="py-2 text-sm text-muted-foreground">
                 Sin datos para este período

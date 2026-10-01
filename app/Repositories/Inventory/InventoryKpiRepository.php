@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Inventory;
 
+use App\Concerns\ScopesCacheToTenant;
 use App\Models\CostHistory;
 use App\Models\Product;
 use App\Models\Rate;
@@ -12,11 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class InventoryKpiRepository
 {
+    use ScopesCacheToTenant;
+
     private const TTL = 60;
 
     public function stockByWarehouse(): array
     {
-        return Cache::remember('dashboard:inventory:stock_by_warehouse', self::TTL, function () {
+        return Cache::remember(self::tenantCacheKey('dashboard:inventory:stock_by_warehouse'), self::TTL, function () {
             return DB::table('warehouses as w')
                 ->leftJoinSub(
                     Stock::query()
@@ -42,7 +45,7 @@ class InventoryKpiRepository
 
     public function stockDetail(): array
     {
-        return Cache::remember('dashboard:inventory:stock_detail', self::TTL, function () {
+        return Cache::remember(self::tenantCacheKey('dashboard:inventory:stock_detail'), self::TTL, function () {
             return Stock::query()
                 ->join('warehouses as w', 'w.id', '=', 'stocks.stk_war_id')
                 ->join('products as p', 'p.pro_code', '=', 'stocks.stk_pro_code')
@@ -64,7 +67,7 @@ class InventoryKpiRepository
 
     public function inventoryValue(): array
     {
-        return Cache::remember('dashboard:inventory:value', self::TTL, function () {
+        return Cache::remember(self::tenantCacheKey('dashboard:inventory:value'), self::TTL, function () {
             $totalUsd = $this->totalUsdValue();
 
             $value = ['USD' => $totalUsd];
@@ -82,7 +85,7 @@ class InventoryKpiRepository
 
     public function inventoryValueDetail(): array
     {
-        return Cache::remember('dashboard:inventory:value_detail', self::TTL, function () {
+        return Cache::remember(self::tenantCacheKey('dashboard:inventory:value_detail'), self::TTL, function () {
             $codes = $this->stockTotals()->keys()->all();
 
             if ($codes === []) {

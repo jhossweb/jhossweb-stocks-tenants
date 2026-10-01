@@ -38,8 +38,9 @@ const form = useForm({
     sls_number: props.saleReturn.sls_number || '',
     sls_date: props.saleReturn.sls_date || today(),
     sls_customer_id: props.saleReturn.sls_customer_id || '',
-    sls_valorcam: props.saleReturn.sls_valorcam
-        || (props.latest_rate ? Number(props.latest_rate.rate_usd) : 1),
+    sls_valorcam:
+        props.saleReturn.sls_valorcam ||
+        (props.latest_rate ? Number(props.latest_rate.rate_usd) : 1),
     sls_coin: props.saleReturn.sls_coin || 'USD',
     sls_payment_condition: props.saleReturn.sls_payment_condition || 'cash',
     sls_credit_days: Number(props.saleReturn.sls_credit_days) || 0,
@@ -74,18 +75,22 @@ const isInitializing = ref(true);
 const salesError = ref('');
 
 const getWarehouseName = (id: number) => {
-    const w = props.warehouses.find(wh => wh.id == id);
+    const w = props.warehouses.find((wh) => wh.id == id);
 
     return w ? w.war_name || String(w.id) : String(id);
 };
 
 const updateDueDate = () => {
     if (!form.sls_date) {
-return;
-}
+        return;
+    }
 
     const parts = form.sls_date.split('-');
-    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    const date = new Date(
+        Number(parts[0]),
+        Number(parts[1]) - 1,
+        Number(parts[2]),
+    );
     date.setDate(date.getDate() + Number(form.sls_credit_days));
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -121,10 +126,14 @@ const fetchUnpaidSales = async (customerId: number) => {
     salesError.value = '';
 
     try {
-        const res = await fetch(`/api/customers/${customerId}/unpaid-sales?exclude_return_id=${props.saleReturn.id}`);
+        const res = await fetch(
+            `/api/customers/${customerId}/unpaid-sales?exclude_return_id=${props.saleReturn.id}`,
+        );
 
         if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: 'Error del servidor' }));
+            const err = await res
+                .json()
+                .catch(() => ({ error: 'Error del servidor' }));
 
             throw new Error(err.error || `HTTP ${res.status}`);
         }
@@ -155,12 +164,15 @@ const fetchSaleItems = async (saleNumber: string) => {
 
         if (!isInitializing.value) {
             form.sls_coin = sale.sls_coin || 'USD';
-            form.sls_valorcam = Number(sale.sls_valorcam)
-                || Number(props.latest_rate?.rate_usd)
-                || 1;
+            form.sls_valorcam =
+                Number(sale.sls_valorcam) ||
+                Number(props.latest_rate?.rate_usd) ||
+                1;
             form.sls_payment_condition = sale.sls_payment_condition || 'cash';
             form.sls_credit_days = Number(sale.sls_credit_days) || 0;
-            form.sls_due_date = sale.sls_due_date ? String(sale.sls_due_date).split(' ')[0] : form.sls_date;
+            form.sls_due_date = sale.sls_due_date
+                ? String(sale.sls_due_date).split(' ')[0]
+                : form.sls_date;
         }
 
         if (!isInitializing.value) {
@@ -211,7 +223,8 @@ const calculateTotals = () => {
     let exento = 0;
 
     for (const item of form.items) {
-        const lineTotal = Number(item.mvs_quantity) * Number(item.mvs_unit_price);
+        const lineTotal =
+            Number(item.mvs_quantity) * Number(item.mvs_unit_price);
         subtotal += lineTotal;
         const ivaRate = tx.getProductIvaRate(item.mvs_pro_code);
         sumIva += lineTotal * ivaRate;
@@ -231,7 +244,7 @@ const getItemTotal = (item: any) => {
     const baseTotal = Number(item.mvs_quantity) * Number(item.mvs_unit_price);
     const ivaRate = tx.getProductIvaRate(item.mvs_pro_code);
 
-    return (baseTotal + (baseTotal * ivaRate)).toFixed(4);
+    return (baseTotal + baseTotal * ivaRate).toFixed(4);
 };
 
 const submit = () => {
@@ -271,10 +284,7 @@ const columns: ColumnConfig[] = [
                 Hay problemas con el envío:
             </p>
             <ul class="list-inside list-disc text-xs text-destructive/80">
-                <li
-                    v-for="(error, key) in form.errors"
-                    :key="key"
-                >
+                <li v-for="(error, key) in form.errors" :key="key">
                     {{ error }}
                 </li>
             </ul>
@@ -290,11 +300,11 @@ const columns: ColumnConfig[] = [
 
                     <div class="flex flex-col gap-5">
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">N° Devolución</label>
-                            <Input
-                                v-model="form.sls_number"
-                                type="text"
-                            />
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >N° Devolución</label
+                            >
+                            <Input v-model="form.sls_number" type="text" />
                             <p
                                 v-if="form.errors.sls_number"
                                 class="mt-1 text-xs text-destructive"
@@ -304,17 +314,29 @@ const columns: ColumnConfig[] = [
                         </div>
 
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Cliente</label>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >Cliente</label
+                            >
                             <SelectorModal
                                 title="Seleccionar Cliente"
                                 description="Busque y seleccione un cliente de la lista"
                                 :items="customers"
-                                :search-fields="['clt_name', 'clt_email', 'clt_phone']"
+                                :search-fields="[
+                                    'clt_name',
+                                    'clt_email',
+                                    'clt_phone',
+                                ]"
                                 :display-fields="[
                                     { label: 'Nombre', key: 'clt_name' },
                                     { label: 'Email', key: 'clt_email' },
                                 ]"
-                                :trigger-label="tx.getCustomerName(customers, form.sls_customer_id)"
+                                :trigger-label="
+                                    tx.getCustomerName(
+                                        customers,
+                                        form.sls_customer_id,
+                                    )
+                                "
                                 :selected-value="form.sls_customer_id"
                                 @select="selectCustomer"
                             />
@@ -327,7 +349,9 @@ const columns: ColumnConfig[] = [
                         </div>
 
                         <div>
-                            <label class="mb-1.5 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <label
+                                class="mb-1.5 flex items-center gap-2 text-sm font-medium text-muted-foreground"
+                            >
                                 Factura Original
                                 <Loader2
                                     v-if="loadingSales"
@@ -335,7 +359,9 @@ const columns: ColumnConfig[] = [
                                 />
                             </label>
                             <div v-if="loadingSales">
-                                <span class="text-sm text-muted-foreground">Cargando...</span>
+                                <span class="text-sm text-muted-foreground"
+                                    >Cargando...</span
+                                >
                             </div>
                             <p
                                 v-else-if="salesError"
@@ -346,17 +372,19 @@ const columns: ColumnConfig[] = [
                             <select
                                 v-else
                                 v-model="selectedInvoiceNumber"
-                                class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
                             >
-                                <option value="">
-                                    Seleccione factura
-                                </option>
+                                <option value="">Seleccione factura</option>
                                 <option
                                     v-for="s in unpaidSales"
                                     :key="s.id"
                                     :value="s.sls_number"
                                 >
-                                    {{ s.sls_number }} - {{ formatDate(s.sls_date) }} ({{ s.sls_total }} {{ s.sls_coin }})
+                                    {{ s.sls_number }} -
+                                    {{ formatDate(s.sls_date) }} ({{
+                                        s.sls_total
+                                    }}
+                                    {{ s.sls_coin }})
                                 </option>
                             </select>
                             <p
@@ -369,17 +397,20 @@ const columns: ColumnConfig[] = [
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha</label>
-                                <Input
-                                    v-model="form.sls_date"
-                                    type="date"
-                                />
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Fecha</label
+                                >
+                                <Input v-model="form.sls_date" type="date" />
                             </div>
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Moneda</label>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Moneda</label
+                                >
                                 <select
                                     v-model="form.sls_coin"
-                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
                                 >
                                     <option
                                         v-for="c in coins"
@@ -394,10 +425,13 @@ const columns: ColumnConfig[] = [
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Condición de Pago</label>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Condición de Pago</label
+                                >
                                 <select
                                     v-model="form.sls_payment_condition"
-                                    class="bg-background border-input flex h-10 w-full rounded-lg border px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    class="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
                                     @change="handleConditionChange"
                                 >
                                     <option value="cash">Contado</option>
@@ -411,7 +445,10 @@ const columns: ColumnConfig[] = [
                                 </p>
                             </div>
                             <div>
-                                <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Días Crédito</label>
+                                <label
+                                    class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                    >Días Crédito</label
+                                >
                                 <Input
                                     v-model="form.sls_credit_days"
                                     type="number"
@@ -428,7 +465,10 @@ const columns: ColumnConfig[] = [
                             </div>
                         </div>
                         <div>
-                            <label class="mb-1.5 block text-sm font-medium text-muted-foreground">Fecha Vencimiento</label>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-muted-foreground"
+                                >Fecha Vencimiento</label
+                            >
                             <Input
                                 v-model="form.sls_due_date"
                                 type="date"
@@ -443,7 +483,10 @@ const columns: ColumnConfig[] = [
                         </div>
 
                         <div class="rounded-lg border bg-muted/30 p-4">
-                            <label class="mb-1.5 block text-xs font-bold uppercase text-muted-foreground">Tasa de Cambio</label>
+                            <label
+                                class="mb-1.5 block text-xs font-bold text-muted-foreground uppercase"
+                                >Tasa de Cambio</label
+                            >
                             <Input
                                 v-model="form.sls_valorcam"
                                 type="number"
@@ -454,24 +497,40 @@ const columns: ColumnConfig[] = [
                     </div>
                 </FormSection>
 
-                <div class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg">
-                    <Calculator class="text-primary-foreground/10 absolute -bottom-4 -right-4 size-24" />
+                <div
+                    class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg"
+                >
+                    <Calculator
+                        class="absolute -right-4 -bottom-4 size-24 text-primary-foreground/10"
+                    />
                     <div class="relative z-10 flex flex-col gap-3">
-                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                        <div
+                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
+                        >
                             <span>SUBTOTAL</span>
                             <span>{{ form.sls_subtotal }}</span>
                         </div>
-                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                        <div
+                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
+                        >
                             <span>EXENTO</span>
                             <span>{{ form.sls_exento }}</span>
                         </div>
-                        <div class="flex justify-between text-xs font-medium text-primary-foreground/80">
+                        <div
+                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
+                        >
                             <span>IVA</span>
                             <span>{{ form.sls_iva }}</span>
                         </div>
-                        <div class="flex items-end justify-between border-t border-primary-foreground/10 pt-3">
-                            <span class="text-sm font-bold uppercase">Total {{ form.sls_coin }}</span>
-                            <span class="text-3xl font-black tabular-nums">{{ form.sls_total }}</span>
+                        <div
+                            class="flex items-end justify-between border-t border-primary-foreground/10 pt-3"
+                        >
+                            <span class="text-sm font-bold uppercase"
+                                >Total {{ form.sls_coin }}</span
+                            >
+                            <span class="text-3xl font-black tabular-nums">{{
+                                form.sls_total
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -488,18 +547,25 @@ const columns: ColumnConfig[] = [
                     <tr
                         v-for="(item, index) in form.items"
                         :key="index"
-                        class="hover:bg-muted/30 transition-colors"
+                        class="transition-colors hover:bg-muted/30"
                     >
                         <td class="p-3">
-                            <span class="text-sm">{{ item._pro_name || item.mvs_pro_code }}</span>
+                            <span class="text-sm">{{
+                                item._pro_name || item.mvs_pro_code
+                            }}</span>
                         </td>
                         <td class="p-3">
                             <span class="text-sm text-muted-foreground">
-                                {{ item._war_name || getWarehouseName(item.mvs_war_id) }}
+                                {{
+                                    item._war_name ||
+                                    getWarehouseName(item.mvs_war_id)
+                                }}
                             </span>
                         </td>
                         <td class="p-3 text-center">
-                            <span class="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                            <span
+                                class="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary"
+                            >
                                 {{ tx.getProductIvaLabel(item.mvs_pro_code) }}
                             </span>
                         </td>
@@ -509,33 +575,55 @@ const columns: ColumnConfig[] = [
                                     v-model="item.mvs_quantity"
                                     type="number"
                                     :max="item._available_qty"
-                                    :step="tx.getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
-                                    :min="tx.getProductUnd(item.mvs_pro_code) === 'und' ? 1 : 0.01"
-                                    class="border-input bg-background w-20 rounded-md border py-1.5 text-center text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    :step="
+                                        tx.getProductUnd(item.mvs_pro_code) ===
+                                        'und'
+                                            ? 1
+                                            : 0.01
+                                    "
+                                    :min="
+                                        tx.getProductUnd(item.mvs_pro_code) ===
+                                        'und'
+                                            ? 1
+                                            : 0.01
+                                    "
+                                    class="w-20 rounded-md border border-input bg-background py-1.5 text-center text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                                     @input="calculateTotals"
-                                >
+                                />
                                 <span
                                     v-if="item.mvs_pro_code"
-                                    class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase text-primary"
+                                    class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary uppercase"
                                 >
-                                    {{ tx.getUndLabel(tx.getProductUnd(item.mvs_pro_code)) }}
+                                    {{
+                                        tx.getUndLabel(
+                                            tx.getProductUnd(item.mvs_pro_code),
+                                        )
+                                    }}
                                 </span>
                             </div>
-                            <div class="mt-0.5 text-center text-[10px] text-muted-foreground">
+                            <div
+                                class="mt-0.5 text-center text-[10px] text-muted-foreground"
+                            >
                                 Máx: {{ item._available_qty }}
                             </div>
                         </td>
                         <td class="p-3">
-                            <span class="block w-full py-1.5 text-right font-bold">
+                            <span
+                                class="block w-full py-1.5 text-right font-bold"
+                            >
                                 {{ Number(item.mvs_unit_price).toFixed(4) }}
                             </span>
                         </td>
                         <td class="p-3 text-right">
-                            <span class="font-mono text-xs font-medium text-primary">
+                            <span
+                                class="font-mono text-xs font-medium text-primary"
+                            >
                                 {{ item.mvs_unit_price_ref }}
                             </span>
                         </td>
-                        <td class="p-3 text-right font-bold text-muted-foreground">
+                        <td
+                            class="p-3 text-right font-bold text-muted-foreground"
+                        >
                             {{ getItemTotal(item) }}
                         </td>
                     </tr>

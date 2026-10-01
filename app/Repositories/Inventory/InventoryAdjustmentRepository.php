@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories\Inventory;
 
+use App\Concerns\ScopesCacheToTenant;
 use App\Models\AdjustmentReason;
 use App\Models\Inventory;
 use App\Models\Product;
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class InventoryAdjustmentRepository
 {
+    use ScopesCacheToTenant;
+
     private const REASONS_TTL = 3600;
 
     public const TRANS_TYPE_CODE = 'INV';
@@ -54,7 +57,7 @@ class InventoryAdjustmentRepository
 
     public static function reasonsCacheKey(): string
     {
-        return 'inventory:adjustment_reasons.'.(tenancy()->initialized ? tenant('id') : 'central');
+        return self::tenantCacheKey('inventory:adjustment_reasons');
     }
 
     /**
