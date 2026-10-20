@@ -14,7 +14,6 @@ class CreateTenant
     public function handle(RegisterTenantData $data): Tenant
     {
         $id = $data->slug ?? $this->uniqueSlug($data->companyName);
-        $suffix = (string) config('tenancy.tenant_domain_suffix');
 
         // El trait VirtualColumn re-construye la columna `data` desde los
         // atributos no-CustomColumns: NUNCA pasar `data` en el array de create.
@@ -31,10 +30,8 @@ class CreateTenant
         // Hash almacenado en el esquema central; el job de provisioning lo usa
         // tal cual (el cast 'hashed' de User no re-hashea).
         $tenant->admin_password = Hash::make($data->adminPassword);
+        // El subdominio lo crea TenantObserver::created en la propia save().
         $tenant->save();
-
-        // El slug ya es único entre tenants, así que el dominio lo hereda.
-        $tenant->createDomain($id.'.'.$suffix);
 
         return $tenant;
     }

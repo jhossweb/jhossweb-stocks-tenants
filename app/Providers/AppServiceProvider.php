@@ -11,6 +11,8 @@ use App\Models\MovementsSale;
 use App\Models\PurchaseOrder;
 use App\Models\Rate;
 use App\Models\SaleOrder;
+use App\Models\Subscription;
+use App\Models\Tenant;
 use App\Observers\BankTransactionObserver;
 use App\Observers\ExpenseObserver;
 use App\Observers\Inventory\AdjustmentReasonObserver;
@@ -21,6 +23,8 @@ use App\Observers\Purchases\PurchaseOrderObserver;
 use App\Observers\RateObserver;
 use App\Observers\Sales\MovSalesObserver;
 use App\Observers\Sales\SaleOrderObserver;
+use App\Observers\SubscriptionObserver;
+use App\Observers\Tenancy\TenantObserver;
 use App\Services\Inventory\StockService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\SQLiteConnection;
@@ -72,6 +76,10 @@ class AppServiceProvider extends ServiceProvider
 
         MovementInventory::observe(MovInventoryObserver::class);
         AdjustmentReason::observe(AdjustmentReasonObserver::class);
+
+        Subscription::observe(SubscriptionObserver::class);
+
+        Tenant::observe(TenantObserver::class);
     }
 
     /**

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Tenant;
+use App\Tenancy\Bootstrappers\PermissionCacheBootstrapper;
 use Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper;
 use Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper;
 use Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper;
@@ -47,6 +48,7 @@ return [
      */
     'bootstrappers' => [
         DatabaseTenancyBootstrapper::class,
+        PermissionCacheBootstrapper::class,
         // CacheTenancyBootstrapper requiere un store con soporte de tags (redis/memcached).
         // Con CACHE_STORE=file se desactiva: la caché se comparte entre tenants en dev.
         FilesystemTenancyBootstrapper::class,

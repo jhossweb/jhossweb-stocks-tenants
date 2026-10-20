@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureCentralAdmin;
+use App\Http\Middleware\EnsureTenantModule;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\InitializeTenancy;
@@ -13,6 +14,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -24,6 +26,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'module' => EnsureTenantModule::class,
+            'ensure.central.admin' => EnsureCentralAdmin::class,
+        ]);
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('admin/*') || $request->is('admin')) {
+                return route('admin.login');
+            }
+
+            return route('login');
+        });
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [

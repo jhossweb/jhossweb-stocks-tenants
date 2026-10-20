@@ -23,7 +23,7 @@ class RegisterTenantRequest extends FormRequest
         return [
             'company_name' => ['required', 'string', 'max:120'],
             'admin_name' => ['required', 'string', 'max:255'],
-            'admin_email' => ['required', 'email', 'max:255', Rule::unique('tenants', 'data->admin_email')],
+            'admin_email' => ['required', 'email', 'max:255', Rule::unique('tenants', 'admin_email')],
             'admin_password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }

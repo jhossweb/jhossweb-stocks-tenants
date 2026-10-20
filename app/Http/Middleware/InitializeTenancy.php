@@ -27,8 +27,16 @@ class InitializeTenancy
             return app(InitializeTenancyByDomain::class)->handle($request, function (Request $request) use ($next) {
                 // Un tenant suspendido queda inaccesible desde su subdominio
                 // (el estado `status` se gestiona desde el panel central).
-                if (tenancy()->initialized && ! tenant()->isActive()) {
-                    abort(403, 'El tenant está suspendido.');
+                if (tenancy()->initialized) {
+                    if (method_exists(tenant(), 'isPending') && tenant()->isPending()) {
+                        abort(403, 'Tu empresa aún no tiene un plan asignado.');
+                    }
+                    if (method_exists(tenant(), 'isSuspended') && tenant()->isSuspended()) {
+                        abort(403, 'El tenant está suspendido.');
+                    }
+                    if (! tenant()->isActive()) {
+                        abort(403, 'El tenant está suspendido.');
+                    }
                 }
 
                 return $next($request);

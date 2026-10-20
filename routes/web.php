@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Api\QuickCreateController;
+use App\Http\Controllers\Auth\CentralAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Employees\EmployeeController;
 use App\Http\Controllers\Expense\ExpenseCategoryController;
@@ -42,6 +42,13 @@ use Laravel\Fortify\Features;
 // ===========================================================================
 // PÚBLICAS (portal central del SaaS, solo accesibles desde dominios centrales)
 // ===========================================================================
+
+// Ruta raíz para subdominios de tenant (redirige a login)
+Route::middleware('tenant')
+    ->domain('{tenantSlug}.'.config('tenancy.tenant_domain_suffix'))
+    ->get('/', fn () => redirect()->route('login'))
+    ->name('tenant.root');
+
 Route::middleware('central')->group(function () {
     Route::inertia('/', 'Welcome', [
         'canRegister' => Features::enabled(Features::registration()),
@@ -52,9 +59,15 @@ Route::middleware('central')->group(function () {
     Route::post('register/company', [TenantRegistrationController::class, 'store'])->name('register-company.store');
 
     // Panel de administración central (super admin). Protegidas por auth + admin.
-    Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-        Route::resource('tenants', TenantController::class);
+
+    // Login central dedicado
+    Route::middleware(['guest'])->group(function () {
+        Route::get('admin/login', [CentralAuthController::class, 'create'])->name('admin.login');
+        Route::post('admin/login', [CentralAuthController::class, 'store'])->name('admin.login.store');
     });
+    Route::post('admin/logout', [CentralAuthController::class, 'destroy'])->name('admin.logout');
+
+    require __DIR__.'/admin.php';
 });
 
 // ===========================================================================
