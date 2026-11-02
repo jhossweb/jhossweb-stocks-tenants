@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Purchase;
 
+use App\Enum\Tenancy\TenantLimit;
 use App\Enum\TypeCoin;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use Illuminate\Foundation\Http\FormRequest;
@@ -27,7 +29,7 @@ class PurchaseReturnStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'invoice_number' => ['required', 'string', 'max:50', 'unique:purchase_orders,invoice_number'],
+            'invoice_number' => ['required', 'string', 'max:50', 'unique:purchase_orders,invoice_number', new WithinPlanLimit(TenantLimit::PurchasesReturnsMonthly)],
             'invoice_date' => ['required', 'date'],
             'invoice_supplier_id' => ['required', 'exists:suppliers,id'],
             'invoice_valorcam' => ['required', 'numeric'],

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Inventory\Warehouses;
 
+use App\Enum\Tenancy\TenantLimit;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -18,7 +20,7 @@ class StoreWarehouseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'war_name' => ['required', 'string', 'max:100', 'unique:warehouses,war_name'],
+            'war_name' => ['required', 'string', 'max:100', 'unique:warehouses,war_name', new WithinPlanLimit(TenantLimit::WarehousesMaxTotal)],
         ];
     }
 }

@@ -56,9 +56,18 @@ export interface PlanSummary {
     price_usd: string;
 }
 
+export interface LimitGroup {
+    key: string;
+    label: string;
+    limits: { key: string; label: string; scope: string }[];
+}
+
 export interface TenantShowProps {
     tenant: TenantDetail;
     plans: PlanSummary[];
+    limit_groups: LimitGroup[];
+    limit_overrides: Record<string, number>;
+    plan_limits: Record<string, number | null>;
 }
 
 export type SubscriptionStatus =

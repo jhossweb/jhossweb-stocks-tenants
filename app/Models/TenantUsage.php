@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
+/**
+ * @deprecated Los límites se calculan en vivo con PlanUsageCounter.
+ *             La tabla se conserva como legado para reportes futuros.
+ */
 class TenantUsage extends Model
 {
     use CentralConnection;

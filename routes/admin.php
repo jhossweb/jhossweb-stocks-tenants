@@ -20,6 +20,9 @@ Route::middleware(['auth', 'can:admin.access'])
         Route::patch('tenants/{tenant}/update-status', [TenantController::class, 'updateStatus'])->name('tenants.update-status');
         Route::post('tenants/{tenant}/assign-plan', [SubscriptionController::class, 'assignPlan'])->name('tenants.assign-plan');
 
+        // Overrides de límites por tenant (tienen prioridad sobre plans.limits).
+        Route::put('tenants/{tenant}/limit-overrides', [TenantController::class, 'updateLimitOverrides'])->name('tenants.limit-overrides.update');
+
         Route::resource('plans', PlanController::class);
 
         Route::resource('subscriptions', SubscriptionController::class)->except(['show']);

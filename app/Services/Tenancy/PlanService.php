@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Tenancy;
 
 use App\DTOs\Tenancy\PlanData;
+use App\Enum\Tenancy\TenantLimit;
 use App\Enum\Tenancy\TenantModule;
 use App\Models\Plan;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ final class PlanService
                 'price_usd' => $data->price_usd,
                 'trial_days' => $data->trial_days,
                 'is_active' => $data->is_active,
-                'limits' => $data->limits,
+                'limits' => $this->normalizeLimits(null, $data->limits),
                 'features' => $data->features,
             ]);
             $plan->save();
@@ -44,7 +45,7 @@ final class PlanService
             $plan->price_usd = $data->price_usd;
             $plan->trial_days = $data->trial_days;
             $plan->is_active = $data->is_active;
-            $plan->limits = $data->limits;
+            $plan->limits = $this->normalizeLimits($plan->limits, $data->limits);
             $plan->features = $data->features;
             $plan->save();
 
@@ -57,6 +58,39 @@ final class PlanService
     public function delete(Plan $plan): bool
     {
         return (bool) $plan->delete();
+    }
+
+    /**
+     * Normaliza los límites: conserva claves desconocidas, descarta nulos y
+     * fuerza enteros no negativos para las claves conocidas.
+     *
+     * @param  array<string, mixed>|null  $existing
+     * @param  array<string, mixed>|null  $incoming
+     * @return array<string, int>|null
+     */
+    private function normalizeLimits(?array $existing, ?array $incoming): ?array
+    {
+        if ($incoming === null) {
+            return $existing;
+        }
+
+        $known = array_flip(TenantLimit::keys());
+        $unknown = array_diff_key($existing ?? [], $known);
+        $clean = [];
+
+        foreach ($incoming as $key => $value) {
+            if (! array_key_exists($key, $known)) {
+                continue;
+            }
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $clean[$key] = max(0, (int) $value);
+        }
+
+        return array_merge($unknown, $clean);
     }
 
     /**

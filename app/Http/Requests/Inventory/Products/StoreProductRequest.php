@@ -4,7 +4,9 @@ namespace App\Http\Requests\Inventory\Products;
 
 use App\Enum\Inventary\ProType;
 use App\Enum\Inventary\UndProduct;
+use App\Enum\Tenancy\TenantLimit;
 use App\Enum\TypeIva;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,7 +29,7 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pro_code' => ['required', 'string', 'max:50', 'unique:products,pro_code'],
+            'pro_code' => ['required', 'string', 'max:50', 'unique:products,pro_code', new WithinPlanLimit(TenantLimit::ProductsMaxTotal)],
             'pro_name' => ['required', 'string', 'max:200', 'unique:products,pro_name'],
             'pro_und' => ['required', Rule::in(UndProduct::values())],
             'pro_conversion_factor' => ['nullable', 'numeric', 'min:0.0001'],

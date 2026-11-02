@@ -4,6 +4,7 @@ namespace App\Services\Sales;
 
 use App\Enum\Sales\QuoteStatus;
 use App\Enum\Sales\StatusSales;
+use App\Enum\Tenancy\TenantLimit;
 use App\Models\AccountsReceivable;
 use App\Models\MovementsSale;
 use App\Models\SaleOrder;
@@ -22,7 +23,7 @@ class SaleOrderService
 
     public function create(array $validated): SaleOrder
     {
-        $this->usageLimiter->assertCanCreate('sales.invoices_monthly');
+        $this->usageLimiter->assertCanCreate(TenantLimit::SalesInvoicesMonthly);
 
         $transactionType = TransactionType::where('trans_type_code', 'FACV')->first();
 
@@ -64,8 +65,6 @@ class SaleOrderService
         }
 
         $this->markSourceQuoteConverted($sale);
-
-        $this->usageLimiter->increment('sales.invoices_monthly');
 
         return $sale;
     }

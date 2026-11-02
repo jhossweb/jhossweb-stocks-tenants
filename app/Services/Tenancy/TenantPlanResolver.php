@@ -12,13 +12,20 @@ class TenantPlanResolver
 {
     public function currentTenant(): ?Tenant
     {
-        if (! tenancy()->initialized) {
-            return null;
+        if (tenancy()->initialized) {
+            $tenant = tenant();
+
+            return $tenant instanceof Tenant ? $tenant : null;
         }
 
-        $tenant = tenant();
+        // Permite resolver un tenant fijado manualmente (tests o jobs).
+        if (app()->bound('tenant')) {
+            $tenant = app('tenant');
 
-        return $tenant instanceof Tenant ? $tenant : null;
+            return $tenant instanceof Tenant ? $tenant : null;
+        }
+
+        return null;
     }
 
     public function currentPlan(): ?Plan

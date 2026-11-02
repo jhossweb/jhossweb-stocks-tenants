@@ -4,11 +4,13 @@ namespace App\Actions\Sales\Quote;
 
 use App\Enum\Sales\QuoteStatus;
 use App\Enum\Sales\StatusSales;
+use App\Enum\Tenancy\TenantLimit;
 use App\Exceptions\InsufficientStockException;
 use App\Models\MovementsSale;
 use App\Models\SaleOrder;
 use App\Models\TransactionType;
 use App\Services\Finance\RateService;
+use App\Services\Tenancy\UsageLimiter;
 use RuntimeException;
 
 class ConvertToSaleAction
@@ -16,6 +18,7 @@ class ConvertToSaleAction
     public function __construct(
         protected RateService $rateService,
         protected ValidateQuoteStockAction $validateStock,
+        protected UsageLimiter $usageLimiter,
     ) {}
 
     /**
@@ -29,6 +32,8 @@ class ConvertToSaleAction
         if ($quote->sls_quote_status === QuoteStatus::CONVERTED->value) {
             throw new RuntimeException('La cotización ya fue convertida a factura.');
         }
+
+        $this->usageLimiter->assertCanCreate(TenantLimit::SalesInvoicesMonthly);
 
         $availability = $this->validateStock->handle($quote);
 

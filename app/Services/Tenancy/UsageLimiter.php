@@ -4,60 +4,40 @@ declare(strict_types=1);
 
 namespace App\Services\Tenancy;
 
-use App\Models\Customer;
-use App\Models\Supplier;
-use App\Models\TenantUsage;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Enum\Tenancy\TenantLimit;
+use App\Exceptions\UsageLimitExceededException;
+use App\Models\TenantLimitOverride;
 
 class UsageLimiter
 {
-    protected function getCurrentTenant()
+    public function __construct(
+        private readonly TenantPlanResolver $resolver,
+        private readonly PlanUsageCounter $counter,
+    ) {}
+
+    /**
+     * Resuelve el máximo permitido. Un override del tenant tiene prioridad
+     * sobre el valor del plan. `null` significa sin límite.
+     */
+    public function getLimit(string|TenantLimit $limit): ?int
     {
-        $tenancy = tenancy();
+        $limit = $this->toLimit($limit);
 
-        if (property_exists($tenancy, 'tenant') && $tenancy->tenant) {
-            return $tenancy->tenant;
-        }
+        $tenant = $this->resolver->currentTenant();
 
-        if (method_exists($tenancy, 'tenant')) {
-            try {
-                return $tenancy->tenant();
-            } catch (\Throwable $e) {
-                return null;
-            }
-        }
-
-        if (method_exists($tenancy, 'getTenant')) {
-            try {
-                return $tenancy->getTenant();
-            } catch (\Throwable $e) {
-                return null;
-            }
-        }
-
-        if (function_exists('tenant') && app()->bound('tenant')) {
-            try {
-                return app('tenant');
-            } catch (\Throwable $e) {
-                // ignore
-            }
-        }
-
-        return null;
-    }
-
-    public function getLimit(string $key): ?int
-    {
-        $tenant = $this->getCurrentTenant();
-        if (! $tenant) {
+        if ($tenant === null) {
             return null;
         }
 
-        $subscription = method_exists($tenant, 'activeSubscription') ? $tenant->activeSubscription() : null;
-        $plan = $subscription?->plan;
+        $override = TenantLimitOverride::valueFor($tenant->getTenantKey(), $limit);
 
-        if (! $plan) {
+        if ($override !== null) {
+            return $override;
+        }
+
+        $plan = $this->resolver->currentPlan();
+
+        if ($plan === null) {
             return null;
         }
 
@@ -67,153 +47,73 @@ class UsageLimiter
             return null;
         }
 
-        $value = data_get($limits, $key);
+        $key = $limit->value;
+        $value = array_key_exists($key, $limits) ? $limits[$key] : data_get($limits, $key);
 
         if ($value === null || $value === '') {
             return null;
         }
 
-        if (is_numeric($value)) {
-            return (int) $value;
-        }
-
-        return null;
+        return is_numeric($value) ? (int) $value : null;
     }
 
-    public function getCurrentPeriod(): string
+    public function getUsage(string|TenantLimit $limit): int
     {
-        return Carbon::now()->format('Y-m');
-    }
-
-    public function getUsage(string $key, ?string $period = null): int
-    {
-        $tenant = $this->getCurrentTenant();
-        if (! $tenant) {
+        if ($this->resolver->currentTenant() === null) {
             return 0;
         }
 
-        // Total counts for customers/suppliers
-        if ($key === 'customers.max_total') {
-            try {
-                return Customer::count();
-            } catch (\Throwable $e) {
-                return 0;
-            }
-        }
-
-        if ($key === 'suppliers.max_total') {
-            try {
-                return Supplier::count();
-            } catch (\Throwable $e) {
-                return 0;
-            }
-        }
-
-        $period = $period ?? $this->getCurrentPeriod();
-        $tenantId = method_exists($tenant, 'getTenantKey') ? $tenant->getTenantKey() : ($tenant->id ?? null);
-
-        if (! $tenantId) {
-            return 0;
-        }
-
-        $usage = TenantUsage::query()
-            ->where('tenant_id', $tenantId)
-            ->where('key', $key)
-            ->where('period', $period)
-            ->first();
-
-        return $usage?->count ?? 0;
+        return $this->counter->count($this->toLimit($limit));
     }
 
-    public function canCreate(string $key, int $amount = 1): bool
+    public function canCreate(string|TenantLimit $limit, int $amount = 1): bool
     {
-        $limit = $this->getLimit($key);
+        $max = $this->getLimit($limit);
 
-        if ($limit === null) {
+        if ($max === null) {
             return true;
         }
 
-        $usage = $this->getUsage($key);
-
-        return ($usage + $amount) <= $limit;
+        return ($this->getUsage($limit) + $amount) <= $max;
     }
 
-    public function assertCanCreate(string $key, int $amount = 1): void
+    public function assertCanCreate(string|TenantLimit $limit, int $amount = 1): void
     {
-        if ($this->canCreate($key, $amount)) {
+        $limit = $this->toLimit($limit);
+
+        if ($this->canCreate($limit, $amount)) {
             return;
         }
 
-        $limit = $this->getLimit($key);
-        $usage = $this->getUsage($key);
-
-        $labels = [
-            'sales.invoices_monthly' => 'facturas mensuales',
-            'purchases.returns_monthly' => 'devoluciones de compra mensuales',
-            'customers.max_total' => 'clientes',
-            'suppliers.max_total' => 'proveedores',
-        ];
-
-        $label = $labels[$key] ?? 'este recurso';
-
-        throw new \DomainException("Has alcanzado el límite de {$label} para tu plan ({$usage}/{$limit}). Contacta al administrador para actualizar tu plan.");
+        throw new UsageLimitExceededException(
+            $limit,
+            $this->getUsage($limit),
+            (int) $this->getLimit($limit),
+        );
     }
 
-    public function increment(string $key, int $amount = 1): void
+    public function remaining(string|TenantLimit $limit): ?int
     {
-        $tenant = $this->getCurrentTenant();
-        if (! $tenant) {
-            return;
-        }
+        $max = $this->getLimit($limit);
 
-        // Don't increment for total counts
-        if ($key === 'customers.max_total' || $key === 'suppliers.max_total') {
-            return;
-        }
-
-        $period = $this->getCurrentPeriod();
-        $tenantId = method_exists($tenant, 'getTenantKey') ? $tenant->getTenantKey() : ($tenant->id ?? null);
-
-        if (! $tenantId) {
-            return;
-        }
-
-        try {
-            DB::transaction(function () use ($tenantId, $key, $period, $amount) {
-                $usage = TenantUsage::query()
-                    ->where('tenant_id', $tenantId)
-                    ->where('key', $key)
-                    ->where('period', $period)
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($usage) {
-                    $usage->count += $amount;
-                    $usage->save();
-                } else {
-                    TenantUsage::create([
-                        'tenant_id' => $tenantId,
-                        'key' => $key,
-                        'period' => $period,
-                        'count' => $amount,
-                    ]);
-                }
-            });
-        } catch (\Throwable $e) {
-            // Ignore usage tracking errors to not block core operations
-        }
-    }
-
-    public function remaining(string $key): ?int
-    {
-        $limit = $this->getLimit($key);
-
-        if ($limit === null) {
+        if ($max === null) {
             return null;
         }
 
-        $usage = $this->getUsage($key);
+        return max(0, $max - $this->getUsage($limit));
+    }
 
-        return max(0, $limit - $usage);
+    public function messageFor(string|TenantLimit $limit): string
+    {
+        $limit = $this->toLimit($limit);
+        $usage = $this->getUsage($limit);
+        $max = (int) $this->getLimit($limit);
+
+        return "Has alcanzado el límite de {$limit->label()} para tu plan ({$usage}/{$max}). Contacta al administrador para actualizar tu plan.";
+    }
+
+    private function toLimit(string|TenantLimit $limit): TenantLimit
+    {
+        return $limit instanceof TenantLimit ? $limit : TenantLimit::from($limit);
     }
 }

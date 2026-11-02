@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Tenancy;
 
 use App\DTOs\Tenancy\PlanData;
 use App\Enum\Tenancy\TenantFeature;
+use App\Enum\Tenancy\TenantLimit;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tenancy\Plan\StorePlanRequest;
 use App\Http\Requests\Admin\Tenancy\Plan\UpdatePlanRequest;
@@ -42,6 +43,7 @@ class PlanController extends Controller
     {
         return Inertia::render('admin/plans/create', [
             'feature_groups' => TenantFeature::grouped(),
+            'limit_groups' => TenantLimit::grouped(),
         ]);
     }
 
@@ -58,6 +60,7 @@ class PlanController extends Controller
             'plan' => $plan->toArray(),
             'module_keys' => $plan->moduleKeys(),
             'feature_groups' => TenantFeature::grouped(),
+            'limit_groups' => TenantLimit::grouped(),
         ]);
     }
 
@@ -67,6 +70,7 @@ class PlanController extends Controller
             'plan' => $plan->toArray(),
             'module_keys' => $plan->moduleKeys(),
             'feature_groups' => TenantFeature::grouped(),
+            'limit_groups' => TenantLimit::grouped(),
         ]);
     }
 

@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\Tenancy;
 
+use App\Enum\Tenancy\TenantLimit;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tenant\StoreTenantRequest;
+use App\Http\Requests\Admin\Tenant\UpdateTenantLimitOverridesRequest;
 use App\Http\Requests\Admin\Tenant\UpdateTenantRequest;
 use App\Http\Requests\Admin\Tenant\UpdateTenantStatusRequest;
 use App\Models\Tenant;
+use App\Models\TenantLimitOverride;
 use App\Repositories\Tenancy\PlanRepository;
 use App\Repositories\Tenancy\TenantRepository;
+use App\Services\Tenancy\TenantLimitOverrideService;
 use App\Services\Tenancy\TenantService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +27,7 @@ class TenantController extends Controller
         private readonly TenantRepository $repository,
         private readonly TenantService $service,
         private readonly PlanRepository $plans,
+        private readonly TenantLimitOverrideService $limitOverrides,
     ) {}
 
     public function index(Request $request): Response
@@ -68,6 +73,9 @@ class TenantController extends Controller
 
     public function show(Tenant $tenant): Response
     {
+        $tenant->loadMissing('subscriptions.plan');
+        $plan = $tenant->activeSubscription()?->plan;
+
         return Inertia::render('admin/tenants/Show', [
             'tenant' => $this->present($tenant),
             'plans' => $this->plans->all(['is_active' => true])
@@ -78,7 +86,22 @@ class TenantController extends Controller
                     'price_usd' => $plan->price_usd,
                 ])
                 ->all(),
+            'limit_groups' => TenantLimit::grouped(),
+            'limit_overrides' => TenantLimitOverride::query()
+                ->where('tenant_id', $tenant->getTenantKey())
+                ->pluck('value', 'key')
+                ->all(),
+            'plan_limits' => $plan?->limits ?? [],
         ]);
+    }
+
+    public function updateLimitOverrides(UpdateTenantLimitOverridesRequest $request, Tenant $tenant): RedirectResponse
+    {
+        $this->limitOverrides->sync($tenant, $request->validated('overrides') ?? []);
+
+        return redirect()
+            ->route('admin.tenants.show', $tenant)
+            ->with('success', 'Límites del tenant actualizados.');
     }
 
     public function edit(Tenant $tenant): Response

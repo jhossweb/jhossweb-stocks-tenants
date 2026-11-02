@@ -5,14 +5,22 @@ namespace App\Services\Sales\SaleReturn;
 use App\DTOs\Sales\SaleReturn\SaleReturnDTO;
 use App\Enum\Finanzas\TypeReceipt;
 use App\Enum\Sales\StatusSales;
+use App\Enum\Tenancy\TenantLimit;
 use App\Models\MovementsSale;
 use App\Models\SaleOrder;
 use App\Models\TransactionType;
+use App\Services\Tenancy\UsageLimiter;
 
 class SaleReturnService
 {
+    public function __construct(
+        private readonly UsageLimiter $usageLimiter,
+    ) {}
+
     public function store(SaleReturnDTO $dto): SaleOrder
     {
+        $this->usageLimiter->assertCanCreate(TenantLimit::SalesReturnsMonthly);
+
         $originalSale = SaleOrder::where('sls_number', $dto->slsReference)
             ->where('sls_trans_type_code', 'FACV')
             ->first();

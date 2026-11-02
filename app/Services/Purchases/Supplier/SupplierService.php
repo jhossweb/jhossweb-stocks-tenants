@@ -3,6 +3,7 @@
 namespace App\Services\Purchases\Supplier;
 
 use App\DTOs\Purchases\Supplier\SupplierDTO;
+use App\Enum\Tenancy\TenantLimit;
 use App\Models\Supplier;
 use App\Repositories\Purchases\Supplier\SupplierRepository;
 use App\Services\Tenancy\UsageLimiter;
@@ -22,7 +23,7 @@ class SupplierService
 
     public function create(SupplierDTO $dto): Supplier
     {
-        $this->usageLimiter->assertCanCreate('suppliers.max_total');
+        $this->usageLimiter->assertCanCreate(TenantLimit::SuppliersMaxTotal);
 
         return $this->repository->create($dto);
     }

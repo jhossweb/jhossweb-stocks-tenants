@@ -13,10 +13,17 @@ type FeatureGroup = {
     features: { key: string; label: string }[];
 };
 
+type LimitGroup = {
+    key: string;
+    label: string;
+    limits: { key: string; label: string; scope: string }[];
+};
+
 defineProps<{
     plan: any;
     module_keys?: string[];
     feature_groups?: Record<string, FeatureGroup>;
+    limit_groups?: LimitGroup[];
 }>();
 </script>
 
@@ -90,6 +97,41 @@ defineProps<{
                         variant="outline"
                         >{{ m }}</Badge
                     >
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Límites por uso</CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-4">
+                    <div
+                        v-for="group in limit_groups"
+                        :key="group.key"
+                        class="space-y-2"
+                    >
+                        <p class="text-sm font-medium">{{ group.label }}</p>
+                        <div class="flex flex-wrap gap-2">
+                            <Badge
+                                v-for="limit in group.limits"
+                                :key="limit.key"
+                                :variant="
+                                    plan.limits?.[limit.key] === null ||
+                                    plan.limits?.[limit.key] === undefined
+                                        ? 'secondary'
+                                        : 'default'
+                                "
+                            >
+                                {{ limit.label }}:
+                                {{
+                                    plan.limits?.[limit.key] === null ||
+                                    plan.limits?.[limit.key] === undefined
+                                        ? 'Sin límite'
+                                        : plan.limits[limit.key]
+                                }}
+                            </Badge>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 

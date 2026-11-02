@@ -4,21 +4,26 @@ namespace App\Services\Sales\Quote;
 
 use App\DTOs\Sales\Quote\QuoteDTO;
 use App\Enum\Sales\QuoteStatus;
+use App\Enum\Tenancy\TenantLimit;
 use App\Models\MovementsSale;
 use App\Models\SaleOrder;
 use App\Models\TransactionType;
 use App\Services\DocumentNumberingService;
 use App\Services\Finance\RateService;
+use App\Services\Tenancy\UsageLimiter;
 
 class QuoteService
 {
     public function __construct(
         protected DocumentNumberingService $documentNumbering,
         protected RateService $rateService,
+        protected UsageLimiter $usageLimiter,
     ) {}
 
     public function create(QuoteDTO $dto): SaleOrder
     {
+        $this->usageLimiter->assertCanCreate(TenantLimit::SalesQuotesMonthly);
+
         $transactionType = $this->getTransactionType();
         $slsNumber = $this->documentNumbering->nextNumber('COT');
 

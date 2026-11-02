@@ -3,6 +3,7 @@
 namespace App\Services\Sales\Customer;
 
 use App\DTOs\Sales\Customer\CustomerDTO;
+use App\Enum\Tenancy\TenantLimit;
 use App\Models\Customer;
 use App\Repositories\Sales\Customer\CustomerRepository;
 use App\Services\Tenancy\UsageLimiter;
@@ -22,7 +23,7 @@ class CustomerService
 
     public function create(CustomerDTO $dto): Customer
     {
-        $this->usageLimiter->assertCanCreate('customers.max_total');
+        $this->usageLimiter->assertCanCreate(TenantLimit::CustomersMaxTotal);
 
         return $this->repository->create($dto);
     }

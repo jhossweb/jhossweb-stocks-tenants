@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\UsageLimitExceededException;
 use App\Http\Middleware\EnsureCentralAdmin;
 use App\Http\Middleware\EnsureTenantFeature;
 use App\Http\Middleware\EnsureTenantModule;
@@ -65,6 +66,14 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (UsageLimitExceededException $exception, Request $request) {
+            if ($request->header('X-Inertia')) {
+                return back()->with('error', $exception->getMessage());
+            }
+
+            return response()->json(['message' => $exception->getMessage()], 422);
+        });
+
         $exceptions->respond(function (SymfonyResponse $response, Throwable $exception) {
             $request = request();
             $code = $response->getStatusCode();
@@ -89,7 +98,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if ($exception instanceof QueryException) {
-                $friendlyCode = 422;
+                $friendlyCode = 500;
             }
 
             if ($friendlyCode === null && $code < 500) {

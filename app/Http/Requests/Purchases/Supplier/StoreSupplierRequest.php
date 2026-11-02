@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Purchases\Supplier;
 
+use App\Enum\Tenancy\TenantLimit;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSupplierRequest extends FormRequest
@@ -14,7 +16,7 @@ class StoreSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_name' => ['required', 'string', 'max:100'],
+            'supplier_name' => ['required', 'string', 'max:100', new WithinPlanLimit(TenantLimit::SuppliersMaxTotal)],
             'supplier_address' => ['required', 'string', 'max:255'],
             'supplier_phone' => ['required', 'string', 'max:20', 'unique:suppliers,supplier_phone'],
             'supplier_email' => ['required', 'email', 'max:100', 'unique:suppliers,supplier_email'],

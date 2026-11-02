@@ -394,6 +394,62 @@ resources/js/wayfinder/**
 
     Para COGS: INNER JOIN por `sls_number ↔ mvs_number` **y** `sls_trans_type_code ↔ mvs_trans_type_code`, filtrar `FACV` y `mvs_factor = '-1'`.
 
+## Límites y overrides por plan
+
+### Fuente de verdad
+- `plans.limits` (jsonb): mapa de límites del plan. Clave ausente o `null` = **sin límite**; `0` = **bloqueo total**.
+- `tenant_limit_overrides`: excepción por tenant. **Tiene prioridad sobre el plan.**
+- `app/Enum/Tenancy/TenantLimit.php`: catálogo único de claves, etiquetas, alcance (`monthly`/`total`) y agrupación. Toda clave nueva se agrega aquí.
+- `app/Enum/Tenancy/TenantFeature.php`: submódulos opcionales dentro de módulos core (ej. `sales.quotes`). `plans.features` es una **lista de features habilitadas**; `null` = todas habilitadas.
+
+### Claves actuales
+
+| Clave | Etiqueta | Alcance |
+|---|---|---|
+| `sales.invoices_monthly` | Facturas de venta mensuales | mensual (`created_at`) |
+| `sales.quotes_monthly` | Cotizaciones mensuales | mensual (`created_at`) |
+| `sales.returns_monthly` | Devoluciones de venta mensuales | mensual (`created_at`) |
+| `purchases.returns_monthly` | Devoluciones de compra mensuales | mensual (`created_at`) |
+| `customers.max_total` | Clientes | total histórico |
+| `suppliers.max_total` | Proveedores | total histórico |
+| `warehouses.max_total` | Almacenes | total histórico |
+| `products.max_total` | Productos | total histórico |
+
+### Conteo (en vivo)
+- **Mensual:** `created_at` dentro de `now()->startOfMonth()` … `now()->endOfMonth()`.
+- **Total:** `count()` de la tabla.
+- `app/Services/Tenancy/PlanUsageCounter.php` centraliza los conteos. **No** usar contadores manuales. La tabla `tenant_usages` quedó como legado sin uso.
+
+### Enforcement (doble barrera)
+1. **Form Request:** `new WithinPlanLimit(TenantLimit::X)` en el campo principal del `Store*Request`.
+2. **Servicio/Acción:** `UsageLimiter::assertCanCreate(TenantLimit::X)` como defensa para flujos no-HTTP.
+- `ConvertToSaleAction` también valida `sales.invoices_monthly` (conversión cotización → factura).
+- Los límites aplican **solo a creación**, no a `update`.
+
+### Overrides por tenant
+- Tabla `tenant_limit_overrides` (`tenant_id` string, `key`, `value` unsigned int, unique `tenant_id+key`, FK a `tenants`).
+- `UsageLimiter::getLimit()` consulta primero el override y luego `plans.limits`.
+- Admin: `PUT /admin/tenants/{tenant}/limit-overrides` → `TenantLimitOverrideService::sync()`.
+- UI en `resources/js/pages/admin/tenants/Show.vue`. Vacío = elimina el override (vuelve al plan); `0` = bloqueo total.
+
+### Admin de planes
+- `PlanController` pasa `limit_groups` (`TenantLimit::grouped()`); `create.vue`/`edit.vue` renderizan los inputs dinámicamente.
+- Validación: `limits` como arreglo + `limits.*` nullable integer min:0. Las claves desconocidas se rechazan con `after()`.
+- **No usar `array:clave.con.puntos`** en validación: Laravel codifica los puntos de las claves y la regla falla. Usar `after()` con `$this->input()`.
+
+### Cómo agregar un límite nuevo
+1. Agregar el caso en `TenantLimit` (label, scope, group).
+2. Implementar el conteo en `PlanUsageCounter`.
+3. Añadir `new WithinPlanLimit(...)` al `Store*Request` correspondiente.
+4. Añadir `assertCanCreate(...)` en el servicio/acción.
+5. La UI de planes y tenants se actualiza sola vía `grouped()`.
+6. Añadir tests de conteo, enforcement y override.
+
+### Notas
+- `QueryException` ya **no** se mapea a 422; ahora responde 500, para no disfrazar fallos de BD como validación.
+- Las rutas `/quotes/*` están protegidas con `feature:sales.quotes` y el menú se oculta desde `tenant.features`.
+- Endpoint admin de overrides documentado en `routes/admin.php`.
+
 ===
 
 <laravel-boost-guidelines>

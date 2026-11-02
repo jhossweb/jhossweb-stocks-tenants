@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Sales;
 
+use App\Enum\Tenancy\TenantLimit;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use App\Models\Product;
 use App\Models\Rate;
 use App\Models\Stock;
@@ -18,7 +20,7 @@ class StoreSaleRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'sls_number' => 'required|string|max:50|unique:sale_orders,sls_number',
+            'sls_number' => ['required', 'string', 'max:50', 'unique:sale_orders,sls_number', new WithinPlanLimit(TenantLimit::SalesInvoicesMonthly)],
             'sls_date' => 'required|date',
             'sls_customer_id' => 'required|exists:customers,id',
             'sls_valorcam' => 'required|numeric',

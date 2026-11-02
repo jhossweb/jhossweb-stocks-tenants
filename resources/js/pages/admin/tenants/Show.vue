@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,37 @@ import {
     index as adminTenantsIndex,
     updateStatus as adminTenantsUpdateStatus,
 } from '@/routes/admin/tenants';
+import { update as adminTenantsLimitOverridesUpdate } from '@/routes/admin/tenants/limit-overrides';
 import type { TenantShowProps, TenantStatus } from '@/types/Tenancy';
 
 const props = defineProps<TenantShowProps>();
+
+const overrideForm = useForm({
+    overrides: Object.fromEntries(
+        props.limit_groups.flatMap((group) =>
+            group.limits.map((limit) => [
+                limit.key,
+                props.limit_overrides[limit.key] ?? null,
+            ]),
+        ),
+    ) as Record<string, number | null>,
+});
+
+function formatLimit(value: number | null | undefined): string {
+    return value === null || value === undefined ? 'Sin límite' : String(value);
+}
+
+function setOverride(key: string, event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    overrideForm.overrides[key] = value === '' ? null : Number(value);
+}
+
+function saveOverrides() {
+    overrideForm.put(
+        adminTenantsLimitOverridesUpdate.url({ tenant: props.tenant.id }),
+        { preserveScroll: true },
+    );
+}
 
 const showSuspend = ref(false);
 const reason = ref('');
@@ -196,6 +224,60 @@ function assignPlan() {
 
             <Card>
                 <CardHeader>
+                    <CardTitle>Límites (override por tenant)</CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-6">
+                    <p class="text-sm text-muted-foreground">
+                        Vacío = usa el límite del plan. Usa 0 para bloquear por
+                        completo.
+                    </p>
+                    <div
+                        v-for="group in props.limit_groups"
+                        :key="group.key"
+                        class="space-y-4"
+                    >
+                        <p class="text-sm font-medium">{{ group.label }}</p>
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div
+                                v-for="limit in group.limits"
+                                :key="limit.key"
+                                class="space-y-2"
+                            >
+                                <Label :for="'override-' + limit.key">
+                                    {{ limit.label }}
+                                </Label>
+                                <Input
+                                    :id="'override-' + limit.key"
+                                    type="number"
+                                    min="0"
+                                    :model-value="
+                                        overrideForm.overrides[limit.key] ?? ''
+                                    "
+                                    placeholder="Usar límite del plan"
+                                    @input="setOverride(limit.key, $event)"
+                                />
+                                <p class="text-xs text-muted-foreground">
+                                    Plan:
+                                    {{
+                                        formatLimit(
+                                            props.plan_limits[limit.key],
+                                        )
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <Button
+                        :disabled="overrideForm.processing"
+                        @click="saveOverrides"
+                    >
+                        Guardar overrides
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Acciones</CardTitle>
                 </CardHeader>
                 <CardContent class="flex flex-wrap gap-2">
@@ -217,9 +299,7 @@ function assignPlan() {
                                     v-model="selectedPlan"
                                     class="h-10 w-full rounded-md border bg-background px-3"
                                 >
-                                    <option value="">
-                                        Seleccione un plan
-                                    </option>
+                                    <option value="">Seleccione un plan</option>
                                     <option
                                         v-for="plan in plans"
                                         :key="plan.id"
@@ -248,7 +328,10 @@ function assignPlan() {
                         </DialogContent>
                     </Dialog>
 
-                    <Dialog v-if="tenant.status !== 'suspended'" v-model:open="showSuspend">
+                    <Dialog
+                        v-if="tenant.status !== 'suspended'"
+                        v-model:open="showSuspend"
+                    >
                         <DialogTrigger as-child>
                             <Button variant="destructive">
                                 Suspender Tenant

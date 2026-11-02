@@ -130,6 +130,8 @@ Route::middleware('tenant')->group(function () {
         Route::resource('sale-returns', SaleReturnController::class);
         Route::resource('customers', CustomerController::class);
 
+        // Submódulo de cotizaciones: se habilita/deshabilita por plan
+        // (plan.features) y se valida con el middleware feature:*.
         Route::middleware('feature:sales.quotes')->group(function (): void {
             Route::resource('quotes', QuoteController::class);
             Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');

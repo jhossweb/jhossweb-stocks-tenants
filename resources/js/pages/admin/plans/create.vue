@@ -16,9 +16,24 @@ type FeatureGroup = {
     features: { key: string; label: string }[];
 };
 
+type LimitGroup = {
+    key: string;
+    label: string;
+    limits: { key: string; label: string; scope: string }[];
+};
+
 const props = defineProps<{
     feature_groups: Record<string, FeatureGroup>;
+    limit_groups: LimitGroup[];
 }>();
+
+const initialLimits: Record<string, number | null> = {};
+
+props.limit_groups.forEach((group) => {
+    group.limits.forEach((limit) => {
+        initialLimits[limit.key] = null;
+    });
+});
 
 const form = useForm({
     code: '',
@@ -28,7 +43,7 @@ const form = useForm({
     price_usd: '35.00',
     trial_days: 14,
     is_active: true,
-    limits: {} as Record<string, number | null>,
+    limits: initialLimits,
     features: [] as string[],
     module_keys: [
         'inventory',
@@ -39,11 +54,6 @@ const form = useForm({
         'payroll',
     ],
 });
-
-form.limits['sales.invoices_monthly'] = null;
-form.limits['purchases.returns_monthly'] = null;
-form.limits['customers.max_total'] = null;
-form.limits['suppliers.max_total'] = null;
 
 Object.values(props.feature_groups).forEach((group) => {
     group.features.forEach((feature) => {
@@ -60,6 +70,11 @@ const core = [
     'payroll',
 ];
 const optin = ['production', 'advanced_reports', 'electronic_invoice'];
+
+function setLimit(key: string, event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    form.limits[key] = value === '' ? null : Number(value);
+}
 
 const errorsList = () => Object.values(form.errors).filter(Boolean);
 
@@ -153,115 +168,35 @@ function submit() {
                 <CardHeader>
                     <CardTitle>Límites por uso</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <p class="mb-4 text-sm text-muted-foreground">
-                        Deja vacío para sin límite.
+                <CardContent class="space-y-6">
+                    <p class="text-sm text-muted-foreground">
+                        Deja vacío para sin límite. Usa 0 para bloquear por
+                        completo.
                     </p>
-                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <div class="space-y-2">
-                            <Label for="invoices_monthly"
-                                >Facturas de venta mensuales</Label
+                    <div
+                        v-for="group in props.limit_groups"
+                        :key="group.key"
+                        class="space-y-4"
+                    >
+                        <p class="text-sm font-medium">{{ group.label }}</p>
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div
+                                v-for="limit in group.limits"
+                                :key="limit.key"
+                                class="space-y-2"
                             >
-                            <input
-                                id="invoices_monthly"
-                                type="number"
-                                min="0"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                                :value="
-                                    form.limits['sales.invoices_monthly'] ?? ''
-                                "
-                                placeholder="Sin límite"
-                                @input="
-                                    form.limits['sales.invoices_monthly'] =
-                                        ($event.target as HTMLInputElement)
-                                            .value === ''
-                                            ? null
-                                            : Number(
-                                                  (
-                                                      $event.target as HTMLInputElement
-                                                  ).value,
-                                              )
-                                "
-                            />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="returns_monthly"
-                                >Devoluciones de compra mensuales</Label
-                            >
-                            <input
-                                id="returns_monthly"
-                                type="number"
-                                min="0"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                                :value="
-                                    form.limits['purchases.returns_monthly'] ??
-                                    ''
-                                "
-                                placeholder="Sin límite"
-                                @input="
-                                    form.limits['purchases.returns_monthly'] =
-                                        ($event.target as HTMLInputElement)
-                                            .value === ''
-                                            ? null
-                                            : Number(
-                                                  (
-                                                      $event.target as HTMLInputElement
-                                                  ).value,
-                                              )
-                                "
-                            />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="max_customers"
-                                >Máximo de clientes</Label
-                            >
-                            <input
-                                id="max_customers"
-                                type="number"
-                                min="0"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                                :value="
-                                    form.limits['customers.max_total'] ?? ''
-                                "
-                                placeholder="Sin límite"
-                                @input="
-                                    form.limits['customers.max_total'] =
-                                        ($event.target as HTMLInputElement)
-                                            .value === ''
-                                            ? null
-                                            : Number(
-                                                  (
-                                                      $event.target as HTMLInputElement
-                                                  ).value,
-                                              )
-                                "
-                            />
-                        </div>
-                        <div class="space-y-2">
-                            <Label for="max_suppliers"
-                                >Máximo de proveedores</Label
-                            >
-                            <input
-                                id="max_suppliers"
-                                type="number"
-                                min="0"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                                :value="
-                                    form.limits['suppliers.max_total'] ?? ''
-                                "
-                                placeholder="Sin límite"
-                                @input="
-                                    form.limits['suppliers.max_total'] =
-                                        ($event.target as HTMLInputElement)
-                                            .value === ''
-                                            ? null
-                                            : Number(
-                                                  (
-                                                      $event.target as HTMLInputElement
-                                                  ).value,
-                                              )
-                                "
-                            />
+                                <Label :for="limit.key">{{
+                                    limit.label
+                                }}</Label>
+                                <Input
+                                    :id="limit.key"
+                                    type="number"
+                                    min="0"
+                                    :model-value="form.limits[limit.key] ?? ''"
+                                    placeholder="Sin límite"
+                                    @input="setLimit(limit.key, $event)"
+                                />
+                            </div>
                         </div>
                     </div>
                 </CardContent>

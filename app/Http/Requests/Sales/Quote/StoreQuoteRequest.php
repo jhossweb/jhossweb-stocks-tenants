@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Sales\Quote;
 
+use App\Enum\Tenancy\TenantLimit;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreQuoteRequest extends FormRequest
@@ -14,7 +16,7 @@ class StoreQuoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sls_date' => 'required|date',
+            'sls_date' => ['required', 'date', new WithinPlanLimit(TenantLimit::SalesQuotesMonthly)],
             'sls_customer_id' => 'required|exists:customers,id',
             'sls_valorcam' => 'required|numeric',
             'sls_coin' => 'required|string',

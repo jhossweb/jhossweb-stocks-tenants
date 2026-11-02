@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Sales\Customer;
 
+use App\Enum\Tenancy\TenantLimit;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -20,7 +22,7 @@ class StoreCustomerRequest extends FormRequest
         return [
             'clt_code' => ['nullable', 'string', 'max:50', 'unique:customers,clt_code'],
             'clt_cedula' => ['nullable', 'string', 'max:20'],
-            'clt_name' => ['required', 'string', 'max:100'],
+            'clt_name' => ['required', 'string', 'max:100', new WithinPlanLimit(TenantLimit::CustomersMaxTotal)],
             'clt_address' => ['required', 'string', 'max:255'],
             'clt_phone' => ['required', 'string', 'max:20', 'unique:customers,clt_phone'],
             'clt_email' => ['required', 'email', 'max:100', 'unique:customers,clt_email'],

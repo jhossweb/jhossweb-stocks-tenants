@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Sales\SaleReturn;
 
+use App\Enum\Tenancy\TenantLimit;
+use App\Http\Requests\Rules\WithinPlanLimit;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -18,7 +20,7 @@ class StoreSaleReturnRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sls_number' => ['required', 'string', 'max:50', 'unique:sale_orders,sls_number'],
+            'sls_number' => ['required', 'string', 'max:50', 'unique:sale_orders,sls_number', new WithinPlanLimit(TenantLimit::SalesReturnsMonthly)],
             'sls_date' => ['required', 'date'],
             'sls_customer_id' => ['required', 'exists:customers,id'],
             'sls_valorcam' => ['required', 'numeric'],

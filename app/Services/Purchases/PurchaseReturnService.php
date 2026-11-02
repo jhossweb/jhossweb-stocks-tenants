@@ -5,6 +5,7 @@ namespace App\Services\Purchases;
 use App\DTOs\Purchases\PurchaseReturnDTO;
 use App\Enum\Finanzas\TypePayment;
 use App\Enum\Purchases\StatusPurchases;
+use App\Enum\Tenancy\TenantLimit;
 use App\Models\MovementsPurchase;
 use App\Models\PurchaseOrder;
 use App\Models\TransactionType;
@@ -29,7 +30,7 @@ class PurchaseReturnService
         $data['invoice_trans_type_code'] = $transactionType->trans_type_code;
         $data['invoice_status'] = StatusPurchases::PENDING->value;
 
-        $this->usageLimiter->assertCanCreate('purchases.returns_monthly');
+        $this->usageLimiter->assertCanCreate(TenantLimit::PurchasesReturnsMonthly);
 
         $purchaseReturn = DB::transaction(function () use ($data, $dto, $transactionType) {
             $return = PurchaseOrder::create($data);
@@ -52,8 +53,6 @@ class PurchaseReturnService
 
             return $return;
         });
-
-        $this->usageLimiter->increment('purchases.returns_monthly');
 
         return $purchaseReturn;
     }
