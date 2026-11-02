@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureCentralAdmin;
+use App\Http\Middleware\EnsureTenantFeature;
 use App\Http\Middleware\EnsureTenantModule;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -28,6 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'module' => EnsureTenantModule::class,
+            'feature' => EnsureTenantFeature::class,
+            'tenant' => InitializeTenancy::class,
+            'central' => OnlyCentralDomains::class,
+            'admin' => EnsureCentralAdmin::class,
             'ensure.central.admin' => EnsureCentralAdmin::class,
         ]);
         $middleware->redirectGuestsTo(function (Request $request) {
@@ -50,12 +55,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // (portal SaaS en localhost). La clase omite la tenancy en testing.
         // 'central' limita las rutas del portal central a los dominios
         // centrales (localhost / 127.0.0.1).
-        $middleware->alias([
-            'tenant' => InitializeTenancy::class,
-            'central' => OnlyCentralDomains::class,
-            'admin' => EnsureCentralAdmin::class,
-        ]);
-
         // La tenancy debe inicializarse antes que la autenticación y el
         // binding de modelos para que ambos se resuelvan contra el schema
         // del tenant (y no contra el schema central). Anclamos nuestro

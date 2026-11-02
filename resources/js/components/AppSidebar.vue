@@ -3,7 +3,6 @@ import { Link } from '@inertiajs/vue3';
 import {
     BookOpen,
     FolderGit2,
-    LayoutGrid,
     ShoppingCart,
     FileText,
     ArrowRightLeft,
@@ -12,9 +11,9 @@ import {
     Building2,
     PackageSearch,
     CircleDollarSign,
-    Wallet,
     Settings,
 } from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -28,6 +27,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useTenantFeatures } from '@/composables/Tenancy/useTenantFeatures';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
@@ -173,6 +173,7 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Cotizaciones',
                         href: '/quotes',
+                        feature: 'sales.quotes',
                     },
                     {
                         title: 'Devoluciones de Ventas',
@@ -317,6 +318,18 @@ const footerNavItems: NavItem[] = [
         icon: BookOpen,
     },
 ];
+
+const { hasFeature } = useTenantFeatures();
+
+function filterNavItems(items: NavItem[]): NavItem[] {
+    return items
+        .filter((item) => !item.feature || hasFeature(item.feature))
+        .map((item) =>
+            item.items ? { ...item, items: filterNavItems(item.items) } : item,
+        );
+}
+
+const visibleNavItems = computed<NavItem[]>(() => filterNavItems(mainNavItems));
 </script>
 
 <template>
@@ -334,7 +347,7 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="visibleNavItems" />
         </SidebarContent>
 
         <SidebarFooter>

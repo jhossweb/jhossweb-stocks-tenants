@@ -54,3 +54,17 @@ export interface ReceiptHistoryEntry {
     accounts_receivable?: ReceiptAccountsReceivable | null;
     bank_transaction?: ReceiptBankTransaction | null;
 }
+
+export interface ReceiptHistoryGroup {
+    id: number;
+    group_key: number;
+    rec_account_receivable_id: number;
+    rec_type: string;
+    created_at: string | null;
+    total_usd: number;
+    movements_count: number;
+    banks: string[];
+    references: string[];
+    accounts_receivable?: ReceiptAccountsReceivable | null;
+    receipts?: ReceiptHistoryEntry[];
+}

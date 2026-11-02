@@ -8,9 +8,15 @@ import {
     index as adminPlansIndex,
 } from '@/routes/admin/plans';
 
+type FeatureGroup = {
+    label: string;
+    features: { key: string; label: string }[];
+};
+
 defineProps<{
     plan: any;
     module_keys?: string[];
+    feature_groups?: Record<string, FeatureGroup>;
 }>();
 </script>
 
@@ -84,6 +90,37 @@ defineProps<{
                         variant="outline"
                         >{{ m }}</Badge
                     >
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Funcionalidades por módulo</CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-4">
+                    <div
+                        v-for="(group, moduleKey) in feature_groups"
+                        :key="moduleKey"
+                    >
+                        <p class="mb-2 text-sm font-medium">
+                            {{ group.label }}
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <Badge
+                                v-for="feature in group.features"
+                                :key="feature.key"
+                                :variant="
+                                    plan.features === null ||
+                                    (Array.isArray(plan.features) &&
+                                        plan.features.includes(feature.key))
+                                        ? 'default'
+                                        : 'secondary'
+                                "
+                            >
+                                {{ feature.label }}
+                            </Badge>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
         </div>

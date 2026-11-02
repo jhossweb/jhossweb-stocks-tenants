@@ -42,6 +42,7 @@ class AssignPlanAction
             $tenant->suspended_reason = null;
             $tenant->suspended_at = null;
             $tenant->suspended_by = null;
+            $tenant->plan = $plan->name;
             $tenant->save();
 
             TenantEvent::create([

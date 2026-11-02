@@ -29,6 +29,7 @@ class PlanFactory extends Factory
             'trial_days' => 14,
             'is_active' => true,
             'limits' => null,
+            'features' => null,
         ];
     }
 

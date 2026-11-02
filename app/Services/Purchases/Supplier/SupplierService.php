@@ -5,12 +5,14 @@ namespace App\Services\Purchases\Supplier;
 use App\DTOs\Purchases\Supplier\SupplierDTO;
 use App\Models\Supplier;
 use App\Repositories\Purchases\Supplier\SupplierRepository;
+use App\Services\Tenancy\UsageLimiter;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class SupplierService
 {
     public function __construct(
         private readonly SupplierRepository $repository,
+        private readonly UsageLimiter $usageLimiter,
     ) {}
 
     public function list(int $perPage = 10): LengthAwarePaginator
@@ -20,6 +22,8 @@ class SupplierService
 
     public function create(SupplierDTO $dto): Supplier
     {
+        $this->usageLimiter->assertCanCreate('suppliers.max_total');
+
         return $this->repository->create($dto);
     }
 

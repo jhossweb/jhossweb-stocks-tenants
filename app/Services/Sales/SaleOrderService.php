@@ -10,16 +10,20 @@ use App\Models\SaleOrder;
 use App\Models\TransactionType;
 use App\Services\Finance\Cobranza\ReceiptService;
 use App\Services\Finance\RateService;
+use App\Services\Tenancy\UsageLimiter;
 
 class SaleOrderService
 {
     public function __construct(
         protected RateService $rateService,
         protected ReceiptService $receiptService,
+        protected UsageLimiter $usageLimiter,
     ) {}
 
     public function create(array $validated): SaleOrder
     {
+        $this->usageLimiter->assertCanCreate('sales.invoices_monthly');
+
         $transactionType = TransactionType::where('trans_type_code', 'FACV')->first();
 
         $valorcam = $this->rateService->resolveRateForCoin(
@@ -60,6 +64,8 @@ class SaleOrderService
         }
 
         $this->markSourceQuoteConverted($sale);
+
+        $this->usageLimiter->increment('sales.invoices_monthly');
 
         return $sale;
     }

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Company;
 use App\Services\Finance\RateService;
+use App\Services\Tenancy\TenantPlanResolver;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -49,7 +50,11 @@ class HandleInertiaRequests extends Middleware
             // (en el portal central quedan como null).
             'company' => fn () => $isTenant ? Company::current() : null,
             'tenant' => fn () => $isTenant
-                ? ['id' => tenant('id'), 'domain' => tenant()->domains->first()?->domain]
+                ? [
+                    'id' => tenant('id'),
+                    'domain' => tenant()->domains->first()?->domain,
+                    'features' => app(TenantPlanResolver::class)->currentPlan()?->featureStates() ?? [],
+                ]
                 : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             // Aviso de tasa de cambio ausente/vencida. Solo en tenant: en el

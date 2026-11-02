@@ -129,9 +129,12 @@ Route::middleware('tenant')->group(function () {
         Route::get('sales/{sale}/pdf', [SaleOrderController::class, 'exportPdf'])->name('sales.pdf');
         Route::resource('sale-returns', SaleReturnController::class);
         Route::resource('customers', CustomerController::class);
-        Route::resource('quotes', QuoteController::class);
-        Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
-        Route::get('quotes/{quote}/pdf', [QuoteController::class, 'exportPdf'])->name('quotes.pdf');
+
+        Route::middleware('feature:sales.quotes')->group(function (): void {
+            Route::resource('quotes', QuoteController::class);
+            Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
+            Route::get('quotes/{quote}/pdf', [QuoteController::class, 'exportPdf'])->name('quotes.pdf');
+        });
 
         // Cuentas por Cobrar
         Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');

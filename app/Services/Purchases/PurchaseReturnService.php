@@ -8,10 +8,15 @@ use App\Enum\Purchases\StatusPurchases;
 use App\Models\MovementsPurchase;
 use App\Models\PurchaseOrder;
 use App\Models\TransactionType;
+use App\Services\Tenancy\UsageLimiter;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseReturnService
 {
+    public function __construct(
+        private readonly UsageLimiter $usageLimiter,
+    ) {}
+
     public function store(PurchaseReturnDTO $dto): PurchaseOrder
     {
         $transactionType = TransactionType::where('trans_type_code', 'DEVC')->first();
@@ -23,6 +28,8 @@ class PurchaseReturnService
         $data = $dto->toArray();
         $data['invoice_trans_type_code'] = $transactionType->trans_type_code;
         $data['invoice_status'] = StatusPurchases::PENDING->value;
+
+        $this->usageLimiter->assertCanCreate('purchases.returns_monthly');
 
         $purchaseReturn = DB::transaction(function () use ($data, $dto, $transactionType) {
             $return = PurchaseOrder::create($data);
@@ -45,6 +52,8 @@ class PurchaseReturnService
 
             return $return;
         });
+
+        $this->usageLimiter->increment('purchases.returns_monthly');
 
         return $purchaseReturn;
     }

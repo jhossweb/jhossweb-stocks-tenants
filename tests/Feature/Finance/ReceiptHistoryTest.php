@@ -75,7 +75,7 @@ test('receipts index lists cobros with document, customer and bank', function ()
             ->where('receipts.data.0.id', $this->receipt->id)
             ->where('receipts.data.0.accounts_receivable.sale_order.sls_number', 'FACV-0001')
             ->where('receipts.data.0.accounts_receivable.sale_order.customer.clt_name', $this->customer->clt_name)
-            ->where('receipts.data.0.bank_transaction.bank_account.bank_name', $this->bankAccount->bank_name)
+            ->where('receipts.data.0.banks', [$this->bankAccount->bank_name])
         );
 });
 

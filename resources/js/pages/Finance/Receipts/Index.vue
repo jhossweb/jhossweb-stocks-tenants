@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatCoinValue } from '@/composables/Finance/useCoinFormat';
 import { formatDate } from '@/composables/useDate';
-import type { ReceiptHistoryEntry } from '@/types/Finance/Receipt';
+import type { ReceiptHistoryGroup } from '@/types/Finance/Receipt';
 
 defineOptions({
     layout: {
@@ -21,7 +21,7 @@ defineOptions({
 
 const props = defineProps<{
     receipts: {
-        data: ReceiptHistoryEntry[];
+        data: ReceiptHistoryGroup[];
         links: { url: string | null; label: string; active: boolean }[];
         from: number | null;
         to: number | null;
@@ -157,7 +157,7 @@ const typeBadge = (type: string) => {
                                 <th
                                     class="px-4 py-3 text-right text-xs font-semibold text-zinc-400"
                                 >
-                                    Monto
+                                    Monto (USD)
                                 </th>
                                 <th
                                     class="px-4 py-3 text-left text-xs font-semibold text-zinc-400"
@@ -179,7 +179,7 @@ const typeBadge = (type: string) => {
                         <tbody class="divide-y divide-zinc-800">
                             <tr
                                 v-for="receipt in receipts.data"
-                                :key="receipt.id"
+                                :key="receipt.group_key"
                                 class="transition-colors hover:bg-zinc-800/20"
                             >
                                 <td
@@ -187,9 +187,7 @@ const typeBadge = (type: string) => {
                                 >
                                     {{
                                         formatDate(
-                                            receipt.bank_transaction
-                                                ?.btr_transaction_date ??
-                                                receipt.created_at,
+                                            receipt.created_at,
                                         )
                                     }}
                                 </td>
@@ -224,36 +222,41 @@ const typeBadge = (type: string) => {
                                     <span class="text-zinc-100">
                                         {{
                                             formatCoinValue(
-                                                Number(
-                                                    receipt.bank_transaction
-                                                        ?.btr_amount ??
-                                                        receipt.rec_amount,
-                                                ),
-                                                receipt.bank_transaction
-                                                    ?.btr_coin ?? 'USD',
+                                                Number(receipt.total_usd),
+                                                'USD',
                                             )
                                         }}
                                     </span>
                                     <span class="ml-1 text-xs text-zinc-500">
-                                        {{
-                                            receipt.bank_transaction
-                                                ?.btr_coin ?? 'USD'
-                                        }}
+                                        USD
+                                    </span>
+                                    <span
+                                        v-if="receipt.movements_count > 1"
+                                        class="ml-2 text-xs text-zinc-400"
+                                    >
+                                        ({{ receipt.movements_count }} movimientos)
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-sm text-zinc-400">
-                                    {{
-                                        receipt.bank_transaction?.bank_account
-                                            ?.bank_name ?? '—'
-                                    }}
+                                    <span v-if="receipt.banks.length === 0"
+                                        >—</span
+                                    >
+                                    <span v-else-if="receipt.banks.length === 1">
+                                        {{ receipt.banks[0] }}
+                                    </span>
+                                    <span v-else>Varios</span>
                                 </td>
                                 <td
                                     class="px-4 py-4 font-mono text-xs text-zinc-400"
                                 >
-                                    {{
-                                        receipt.bank_transaction
-                                            ?.btr_reference ?? '—'
-                                    }}
+                                    <span
+                                        v-if="receipt.references.length === 0"
+                                        >—</span
+                                    >
+                                    <span v-else-if="receipt.references.length === 1">
+                                        {{ receipt.references[0] }}
+                                    </span>
+                                    <span v-else>Varios</span>
                                 </td>
                                 <td class="px-4 py-4 text-center">
                                     <Button
@@ -290,36 +293,31 @@ const typeBadge = (type: string) => {
                         </tr>
                     </tfoot>
                 </div>
-
-                <div
-                    v-if="receipts.links.length > 3"
-                    class="flex justify-center border-t border-zinc-800 px-6 py-4"
-                >
-                    <div class="flex gap-1.5">
-                        <template
-                            v-for="(link, key) in receipts.links"
-                            :key="key"
-                        >
-                            <div
-                                v-if="link.url === null"
-                                class="cursor-not-allowed rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-500"
-                            >
-                                {{ decodeLabel(link.label) }}
-                            </div>
-                            <Link
-                                v-else
-                                :href="link.url"
-                                class="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800"
-                                :class="{
-                                    'border-primary bg-primary font-bold text-white':
-                                        link.active,
-                                }"
-                                >{{ decodeLabel(link.label) }}</Link
-                            >
-                        </template>
-                    </div>
-                </div>
             </CardContent>
         </Card>
+
+        <nav
+            v-if="receipts.links.length > 3"
+            class="flex items-center justify-end gap-2"
+        >
+            <template v-for="(link, index) in receipts.links" :key="index">
+                <Link
+                    v-if="link.url"
+                    :href="link.url"
+                    class="inline-flex h-9 items-center rounded-md border px-3 text-sm transition-colors hover:bg-accent"
+                    :class="{
+                        'bg-accent font-medium': link.active,
+                    }"
+                >
+                    <span v-html="decodeLabel(link.label)" />
+                </Link>
+                <span
+                    v-else
+                    class="inline-flex h-9 cursor-not-allowed items-center rounded-md border px-3 text-sm opacity-50"
+                >
+                    <span v-html="decodeLabel(link.label)" />
+                </span>
+            </template>
+        </nav>
     </div>
 </template>

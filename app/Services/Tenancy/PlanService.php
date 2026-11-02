@@ -23,6 +23,7 @@ final class PlanService
                 'trial_days' => $data->trial_days,
                 'is_active' => $data->is_active,
                 'limits' => $data->limits,
+                'features' => $data->features,
             ]);
             $plan->save();
 
@@ -44,6 +45,7 @@ final class PlanService
             $plan->trial_days = $data->trial_days;
             $plan->is_active = $data->is_active;
             $plan->limits = $data->limits;
+            $plan->features = $data->features;
             $plan->save();
 
             $this->syncModules($plan, $data->module_keys);

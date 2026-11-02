@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Tenancy;
 
 use App\DTOs\Tenancy\PlanData;
+use App\Enum\Tenancy\TenantFeature;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tenancy\Plan\StorePlanRequest;
 use App\Http\Requests\Admin\Tenancy\Plan\UpdatePlanRequest;
@@ -39,7 +40,9 @@ class PlanController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('admin/plans/create');
+        return Inertia::render('admin/plans/create', [
+            'feature_groups' => TenantFeature::grouped(),
+        ]);
     }
 
     public function store(StorePlanRequest $request): RedirectResponse
@@ -54,6 +57,7 @@ class PlanController extends Controller
         return Inertia::render('admin/plans/Show', [
             'plan' => $plan->toArray(),
             'module_keys' => $plan->moduleKeys(),
+            'feature_groups' => TenantFeature::grouped(),
         ]);
     }
 
@@ -62,6 +66,7 @@ class PlanController extends Controller
         return Inertia::render('admin/plans/edit', [
             'plan' => $plan->toArray(),
             'module_keys' => $plan->moduleKeys(),
+            'feature_groups' => TenantFeature::grouped(),
         ]);
     }
 

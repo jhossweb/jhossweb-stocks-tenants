@@ -34,6 +34,7 @@ defineOptions({
 const props = defineProps<{
     receipt: ReceiptHistoryEntry;
     vueltos?: ReceiptBankTransaction[];
+    movements?: ReceiptHistoryEntry[];
 }>();
 
 const isReturnCredit = props.receipt.rec_type === 'RETURN_CREDIT';
@@ -41,6 +42,8 @@ const isReturnCredit = props.receipt.rec_type === 'RETURN_CREDIT';
 const typeBadge = isReturnCredit
     ? { label: 'Crédito devolución', class: 'bg-orange-900/30 text-orange-400' }
     : { label: 'Cobro', class: 'bg-blue-900/30 text-blue-400' };
+
+const allMovements = props.movements && props.movements.length > 0 ? props.movements : [props.receipt];
 
 const deleteReceipt = () => {
     if (window.confirm('¿Eliminar este cobro?')) {
@@ -70,6 +73,9 @@ const deleteReceipt = () => {
                     </h1>
                     <Badge variant="outline" :class="typeBadge.class">
                         {{ typeBadge.label }}
+                    </Badge>
+                    <Badge v-if="allMovements.length > 1" variant="outline">
+                        {{ allMovements.length }} movimientos
                     </Badge>
                 </div>
             </div>
@@ -181,65 +187,23 @@ const deleteReceipt = () => {
                                 }}
                             </span>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <div
-                    class="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-lg"
-                >
-                    <Calculator
-                        class="absolute -right-4 -bottom-4 size-24 text-primary-foreground/10"
-                        aria-hidden="true"
-                    />
-                    <div class="relative z-10 flex flex-col gap-3">
-                        <div class="flex items-end justify-between">
-                            <span class="text-sm font-bold uppercase"
-                                >Monto cobrado</span
-                            >
-                            <span class="text-3xl font-black tabular-nums">
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">Saldo</span>
+                            <span class="font-mono">
                                 {{
                                     formatCoinValue(
                                         Number(
-                                            receipt.bank_transaction
-                                                ?.btr_amount ??
-                                                receipt.rec_amount,
+                                            receipt.accounts_receivable
+                                                ?.acr_balance ?? 0,
                                         ),
-                                        receipt.bank_transaction?.btr_coin ??
-                                            'USD',
+                                        receipt.accounts_receivable?.sale_order
+                                            ?.sls_coin ?? 'USD',
                                     )
                                 }}
                             </span>
                         </div>
-                        <div
-                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
-                        >
-                            <span>Moneda</span>
-                            <span>{{
-                                receipt.bank_transaction?.btr_coin ?? 'USD'
-                            }}</span>
-                        </div>
-                        <div
-                            v-if="
-                                receipt.bank_transaction?.btr_diferencial &&
-                                Number(
-                                    receipt.bank_transaction.btr_diferencial,
-                                ) !== 0
-                            "
-                            class="flex justify-between text-xs font-medium text-primary-foreground/80"
-                        >
-                            <span>Diferencial</span>
-                            <span>{{
-                                formatCoinValue(
-                                    Number(
-                                        receipt.bank_transaction
-                                            .btr_diferencial,
-                                    ),
-                                    'USD',
-                                )
-                            }}</span>
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
 
             <div class="flex flex-col gap-4 lg:col-span-8">
@@ -250,72 +214,7 @@ const deleteReceipt = () => {
                                 class="size-4 text-primary"
                                 aria-hidden="true"
                             />
-                            Datos del pago
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-muted-foreground"
-                                >Fecha del cobro</span
-                            >
-                            <span>
-                                {{
-                                    formatDate(
-                                        receipt.bank_transaction
-                                            ?.btr_transaction_date ??
-                                            receipt.created_at,
-                                    )
-                                }}
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-muted-foreground">Banco</span>
-                            <span>
-                                {{
-                                    receipt.bank_transaction?.bank_account
-                                        ?.bank_name ?? '—'
-                                }}
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-muted-foreground">Método</span>
-                            <span>{{
-                                receipt.bank_transaction?.btr_method ?? '—'
-                            }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-muted-foreground"
-                                >Referencia</span
-                            >
-                            <span class="font-mono">{{
-                                receipt.bank_transaction?.btr_reference ?? '—'
-                            }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-muted-foreground"
-                                >Tasa de cambio</span
-                            >
-                            <span class="font-mono">{{
-                                receipt.bank_transaction?.btr_valorcam ?? '—'
-                            }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-muted-foreground">Nota</span>
-                            <span>{{
-                                receipt.bank_transaction?.btr_description ?? '—'
-                            }}</span>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2 text-base">
-                            <ReceiptText
-                                class="size-4 text-primary"
-                                aria-hidden="true"
-                            />
-                            Movimientos
+                            Movimientos bancarios
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="p-0">
@@ -352,7 +251,8 @@ const deleteReceipt = () => {
                                 </thead>
                                 <tbody class="divide-y divide-zinc-800">
                                     <tr
-                                        v-if="receipt.bank_transaction"
+                                        v-for="movement in allMovements"
+                                        :key="movement.id"
                                         class="transition-colors hover:bg-zinc-800/20"
                                     >
                                         <td class="px-4 py-3">
@@ -369,11 +269,12 @@ const deleteReceipt = () => {
                                             {{
                                                 formatCoinValue(
                                                     Number(
-                                                        receipt.bank_transaction
-                                                            .btr_amount,
+                                                        movement.bank_transaction
+                                                            ?.btr_amount ??
+                                                            movement.rec_amount,
                                                     ),
-                                                    receipt.bank_transaction
-                                                        .btr_coin ?? 'USD',
+                                                    movement.bank_transaction
+                                                        ?.btr_coin ?? 'USD',
                                                 )
                                             }}
                                         </td>
@@ -381,8 +282,8 @@ const deleteReceipt = () => {
                                             class="px-4 py-3 text-sm text-zinc-300"
                                         >
                                             {{
-                                                receipt.bank_transaction
-                                                    .bank_account?.bank_name ??
+                                                movement.bank_transaction
+                                                    ?.bank_account?.bank_name ??
                                                 '—'
                                             }}
                                         </td>
@@ -390,16 +291,19 @@ const deleteReceipt = () => {
                                             class="px-4 py-3 font-mono text-sm text-zinc-500"
                                         >
                                             {{
-                                                receipt.bank_transaction
-                                                    .btr_reference ?? '—'
+                                                movement.bank_transaction
+                                                    ?.btr_reference ?? '—'
                                             }}
                                         </td>
                                         <td
                                             class="px-4 py-3 text-sm text-zinc-300"
                                         >
                                             {{
-                                                receipt.bank_transaction
-                                                    .btr_description ?? '—'
+                                                movement.bank_transaction
+                                                    ?.btr_description ??
+                                                (movement.rec_type === 'RETURN_CREDIT'
+                                                    ? 'Crédito por devolución'
+                                                    : 'Cobro a cliente')
                                             }}
                                         </td>
                                     </tr>
@@ -450,7 +354,7 @@ const deleteReceipt = () => {
                                     </tr>
                                     <tr
                                         v-if="
-                                            !receipt.bank_transaction &&
+                                            allMovements.length === 0 &&
                                             !(vueltos && vueltos.length > 0)
                                         "
                                     >
@@ -463,6 +367,38 @@ const deleteReceipt = () => {
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle class="flex items-center gap-2 text-base">
+                            <Calculator
+                                class="size-4 text-primary"
+                                aria-hidden="true"
+                            />
+                            Resumen
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground"
+                                >Movimiento(s) registrados</span
+                            >
+                            <span>{{ allMovements.length }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">Fecha</span>
+                            <span>
+                                {{
+                                    formatDate(
+                                        receipt.bank_transaction
+                                            ?.btr_transaction_date ??
+                                            receipt.created_at,
+                                    )
+                                }}
+                            </span>
                         </div>
                     </CardContent>
                 </Card>

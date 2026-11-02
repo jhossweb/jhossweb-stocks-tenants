@@ -11,6 +11,15 @@ import {
     index as adminPlansIndex,
 } from '@/routes/admin/plans';
 
+type FeatureGroup = {
+    label: string;
+    features: { key: string; label: string }[];
+};
+
+const props = defineProps<{
+    feature_groups: Record<string, FeatureGroup>;
+}>();
+
 const form = useForm({
     code: '',
     name: '',
@@ -19,17 +28,8 @@ const form = useForm({
     price_usd: '35.00',
     trial_days: 14,
     is_active: true,
-    limits: {
-        max_users: 5,
-        max_products: 1500,
-        max_customers: 1000,
-        max_suppliers: 500,
-        max_employees: 25,
-        max_documents_month: 1000,
-        max_warehouses: 2,
-        max_branches: 1,
-        storage_mb: 1024,
-    },
+    limits: {} as Record<string, number | null>,
+    features: [] as string[],
     module_keys: [
         'inventory',
         'sales',
@@ -38,6 +38,17 @@ const form = useForm({
         'expenses',
         'payroll',
     ],
+});
+
+form.limits['sales.invoices_monthly'] = null;
+form.limits['purchases.returns_monthly'] = null;
+form.limits['customers.max_total'] = null;
+form.limits['suppliers.max_total'] = null;
+
+Object.values(props.feature_groups).forEach((group) => {
+    group.features.forEach((feature) => {
+        form.features.push(feature.key);
+    });
 });
 
 const core = [
@@ -59,13 +70,12 @@ function submit() {
 
 <template>
     <div>
-        
         <Head title="Crear Plan" />
 
         <div class="space-y-6 p-6">
             <FormActions
                 title="Crear Plan"
-                subtitle="Configura los datos y módulos del plan"
+                subtitle="Configura los datos, límites y módulos del plan"
                 :back-url="adminPlansIndex.url()"
                 :processing="form.processing"
                 @save="submit"
@@ -141,41 +151,208 @@ function submit() {
 
             <Card>
                 <CardHeader>
+                    <CardTitle>Límites por uso</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p class="mb-4 text-sm text-muted-foreground">
+                        Deja vacío para sin límite.
+                    </p>
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div class="space-y-2">
+                            <Label for="invoices_monthly"
+                                >Facturas de venta mensuales</Label
+                            >
+                            <input
+                                id="invoices_monthly"
+                                type="number"
+                                min="0"
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                :value="
+                                    form.limits['sales.invoices_monthly'] ?? ''
+                                "
+                                placeholder="Sin límite"
+                                @input="
+                                    form.limits['sales.invoices_monthly'] =
+                                        ($event.target as HTMLInputElement)
+                                            .value === ''
+                                            ? null
+                                            : Number(
+                                                  (
+                                                      $event.target as HTMLInputElement
+                                                  ).value,
+                                              )
+                                "
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="returns_monthly"
+                                >Devoluciones de compra mensuales</Label
+                            >
+                            <input
+                                id="returns_monthly"
+                                type="number"
+                                min="0"
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                :value="
+                                    form.limits['purchases.returns_monthly'] ??
+                                    ''
+                                "
+                                placeholder="Sin límite"
+                                @input="
+                                    form.limits['purchases.returns_monthly'] =
+                                        ($event.target as HTMLInputElement)
+                                            .value === ''
+                                            ? null
+                                            : Number(
+                                                  (
+                                                      $event.target as HTMLInputElement
+                                                  ).value,
+                                              )
+                                "
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="max_customers"
+                                >Máximo de clientes</Label
+                            >
+                            <input
+                                id="max_customers"
+                                type="number"
+                                min="0"
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                :value="
+                                    form.limits['customers.max_total'] ?? ''
+                                "
+                                placeholder="Sin límite"
+                                @input="
+                                    form.limits['customers.max_total'] =
+                                        ($event.target as HTMLInputElement)
+                                            .value === ''
+                                            ? null
+                                            : Number(
+                                                  (
+                                                      $event.target as HTMLInputElement
+                                                  ).value,
+                                              )
+                                "
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="max_suppliers"
+                                >Máximo de proveedores</Label
+                            >
+                            <input
+                                id="max_suppliers"
+                                type="number"
+                                min="0"
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                                :value="
+                                    form.limits['suppliers.max_total'] ?? ''
+                                "
+                                placeholder="Sin límite"
+                                @input="
+                                    form.limits['suppliers.max_total'] =
+                                        ($event.target as HTMLInputElement)
+                                            .value === ''
+                                            ? null
+                                            : Number(
+                                                  (
+                                                      $event.target as HTMLInputElement
+                                                  ).value,
+                                              )
+                                "
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Funcionalidades por módulo</CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-6">
+                    <p class="text-sm text-muted-foreground">
+                        Activa o desactiva submódulos dentro de los módulos
+                        principales.
+                    </p>
+                    <div class="space-y-6">
+                        <div
+                            v-for="(group, moduleKey) in props.feature_groups"
+                            :key="moduleKey"
+                        >
+                            <p class="mb-3 text-sm font-medium">
+                                {{ group.label }}
+                            </p>
+                            <div
+                                class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3"
+                            >
+                                <label
+                                    v-for="feature in group.features"
+                                    :key="feature.key"
+                                    class="flex items-center space-x-2"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        :value="feature.key"
+                                        v-model="form.features"
+                                        class="h-4 w-4"
+                                    />
+                                    <span>{{ feature.label }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Módulos</CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-6">
-                    <div class="space-y-3">
-                        <p class="text-sm font-medium">
-                            Core (siempre incluidos)
+                    <div>
+                        <p class="mb-3 text-sm font-medium">
+                            Módulos principales
                         </p>
                         <div
-                            v-for="m in core"
-                            :key="m"
-                            class="flex items-center space-x-2"
+                            class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3"
                         >
-                            <input
-                                type="checkbox"
-                                checked
-                                disabled
-                                class="h-4 w-4"
-                            />
-                            <Label class="text-muted-foreground">{{ m }}</Label>
+                            <label
+                                v-for="m in core"
+                                :key="m"
+                                class="flex items-center space-x-2"
+                            >
+                                <input
+                                    type="checkbox"
+                                    :value="m"
+                                    v-model="form.module_keys"
+                                    class="h-4 w-4"
+                                />
+                                <span class="capitalize">{{ m }}</span>
+                            </label>
                         </div>
                     </div>
-                    <div class="space-y-3">
-                        <p class="text-sm font-medium">Opt-in</p>
+                    <div>
+                        <p class="mb-3 text-sm font-medium">Opcionales</p>
                         <div
-                            v-for="m in optin"
-                            :key="m"
-                            class="flex items-center space-x-2"
+                            class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3"
                         >
-                            <input
-                                type="checkbox"
-                                :value="m"
-                                v-model="form.module_keys"
-                                class="h-4 w-4"
-                            />
-                            <Label>{{ m }}</Label>
+                            <label
+                                v-for="m in optin"
+                                :key="m"
+                                class="flex items-center space-x-2"
+                            >
+                                <input
+                                    type="checkbox"
+                                    :value="m"
+                                    v-model="form.module_keys"
+                                    class="h-4 w-4"
+                                />
+                                <span class="capitalize">{{
+                                    m.replace('_', ' ')
+                                }}</span>
+                            </label>
                         </div>
                     </div>
                 </CardContent>

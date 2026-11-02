@@ -8,6 +8,7 @@ readonly class PlanData
 {
     /**
      * @param  array<string, mixed>|null  $limits
+     * @param  list<string>|null  $features
      * @param  array<int, string>  $module_keys
      */
     public function __construct(
@@ -20,6 +21,7 @@ readonly class PlanData
         public bool $is_active,
         public ?array $limits = null,
         public array $module_keys = [],
+        public ?array $features = null,
     ) {}
 
     /**
@@ -37,6 +39,7 @@ readonly class PlanData
             is_active: (bool) ($data['is_active'] ?? true),
             limits: $data['limits'] ?? null,
             module_keys: array_values((array) ($data['module_keys'] ?? [])),
+            features: isset($data['features']) ? array_values((array) $data['features']) : null,
         );
     }
 }

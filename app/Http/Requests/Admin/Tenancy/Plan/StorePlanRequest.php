@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin\Tenancy\Plan;
 
 use App\Enum\Tenancy\BillingCycle;
+use App\Enum\Tenancy\TenantFeature;
 use App\Enum\Tenancy\TenantModule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,6 +33,8 @@ class StorePlanRequest extends FormRequest
             'limits' => ['nullable', 'array'],
             'module_keys' => ['nullable', 'array'],
             'module_keys.*' => [Rule::enum(TenantModule::class)],
+            'features' => ['nullable', 'array'],
+            'features.*' => [Rule::enum(TenantFeature::class)],
         ];
     }
 }

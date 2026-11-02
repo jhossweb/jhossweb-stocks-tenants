@@ -47,9 +47,19 @@ class ReceiptController extends Controller
 
         $vueltos = $receipt->accountsReceivable?->vueltoTransactions->values() ?? [];
 
+        // Load all movements for this receipt group
+        $movements = Receipt::with([
+            'bankTransaction.bankAccount',
+            'accountsReceivable.saleOrder.customer',
+        ])
+            ->where('rec_account_receivable_id', $receipt->rec_account_receivable_id)
+            ->latest('created_at')
+            ->get();
+
         return Inertia::render('Finance/Receipts/Show', [
             'receipt' => $receipt,
             'vueltos' => $vueltos,
+            'movements' => $movements,
         ]);
     }
 

@@ -131,10 +131,14 @@ class TenantController extends Controller
      */
     private function present(Tenant $tenant): array
     {
+        $tenant->loadMissing('subscriptions.plan');
+        $activeSubscription = $tenant->activeSubscription();
+        $planName = $activeSubscription?->plan?->name ?? $tenant->plan;
+
         return [
             'id' => $tenant->id,
             'name' => $tenant->name,
-            'plan' => $tenant->plan,
+            'plan' => $planName,
             'status' => $tenant->status,
             'domain' => $tenant->domain(),
             'admin_email' => $tenant->admin_email,
