@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\SaleOrder;
 use App\Models\Supplier;
+use App\Models\User;
 use App\Models\Warehouse;
 
 class PlanUsageCounter
@@ -44,6 +45,7 @@ class PlanUsageCounter
             TenantLimit::SuppliersMaxTotal => Supplier::query()->count(),
             TenantLimit::WarehousesMaxTotal => Warehouse::query()->count(),
             TenantLimit::ProductsMaxTotal => Product::query()->count(),
+            TenantLimit::UsersMaxTotal => User::query()->where('is_active', true)->count(),
         };
     }
 }

@@ -95,7 +95,7 @@ class InventoryAdjustmentController extends Controller
     private function formProps(): array
     {
         return [
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'products' => $this->repository->formProducts(),
             'reasons' => $this->repository->reasons(),
         ];

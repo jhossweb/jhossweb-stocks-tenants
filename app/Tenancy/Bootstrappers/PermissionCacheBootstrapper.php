@@ -14,14 +14,24 @@ final class PermissionCacheBootstrapper implements TenancyBootstrapper
     {
         $registrar = app(PermissionRegistrar::class);
         $registrar->cacheKey = $this->tenantCacheKey($tenant);
-        $registrar->forgetCachedPermissions();
+
+        if ($registrar instanceof \App\Tenancy\PermissionRegistrar) {
+            $registrar->resetInMemoryState();
+        } else {
+            $registrar->forgetCachedPermissions();
+        }
     }
 
     public function revert(): void
     {
         $registrar = app(PermissionRegistrar::class);
         $registrar->cacheKey = (string) config('permission.cache.key');
-        $registrar->forgetCachedPermissions();
+
+        if ($registrar instanceof \App\Tenancy\PermissionRegistrar) {
+            $registrar->resetInMemoryState();
+        } else {
+            $registrar->forgetCachedPermissions();
+        }
     }
 
     private function tenantCacheKey(Tenant $tenant): string

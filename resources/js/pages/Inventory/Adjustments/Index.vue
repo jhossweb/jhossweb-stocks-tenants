@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, ClipboardList } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate } from '@/composables/useDate';
 import { create, edit } from '@/routes/inventory/adjustments';
 import type { InventoryAdjustmentPage } from '@/types/Inventory';
 
-const { adjustments } = defineProps<{
+const { can } = usePermissions();
+
+defineProps<{
     adjustments: InventoryAdjustmentPage;
 }>();
 </script>
@@ -101,11 +105,23 @@ const { adjustments } = defineProps<{
                                 </span>
                             </td>
                             <td class="px-4 py-4 text-center">
-                                <Link
-                                    :href="edit.url(adj.id)"
-                                    class="text-xs text-primary hover:text-primary/80"
-                                    >Ver Detalles</Link
+                                <div
+                                    class="flex flex-wrap items-center justify-center gap-2"
                                 >
+                                    <Link
+                                        :href="edit.url(adj.id)"
+                                        class="text-xs text-primary hover:text-primary/80"
+                                        >Ver Detalles</Link
+                                    >
+                                    <DocumentLifecycleMenu
+                                        type="inventory-adjustments"
+                                        :record="adj"
+                                        :allow-deactivate="false"
+                                        :can-void="
+                                            can('inventory.adjustments.void')
+                                        "
+                                    />
+                                </div>
                             </td>
                         </tr>
                     </tbody>

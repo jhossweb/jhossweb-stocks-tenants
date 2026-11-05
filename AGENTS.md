@@ -414,6 +414,7 @@ resources/js/wayfinder/**
 | `suppliers.max_total` | Proveedores | total histórico |
 | `warehouses.max_total` | Almacenes | total histórico |
 | `products.max_total` | Productos | total histórico |
+| `users.max_total` | Usuarios activos | total histórico |
 
 ### Conteo (en vivo)
 - **Mensual:** `created_at` dentro de `now()->startOfMonth()` … `now()->endOfMonth()`.
@@ -449,6 +450,69 @@ resources/js/wayfinder/**
 - `QueryException` ya **no** se mapea a 422; ahora responde 500, para no disfrazar fallos de BD como validación.
 - Las rutas `/quotes/*` están protegidas con `feature:sales.quotes` y el menú se oculta desde `tenant.features`.
 - Endpoint admin de overrides documentado en `routes/admin.php`.
+
+## RBAC por tenant (usuarios, roles, permisos)
+
+### Catálogo fijo
+- `app/Enum/Tenancy/TenantPermission.php`: catálogo **fijo** y granular (`<módulo>.<recurso>.<acción>`).
+- Acciones base: `view`, `create`, `update`, `delete`, `export`; documentales: `activate`, `deactivate`, `void`.
+- El tenant **no crea permisos**. Crea roles y les asigna permisos del catálogo.
+- `app/Services/Settings/TenantPermissionService::sync()` upserta permisos en el tenant y asigna **todos** al rol `admin`.
+- `app/Services/Settings/DefaultTenantRoles.php` siembra roles por defecto (gerente, vendedor, comprador, almacenista, contador, rrhh, auditor).
+- Provisioning ejecuta el sync; para tenants existentes: `php artisan tenants:sync-permissions`.
+- El rol `admin` está protegido: no se elimina, renombra ni se le quitan permisos.
+
+### Usuarios del tenant
+- `settings/users` (CRUD, activar/inactivar). No se eliminan usuarios; `id` inmutable.
+- `users.max_total` cuenta **solo activos**; inactivar libera cupo y reactivar consume cupo (bloquea si el plan está lleno).
+- `app/Http/Middleware/EnsureUserIsActive` + pipeline de Fortify impiden el login de inactivos.
+- El admin inicial se crea en provisioning, cuenta para el histórico y no se bloquea su creación.
+
+### Rendimiento de permisos
+- `PermissionCacheBootstrapper` conserva la caché por tenant: solo cambia `cacheKey` y resetea el estado en memoria con `App\Tenancy\PermissionRegistrar::resetInMemoryState()`. **No** borrar la caché persistente en cada request.
+- `HandleInertiaRequests` comparte nombres con `UserAccessNames` (queries de nombres), no con `getAllPermissions()`/`getRoleNames()`.
+- `EnsureRoutePermission` verifica contra esos nombres; no usa `$user->can()` para evitar hidratar cientos de `Permission`/`Role`.
+- Spatie invalida la caché al crear/editar/eliminar roles o permisos.
+
+### Enforcement de permisos
+- `app/Http/Middleware/EnsureRoutePermission` + `app/Tenancy/RoutePermissionMap` aplican **deny-by-default** a todas las rutas tenant.
+- `permission.route` se aplica en los grupos autenticados de `routes/web.php` y `routes/settings.php`.
+- Allowlist de autoservicio/auth en `RoutePermissionMap::ALLOWLIST`.
+- Test de arquitectura: `tests/Feature/Tenancy/RoutePermissionsTest.php` falla si una ruta tenant queda sin permiso.
+- `HandleInertiaRequests` comparte `auth.user.permissions` y `auth.user.roles`; `AppSidebar` y `Settings/Layout` filtran por permiso.
+- En testing el enforcement se omite salvo `config(['tenancy.enforce_permissions_in_tests' => true])`.
+
+### Registro público
+- `Features::registration()` está deshabilitado. `/register` responde 404; `Register.vue` se conserva inaccesible.
+- El alta de empresa sigue por `/register/company` (portal central).
+
+### Auditoría
+- Tabla tenant `tenant_audit_logs` + `App\Services\Settings\TenantAuditLogger`.
+- Eventos RBAC/usuarios/documentos, `auth.login`, `auth.logout`, `auth.failed`, `export.generated`.
+- Pantalla `settings/audit` (solo lectura) + export CSV; permiso `settings.audit.*`.
+- Retención: `php artisan tenants:prune-audit --days=365`.
+
+### Datos maestros y documentos (Fase 1)
+- Datos maestros (`products`, `categories`, `brands`, `warehouses`, `customers`, `suppliers`) tienen `is_active` y scope `active()`. Los formularios/selects usan `active()` para no usar inactivos.
+- Pantalla `settings/master-data` (permiso `settings.master_data.view/update`) para activar/inactivar; cada toggle valida además el permiso `<recurso>.activate|deactivate`.
+- Ciclo de vida Fase 1: cotizaciones, gastos no pagados y nóminas/períodos no pagados (`routes/documents.php`).
+- `DocumentLifecycleService` centraliza `activate`, `deactivate`, `void`; la Fase 2 cubrirá facturas, compras, devoluciones, cobros, pagos y cierres con reversión contable/inventario.
+- Los documentos anulados no se reactivan. Los documentos con pagos/convertidos se bloquean.
+- Fase 2 de anulación:
+  - Facturas de venta: bloqueadas si tienen cobros o están en cierre de caja cerrado; revierten stock y conservan la CxC.
+  - Facturas de compra: bloqueadas por ahora (requieren ajuste de costos).
+  - Devoluciones venta/compra: revierten stock y el crédito aplicado a CxC/CxP; la devolución de venta valida stock disponible antes de anular.
+  - Cobros/pagos: restauran CxC/CxP y banco, y quedan marcados como anulados.
+  - Ajustes de inventario: revierten stock, validando existencias si el inverso descuenta.
+  - El cierre de caja bloquea la anulación de cualquier documento con esa fecha.
+
+### Exportaciones
+- `app/Reports/ExportDefinition`, `ExportManager`, `ExportRegistry`, formatos CSV/PDF en `app/Reports/Formats/`.
+- Rutas `GET <recurso>/export?format=csv|pdf` con permiso `<recurso>.export` (`routes/exports.php`).
+- Para agregar Excel: crear `XlsxExportFormat` y registrarlo en `config/exports.php`; no hay que tocar controladores ni definiciones.
+- PDF limitado por `EXPORT_PDF_MAX_ROWS` (default 5000); CSV sin límite.
+- UI: `resources/js/components/ExportMenu.vue`.
+
 
 ===
 

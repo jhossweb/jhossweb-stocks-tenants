@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
@@ -10,7 +12,7 @@ import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
+const allSidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
         href: editProfile(),
@@ -26,12 +28,51 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Rates',
         href: '/settings/rates',
+        permission: 'settings.rates.view',
     },
     {
         title: 'Datos de la Empresa',
         href: '/settings/company',
+        permission: 'settings.company.view',
+    },
+    {
+        title: 'Usuarios',
+        href: '/settings/users',
+        permission: 'settings.users.view',
+    },
+    {
+        title: 'Roles',
+        href: '/settings/roles',
+        permission: 'settings.roles.view',
+    },
+    {
+        title: 'Datos maestros',
+        href: '/settings/master-data',
+        permission: 'settings.master_data.view',
+    },
+    {
+        title: 'Exportaciones',
+        href: '/settings/exports',
+    },
+    {
+        title: 'Permisos',
+        href: '/settings/permissions',
+        permission: 'settings.permissions.view',
+    },
+    {
+        title: 'Auditoría',
+        href: '/settings/audit',
+        permission: 'settings.audit.view',
     },
 ];
+
+const { can } = usePermissions();
+
+const sidebarNavItems = computed<NavItem[]>(() =>
+    allSidebarNavItems.filter(
+        (item) => !item.permission || can(item.permission),
+    ),
+);
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>

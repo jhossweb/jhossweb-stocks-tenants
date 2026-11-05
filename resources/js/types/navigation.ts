@@ -12,5 +12,6 @@ export type NavItem = {
     icon?: LucideIcon;
     isActive?: boolean;
     feature?: string;
+    permission?: string;
     items?: NavItem[];
 };

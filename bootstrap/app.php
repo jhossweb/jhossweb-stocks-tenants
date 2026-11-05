@@ -2,8 +2,10 @@
 
 use App\Exceptions\UsageLimitExceededException;
 use App\Http\Middleware\EnsureCentralAdmin;
+use App\Http\Middleware\EnsureRoutePermission;
 use App\Http\Middleware\EnsureTenantFeature;
 use App\Http\Middleware\EnsureTenantModule;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\InitializeTenancy;
@@ -31,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'module' => EnsureTenantModule::class,
             'feature' => EnsureTenantFeature::class,
+            'active.user' => EnsureUserIsActive::class,
+            'permission.route' => EnsureRoutePermission::class,
             'tenant' => InitializeTenancy::class,
             'central' => OnlyCentralDomains::class,
             'admin' => EnsureCentralAdmin::class,

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Company;
 use App\Services\Finance\RateService;
+use App\Services\Settings\UserAccessNames;
 use App\Services\Tenancy\TenantPlanResolver;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -44,7 +45,21 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => function () use ($request): ?array {
+                    $user = $request->user();
+
+                    if ($user === null) {
+                        return null;
+                    }
+
+                    $access = app(UserAccessNames::class)->for($user);
+
+                    return [
+                        ...$user->toArray(),
+                        'roles' => $access['roles'],
+                        'permissions' => $access['permissions'],
+                    ];
+                },
             ],
             // Solo disponibles cuando un tenant está inicializado
             // (en el portal central quedan como null).

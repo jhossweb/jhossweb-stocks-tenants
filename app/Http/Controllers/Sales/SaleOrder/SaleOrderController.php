@@ -93,9 +93,9 @@ class SaleOrderController extends Controller
     public function create(Request $request)
     {
         return Inertia::render('Sales/Create', [
-            'customers' => Customer::all(),
+            'customers' => Customer::active()->get(),
             'products' => $this->getAvailableProducts(),
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
                 return [
@@ -196,9 +196,9 @@ class SaleOrderController extends Controller
 
         return Inertia::render('Sales/Edit', [
             'sale' => $sale,
-            'customers' => Customer::all(),
+            'customers' => Customer::active()->get(),
             'products' => $this->getAvailableProducts(),
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
                 return [

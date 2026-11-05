@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Concerns\HasDocumentLifecycle;
+use App\Concerns\HasVoidability;
 use Database\Factories\PurchaseOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,9 +11,15 @@ use Illuminate\Database\Eloquent\Model;
 class PurchaseOrder extends Model
 {
     /** @use HasFactory<PurchaseOrderFactory> */
-    use HasFactory;
+    use HasDocumentLifecycle, HasFactory, HasVoidability;
+
+    protected $appends = ['can_void', 'void_blocked_reason'];
 
     protected $fillable = [
+        'is_active',
+        'voided_at',
+        'voided_by',
+        'void_reason',
         'invoice_number',
         'invoice_date',
         'invoice_trans_type_code',
@@ -32,6 +40,8 @@ class PurchaseOrder extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
+            'voided_at' => 'datetime',
             'invoice_date' => 'date',
             'invoice_due_date' => 'date',
         ];

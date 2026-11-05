@@ -79,7 +79,7 @@ Route::middleware('tenant')->group(function () {
     // -----------------------------------------------------------------------
     // PROTEGIDAS (auth + verified)
     // -----------------------------------------------------------------------
-    Route::middleware(['auth', 'verified'])->group(function () {
+    Route::middleware(['auth', 'verified', 'active.user', 'permission.route'])->group(function () {
 
         // -----------------------------------------------------------------------
         // DASHBOARD
@@ -261,6 +261,9 @@ Route::middleware('tenant')->group(function () {
             Route::post('customers', [QuickCreateController::class, 'storeCustomer']);
             Route::post('suppliers', [QuickCreateController::class, 'storeSupplier']);
         });
+
+        require __DIR__.'/exports.php';
+        require __DIR__.'/documents.php';
     });
 
     require __DIR__.'/settings.php';

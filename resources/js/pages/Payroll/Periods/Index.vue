@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { PlusCircle, CalendarRange, FileText } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import { Button } from '@/components/ui/button';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate } from '@/composables/useDate';
+
+const { can } = usePermissions();
 
 defineOptions({
     layout: {
@@ -15,6 +19,8 @@ defineOptions({
 
 interface Period {
     id: number;
+    is_active: boolean;
+    voided_at?: string | null;
     pp_start_date: string;
     pp_end_date: string;
     pp_payment_date: string | null;
@@ -176,17 +182,36 @@ defineProps<{
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <Link
-                                        :href="`/payroll-periods/${period.id}/edit`"
+                                    <div
+                                        class="flex items-center justify-end gap-2"
                                     >
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            class="rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                        <Link
+                                            :href="`/payroll-periods/${period.id}/edit`"
                                         >
-                                            Editar
-                                        </Button>
-                                    </Link>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                class="rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                            >
+                                                Editar
+                                            </Button>
+                                        </Link>
+                                        <DocumentLifecycleMenu
+                                            type="payroll-periods"
+                                            :record="period"
+                                            :can-activate="
+                                                can('payroll.periods.activate')
+                                            "
+                                            :can-deactivate="
+                                                can(
+                                                    'payroll.periods.deactivate',
+                                                )
+                                            "
+                                            :can-void="
+                                                can('payroll.periods.void')
+                                            "
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

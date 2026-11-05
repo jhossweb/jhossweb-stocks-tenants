@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Undo2, PlusCircle } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate } from '@/composables/useDate';
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     returns: any;
@@ -143,11 +147,23 @@ const props = defineProps<{
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-center">
-                                    <Link
-                                        :href="`/sale-returns/${r.id}/edit`"
-                                        class="text-xs text-indigo-400 hover:text-indigo-300"
-                                        >Editar</Link
+                                    <div
+                                        class="flex flex-wrap items-center justify-center gap-2"
                                     >
+                                        <Link
+                                            :href="`/sale-returns/${r.id}/edit`"
+                                            class="text-xs text-indigo-400 hover:text-indigo-300"
+                                            >Editar</Link
+                                        >
+                                        <DocumentLifecycleMenu
+                                            type="sale-returns"
+                                            :record="r"
+                                            :allow-deactivate="false"
+                                            :can-void="
+                                                can('sales.returns.void')
+                                            "
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

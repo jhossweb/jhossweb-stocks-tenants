@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Calculator,
     FileText,
     Landmark,
     Pencil,
-    ReceiptText,
-    Trash2,
     User,
 } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatCoinValue } from '@/composables/Finance/useCoinFormat';
 import { formatDate } from '@/composables/useDate';
 import type { AccountPaymentBankTransaction } from '@/types/Finance/PaymentHistory';
@@ -26,6 +26,8 @@ defineOptions({
         ],
     },
 });
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     payment: {
@@ -64,14 +66,6 @@ const isReturnCredit = props.payment.apy_type === 'RETURN_CREDIT';
 const typeBadge = isReturnCredit
     ? { label: 'Crédito devolución', class: 'bg-orange-900/30 text-orange-400' }
     : { label: 'Pago', class: 'bg-blue-900/30 text-blue-400' };
-
-const deletePayment = () => {
-    if (window.confirm('¿Eliminar este pago?')) {
-        router.delete(`/payments/${props.payment.id}`, {
-            preserveScroll: true,
-        });
-    }
-};
 </script>
 
 <template>
@@ -104,15 +98,12 @@ const deletePayment = () => {
                         Editar
                     </Link>
                 </Button>
-                <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    @click="deletePayment"
-                >
-                    <Trash2 class="mr-2 size-4" aria-hidden="true" />
-                    Eliminar
-                </Button>
+                <DocumentLifecycleMenu
+                    type="payments"
+                    :record="props.payment"
+                    :allow-deactivate="false"
+                    :can-void="can('purchases.payments.void')"
+                />
             </div>
         </div>
 

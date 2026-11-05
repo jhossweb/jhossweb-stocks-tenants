@@ -172,9 +172,9 @@ class QuoteController extends Controller
     private function formData(): array
     {
         return [
-            'customers' => Customer::all(),
+            'customers' => Customer::active()->get(),
             'products' => $this->quoteRepository->getAvailableProducts(),
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'rates' => Rate::all()->map(function (Rate $rate) {
                 return [
                     'rate_date' => optional($rate->rate_date)->format('Y-m-d'),

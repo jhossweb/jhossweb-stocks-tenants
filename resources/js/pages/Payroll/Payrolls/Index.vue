@@ -9,10 +9,14 @@ import {
     Loader2,
 } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
 import { Button } from '@/components/ui/button';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate, today } from '@/composables/useDate';
+
+const { can } = usePermissions();
 
 defineOptions({
     layout: {
@@ -43,6 +47,8 @@ interface BankAccount {
 
 interface Payroll {
     id: number;
+    is_active: boolean;
+    voided_at?: string | null;
     pay_employee_id: number;
     pay_period_id: number;
     pay_base_salary: string;
@@ -292,9 +298,7 @@ const submitPayment = () => {
                                 {{ payroll.employee?.emp_name ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 text-xs">
-                                {{
-                                    formatDate(payroll.period?.pp_start_date)
-                                }}
+                                {{ formatDate(payroll.period?.pp_start_date) }}
                                 al {{ formatDate(payroll.period?.pp_end_date) }}
                             </td>
                             <td class="px-6 py-4 font-semibold">
@@ -374,6 +378,17 @@ const submitPayment = () => {
                                     >
                                         <Banknote class="h-4 w-4" />
                                     </Button>
+                                    <DocumentLifecycleMenu
+                                        type="payrolls"
+                                        :record="payroll"
+                                        :can-activate="
+                                            can('payroll.payrolls.activate')
+                                        "
+                                        :can-deactivate="
+                                            can('payroll.payrolls.deactivate')
+                                        "
+                                        :can-void="can('payroll.payrolls.void')"
+                                    />
                                 </div>
                             </td>
                         </tr>

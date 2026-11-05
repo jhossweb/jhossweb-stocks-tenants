@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasActiveStatus;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,9 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
-    use HasFactory;
+    use HasActiveStatus, HasFactory;
 
     protected $fillable = [
+        'is_active',
         'clt_code',
         'clt_cedula',
         'clt_name',
@@ -27,6 +29,7 @@ class Customer extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
             'clt_credit_days' => 'integer',
         ];
     }

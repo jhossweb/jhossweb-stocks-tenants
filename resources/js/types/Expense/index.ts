@@ -31,6 +31,8 @@ export interface BankTransaction {
 
 export interface Expense {
     id: number;
+    is_active: boolean;
+    voided_at?: string | null;
     exp_category_id: number;
     exp_description: string;
     exp_amount: string;

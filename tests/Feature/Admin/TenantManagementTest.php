@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\Central\CentralAccessSeeder;
@@ -14,6 +15,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     Event::fake([TenantCreated::class, TenantDeleted::class]);
     $this->seed(CentralAccessSeeder::class);
+    $this->plan = Plan::factory()->create();
 });
 
 test('un invitado es redirigido al login en el panel de tenants', function () {
@@ -54,6 +56,7 @@ test('el admin central crea un tenant con datos propios', function () {
         ->post(route('admin.tenants.store'), [
             'name' => 'TechGlass C.A.',
             'slug' => 'techglass-ca',
+            'plan_id' => $this->plan->id,
             'rif' => 'J-12345678-9',
             'address' => 'Av. Principal, Caracas',
             'phone' => '0212-1234567',
@@ -88,6 +91,7 @@ test('el admin central crea un tenant generando el slug del nombre', function ()
     $this->actingAs($admin)
         ->post(route('admin.tenants.store'), [
             'name' => 'Nueva Empresa Testing',
+            'plan_id' => $this->plan->id,
             'rif' => 'J-12345678-9',
             'address' => 'Av. Principal, Caracas',
             'phone' => '0212-1234567',
@@ -111,6 +115,7 @@ test('el admin central no crea un tenant con slug inválido', function () {
         ->post(route('admin.tenants.store'), [
             'name' => 'Inválido',
             'slug' => 'slug con espacios',
+            'plan_id' => $this->plan->id,
             'rif' => 'J-12345678-9',
             'address' => 'Av. Principal, Caracas',
             'phone' => '0212-1234567',

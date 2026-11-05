@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Concerns\HasDocumentLifecycle;
+use App\Concerns\HasVoidability;
 use App\Enum\Expense\ExpenseStatus;
 use App\Enum\TypeCoin;
 use Database\Factories\ExpenseFactory;
@@ -14,9 +16,15 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Expense extends Model
 {
     /** @use HasFactory<ExpenseFactory> */
-    use HasFactory;
+    use HasDocumentLifecycle, HasFactory, HasVoidability;
+
+    protected $appends = ['can_void', 'void_blocked_reason'];
 
     protected $fillable = [
+        'is_active',
+        'voided_at',
+        'voided_by',
+        'void_reason',
         'exp_category_id',
         'exp_description',
         'exp_amount',
@@ -33,6 +41,8 @@ class Expense extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
+            'voided_at' => 'datetime',
             'exp_date' => 'date',
             'exp_payment_date' => 'date',
             'exp_amount' => 'decimal:2',

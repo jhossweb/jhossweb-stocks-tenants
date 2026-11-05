@@ -41,9 +41,9 @@ class SaleReturnController extends Controller
     public function create(): Response
     {
         return Inertia::render('SaleReturns/Create', [
-            'customers' => Customer::all(),
+            'customers' => Customer::active()->get(),
             'products' => $this->saleReturnRepository->getAvailableProducts(),
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'transactionTypes' => TransactionType::all(),
             'rates' => $this->saleReturnRepository->getRatesForSelect(),
             'latest_rate' => $this->saleReturnRepository->getLatestRate(),
@@ -78,9 +78,9 @@ class SaleReturnController extends Controller
 
         return Inertia::render('SaleReturns/Edit', [
             'saleReturn' => $return,
-            'customers' => Customer::all(),
+            'customers' => Customer::active()->get(),
             'products' => $this->saleReturnRepository->getAvailableProducts(),
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'transactionTypes' => TransactionType::all(),
             'rates' => $this->saleReturnRepository->getRatesForSelect(),
             'latest_rate' => $this->saleReturnRepository->getLatestRate(),

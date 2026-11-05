@@ -7,6 +7,7 @@ namespace App\Jobs\Tenant;
 use App\Models\Company;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\Settings\TenantPermissionService;
 use Database\Seeders\TenantCatalogSeeder;
 use Spatie\Permission\Models\Role;
 
@@ -70,6 +71,8 @@ class ProvisionTenantData
                 ]);
                 $user->assignRole($role);
             }
+
+            app(TenantPermissionService::class)->sync();
         });
     }
 }

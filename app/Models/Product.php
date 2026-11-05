@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasActiveStatus;
 use App\Enum\Inventary\ProType;
 use App\Enum\Inventary\UndProduct;
 use App\Enum\TypeIva;
@@ -15,9 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory;
+    use HasActiveStatus, HasFactory;
 
     protected $fillable = [
+        'is_active',
         'pro_code',
         'pro_name',
         'pro_und',
@@ -32,6 +34,7 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
             'pro_und' => UndProduct::class,
             'pro_iva' => TypeIva::class,
             'pro_type' => ProType::class,

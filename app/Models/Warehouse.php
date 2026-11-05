@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasActiveStatus;
 use Database\Factories\WarehouseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,9 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Warehouse extends Model
 {
     /** @use HasFactory<WarehouseFactory> */
-    use HasFactory;
+    use HasActiveStatus, HasFactory;
 
     protected $fillable = [
+        'is_active',
         'war_name',
     ];
 
@@ -46,5 +48,12 @@ class Warehouse extends Model
             || $this->purchaseMovements()->exists()
             || $this->salesMovements()->exists()
             || $this->inventoryMovements()->exists();
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
     }
 }

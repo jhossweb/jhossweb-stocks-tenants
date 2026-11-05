@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\HasActiveStatus;
 use Database\Factories\SupplierFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,9 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 class Supplier extends Model
 {
     /** @use HasFactory<SupplierFactory> */
-    use HasFactory;
+    use HasActiveStatus, HasFactory;
 
     protected $fillable = [
+        'is_active',
         'supplier_name',
         'supplier_address',
         'supplier_phone',
@@ -24,6 +26,7 @@ class Supplier extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
             'supplier_credit_days' => 'integer',
         ];
     }

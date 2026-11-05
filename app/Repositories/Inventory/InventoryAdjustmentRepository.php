@@ -73,6 +73,7 @@ class InventoryAdjustmentRepository
         $stocksByProduct = $this->positiveStocksByProduct();
 
         return Product::query()
+            ->active()
             ->get(['pro_code', 'pro_name', 'pro_und', 'pro_iva', 'pro_type'])
             ->map(function (Product $product) use ($stocksByProduct): array {
                 $stocks = $stocksByProduct->get($product->pro_code, collect())

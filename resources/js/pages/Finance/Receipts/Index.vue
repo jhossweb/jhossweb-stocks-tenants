@@ -185,11 +185,7 @@ const typeBadge = (type: string) => {
                                 <td
                                     class="px-4 py-4 font-mono text-sm text-zinc-300"
                                 >
-                                    {{
-                                        formatDate(
-                                            receipt.created_at,
-                                        )
-                                    }}
+                                    {{ formatDate(receipt.created_at) }}
                                 </td>
                                 <td
                                     class="px-4 py-4 font-mono text-xs text-zinc-300"
@@ -234,14 +230,17 @@ const typeBadge = (type: string) => {
                                         v-if="receipt.movements_count > 1"
                                         class="ml-2 text-xs text-zinc-400"
                                     >
-                                        ({{ receipt.movements_count }} movimientos)
+                                        ({{ receipt.movements_count }}
+                                        movimientos)
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-sm text-zinc-400">
                                     <span v-if="receipt.banks.length === 0"
                                         >—</span
                                     >
-                                    <span v-else-if="receipt.banks.length === 1">
+                                    <span
+                                        v-else-if="receipt.banks.length === 1"
+                                    >
                                         {{ receipt.banks[0] }}
                                     </span>
                                     <span v-else>Varios</span>
@@ -249,29 +248,38 @@ const typeBadge = (type: string) => {
                                 <td
                                     class="px-4 py-4 font-mono text-xs text-zinc-400"
                                 >
-                                    <span
-                                        v-if="receipt.references.length === 0"
+                                    <span v-if="receipt.references.length === 0"
                                         >—</span
                                     >
-                                    <span v-else-if="receipt.references.length === 1">
+                                    <span
+                                        v-else-if="
+                                            receipt.references.length === 1
+                                        "
+                                    >
                                         {{ receipt.references[0] }}
                                     </span>
                                     <span v-else>Varios</span>
                                 </td>
                                 <td class="px-4 py-4 text-center">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        as-child
+                                    <div
+                                        class="flex flex-wrap items-center justify-center gap-2"
                                     >
-                                        <Link :href="`/receipts/${receipt.id}`">
-                                            Ver detalle
-                                            <ArrowRight
-                                                class="ml-2 size-4"
-                                                aria-hidden="true"
-                                            />
-                                        </Link>
-                                    </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            as-child
+                                        >
+                                            <Link
+                                                :href="`/receipts/${receipt.id}`"
+                                            >
+                                                Ver detalle
+                                                <ArrowRight
+                                                    class="ml-2 size-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </Link>
+                                        </Button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

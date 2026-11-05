@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, FileDown, ShoppingBag } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate } from '@/composables/useDate';
 
 const decodeLabel = (label: string) => {
@@ -23,6 +25,8 @@ interface Sale {
     customer?: { clt_name: string };
     created_at: string;
 }
+
+const { can } = usePermissions();
 
 defineProps<{
     sales: {
@@ -186,6 +190,14 @@ defineProps<{
                                             class="text-xs text-indigo-400 hover:text-indigo-300"
                                             >Ver Detalles</Link
                                         >
+                                        <DocumentLifecycleMenu
+                                            type="sales"
+                                            :record="sale"
+                                            :allow-deactivate="false"
+                                            :can-void="
+                                                can('sales.invoices.void')
+                                            "
+                                        />
                                     </div>
                                 </td>
                             </tr>

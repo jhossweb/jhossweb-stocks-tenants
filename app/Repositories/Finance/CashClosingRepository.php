@@ -19,6 +19,7 @@ class CashClosingRepository
             ->where('sls_payment_condition', 'cash')
             ->where('sls_trans_type_code', 'FACV')
             ->where('sls_status', '!=', 'cancelled')
+            ->whereNull('voided_at')
             ->whereDate('sls_date', '=', $date)
             ->sum('sls_total');
     }
@@ -29,6 +30,7 @@ class CashClosingRepository
             ->join('bank_transactions', 'bank_transactions.id', '=', 'receipts.rec_bank_transaction_id')
             ->whereDate('bank_transactions.btr_transaction_date', '=', $date)
             ->where('receipts.rec_type', 'RECEIPT')
+            ->whereNull('receipts.voided_at')
             ->sum('receipts.rec_amount');
 
         return (float) ($result ?? 0);
@@ -43,6 +45,7 @@ class CashClosingRepository
             ->join('bank_transactions', 'bank_transactions.id', '=', 'receipts.rec_bank_transaction_id')
             ->whereDate('bank_transactions.btr_transaction_date', '=', $date)
             ->where('receipts.rec_type', 'RECEIPT')
+            ->whereNull('receipts.voided_at')
             ->groupBy('bank_transactions.btr_method')
             ->selectRaw('bank_transactions.btr_method, SUM(receipts.rec_amount) as total')
             ->get();
@@ -68,6 +71,7 @@ class CashClosingRepository
             ->leftJoin('bank_accounts', 'bank_accounts.id', '=', 'bank_transactions.btr_bank_account_id')
             ->whereDate('bank_transactions.btr_transaction_date', '=', $date)
             ->where('receipts.rec_type', 'RECEIPT')
+            ->whereNull('receipts.voided_at')
             ->orderBy('bank_transactions.btr_coin')
             ->orderBy('bank_transactions.btr_method')
             ->orderBy('bank_transactions.id')
@@ -106,6 +110,7 @@ class CashClosingRepository
             ->join('bank_transactions', 'bank_transactions.id', '=', 'receipts.rec_bank_transaction_id')
             ->whereDate('bank_transactions.btr_transaction_date', '=', $date)
             ->where('receipts.rec_type', 'RECEIPT')
+            ->whereNull('receipts.voided_at')
             ->groupBy('bank_transactions.btr_coin', 'bank_transactions.btr_method')
             ->selectRaw('
                 bank_transactions.btr_coin,

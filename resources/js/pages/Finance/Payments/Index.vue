@@ -2,10 +2,12 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowRight, PlusCircle, SearchX } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatCoinValue } from '@/composables/Finance/useCoinFormat';
 import { formatDate } from '@/composables/useDate';
 import type { AccountPaymentEntry } from '@/types/Finance/PaymentHistory';
@@ -18,6 +20,8 @@ defineOptions({
         ],
     },
 });
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     payments: {
@@ -258,19 +262,33 @@ const typeBadge = (type: string) => {
                                     }}
                                 </td>
                                 <td class="px-4 py-4 text-center">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        as-child
+                                    <div
+                                        class="flex flex-wrap items-center justify-center gap-2"
                                     >
-                                        <Link :href="`/payments/${payment.id}`">
-                                            Ver detalle
-                                            <ArrowRight
-                                                class="ml-2 size-4"
-                                                aria-hidden="true"
-                                            />
-                                        </Link>
-                                    </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            as-child
+                                        >
+                                            <Link
+                                                :href="`/payments/${payment.id}`"
+                                            >
+                                                Ver detalle
+                                                <ArrowRight
+                                                    class="ml-2 size-4"
+                                                    aria-hidden="true"
+                                                />
+                                            </Link>
+                                        </Button>
+                                        <DocumentLifecycleMenu
+                                            type="payments"
+                                            :record="payment"
+                                            :allow-deactivate="false"
+                                            :can-void="
+                                                can('purchases.payments.void')
+                                            "
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

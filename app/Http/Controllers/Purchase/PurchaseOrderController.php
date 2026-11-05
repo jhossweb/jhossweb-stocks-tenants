@@ -41,9 +41,9 @@ class PurchaseOrderController extends Controller
     public function create()
     {
         return Inertia::render('Purchases/Create', [
-            'suppliers' => Supplier::all(),
+            'suppliers' => Supplier::active()->get(),
             'products' => $this->productCatalog(),
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
                 return [
@@ -92,9 +92,9 @@ class PurchaseOrderController extends Controller
 
         return Inertia::render('Purchases/Edit', [
             'purchase' => $purchase,
-            'suppliers' => Supplier::all(),
+            'suppliers' => Supplier::active()->get(),
             'products' => $this->productCatalog(),
-            'warehouses' => Warehouse::all(),
+            'warehouses' => Warehouse::active()->get(),
             'transactionTypes' => TransactionType::all(),
             'rates' => Rate::all()->map(function ($rate) {
                 return [
@@ -135,6 +135,6 @@ class PurchaseOrderController extends Controller
 
     private function productCatalog(): Collection
     {
-        return Product::all(['pro_code', 'pro_name', 'pro_und', 'pro_iva', 'pro_conversion_factor']);
+        return Product::active()->get(['pro_code', 'pro_name', 'pro_und', 'pro_iva', 'pro_conversion_factor']);
     }
 }

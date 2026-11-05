@@ -38,8 +38,8 @@ class PriceListController extends Controller
             // (object) garantiza JSON {} aunque no haya filtros; un [] rompería
             // la resolución de propiedades en el cliente (Array.prototype.sort).
             'filters' => (object) collect($filters)->filter(fn ($value) => $value !== null && $value !== '')->all(),
-            'categories' => Category::query()->orderBy('cat_name')->get(['id', 'cat_name']),
-            'brands' => Brand::query()->orderBy('bra_name')->get(['id', 'bra_name']),
+            'categories' => Category::active()->orderBy('cat_name')->get(['id', 'cat_name']),
+            'brands' => Brand::active()->orderBy('bra_name')->get(['id', 'bra_name']),
         ]);
     }
 

@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
-import { store } from '@/routes/register';
 
 defineOptions({
     layout: {
@@ -23,7 +22,7 @@ defineOptions({
 
     <Form
         method="post"
-        :action="store().url"
+        action="/register"
         :reset-on-success="['password', 'password_confirmation']"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"

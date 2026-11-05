@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Concerns\HasDocumentLifecycle;
+use App\Concerns\HasVoidability;
 use App\Enum\Payroll\PayrollStatus;
 use App\Enum\TypeCoin;
 use Database\Factories\PayrollFactory;
@@ -12,9 +14,15 @@ use Illuminate\Support\Facades\DB;
 class Payroll extends Model
 {
     /** @use HasFactory<PayrollFactory> */
-    use HasFactory;
+    use HasDocumentLifecycle, HasFactory, HasVoidability;
+
+    protected $appends = ['can_void', 'void_blocked_reason'];
 
     protected $fillable = [
+        'is_active',
+        'voided_at',
+        'voided_by',
+        'void_reason',
         'pay_employee_id',
         'pay_period_id',
         'pay_base_salary',
@@ -29,6 +37,8 @@ class Payroll extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
+            'voided_at' => 'datetime',
             'pay_base_salary' => 'decimal:2',
             'pay_valorcam' => 'decimal:4',
             'pay_total_deductions' => 'decimal:2',

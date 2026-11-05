@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     Calculator,
     FileText,
     Landmark,
     Pencil,
-    ReceiptText,
-    Trash2,
     User,
 } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatCoinValue } from '@/composables/Finance/useCoinFormat';
 import { formatDate } from '@/composables/useDate';
 import receiptRoutes from '@/routes/receipts';
@@ -31,6 +31,8 @@ defineOptions({
     },
 });
 
+const { can } = usePermissions();
+
 const props = defineProps<{
     receipt: ReceiptHistoryEntry;
     vueltos?: ReceiptBankTransaction[];
@@ -43,15 +45,10 @@ const typeBadge = isReturnCredit
     ? { label: 'Crédito devolución', class: 'bg-orange-900/30 text-orange-400' }
     : { label: 'Cobro', class: 'bg-blue-900/30 text-blue-400' };
 
-const allMovements = props.movements && props.movements.length > 0 ? props.movements : [props.receipt];
-
-const deleteReceipt = () => {
-    if (window.confirm('¿Eliminar este cobro?')) {
-        router.delete(receiptRoutes.destroy.url(props.receipt.id), {
-            preserveScroll: true,
-        });
-    }
-};
+const allMovements =
+    props.movements && props.movements.length > 0
+        ? props.movements
+        : [props.receipt];
 </script>
 
 <template>
@@ -87,15 +84,12 @@ const deleteReceipt = () => {
                         Editar
                     </Link>
                 </Button>
-                <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    @click="deleteReceipt"
-                >
-                    <Trash2 class="mr-2 size-4" aria-hidden="true" />
-                    Eliminar
-                </Button>
+                <DocumentLifecycleMenu
+                    type="receipts"
+                    :record="props.receipt"
+                    :allow-deactivate="false"
+                    :can-void="can('sales.receipts.void')"
+                />
             </div>
         </div>
 
@@ -269,7 +263,8 @@ const deleteReceipt = () => {
                                             {{
                                                 formatCoinValue(
                                                     Number(
-                                                        movement.bank_transaction
+                                                        movement
+                                                            .bank_transaction
                                                             ?.btr_amount ??
                                                             movement.rec_amount,
                                                     ),
@@ -301,7 +296,8 @@ const deleteReceipt = () => {
                                             {{
                                                 movement.bank_transaction
                                                     ?.btr_description ??
-                                                (movement.rec_type === 'RETURN_CREDIT'
+                                                (movement.rec_type ===
+                                                'RETURN_CREDIT'
                                                     ? 'Crédito por devolución'
                                                     : 'Cobro a cliente')
                                             }}

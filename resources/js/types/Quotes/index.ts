@@ -1,5 +1,7 @@
 export interface Quote {
     id: number;
+    is_active: boolean;
+    voided_at?: string | null;
     sls_number: string;
     sls_date: string;
     sls_customer_id: number;

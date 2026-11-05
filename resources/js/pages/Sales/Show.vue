@@ -7,8 +7,10 @@ import {
     Landmark,
     User,
 } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatCoinValue } from '@/composables/Finance/useCoinFormat';
 import { formatDate } from '@/composables/useDate';
 
@@ -43,6 +45,8 @@ type Props = {
         }>;
     };
 };
+
+const { can } = usePermissions();
 
 const props = defineProps<Props>();
 
@@ -102,6 +106,12 @@ const lineTotal = (quantity: number, unitPrice: number): number =>
                         Exportar PDF
                     </Button>
                 </a>
+                <DocumentLifecycleMenu
+                    type="sales"
+                    :record="props.sale"
+                    :allow-deactivate="false"
+                    :can-void="can('sales.invoices.void')"
+                />
             </div>
         </div>
 

@@ -25,11 +25,19 @@ use App\Observers\Sales\MovSalesObserver;
 use App\Observers\Sales\SaleOrderObserver;
 use App\Observers\SubscriptionObserver;
 use App\Observers\Tenancy\TenantObserver;
+use App\Reports\ExportManager;
 use App\Services\Inventory\StockService;
+use App\Services\Settings\TenantAuditLogger;
+use App\Tenancy\PermissionRegistrar;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Cache\CacheManager;
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -40,6 +48,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(ExportManager::class, function (): ExportManager {
+            $formats = [];
+
+            foreach ((array) config('exports.formats', []) as $key => $class) {
+                $formats[$key] = $this->app->make($class);
+            }
+
+            return new ExportManager($formats);
+        });
+
         $this->app->singleton(StockService::class);
     }
 
@@ -48,6 +66,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->app->singleton(\Spatie\Permission\PermissionRegistrar::class, function ($app): PermissionRegistrar {
+            return new PermissionRegistrar($app->make(CacheManager::class));
+        });
+
         $this->configureDefaults();
         $this->registerSqliteDateFunctions();
 
@@ -80,6 +102,21 @@ class AppServiceProvider extends ServiceProvider
         Subscription::observe(SubscriptionObserver::class);
 
         Tenant::observe(TenantObserver::class);
+
+        Event::listen(Login::class, function (Login $event): void {
+            app(TenantAuditLogger::class)->log('auth.login', $event->user, [], [], ['guard' => $event->guard]);
+        });
+
+        Event::listen(Logout::class, function (Logout $event): void {
+            app(TenantAuditLogger::class)->log('auth.logout', $event->user, [], [], ['guard' => $event->guard]);
+        });
+
+        Event::listen(Failed::class, function (Failed $event): void {
+            app(TenantAuditLogger::class)->log('auth.failed', null, [], [], [
+                'guard' => $event->guard,
+                'email' => $event->credentials['email'] ?? null,
+            ]);
+        });
     }
 
     /**

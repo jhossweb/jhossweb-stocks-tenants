@@ -26,14 +26,15 @@ class ProductController extends Controller
             ->paginate(24);
 
         $allProducts = Product::select('pro_code', 'pro_name', 'pro_und', 'pro_type')
+            ->active()
             ->latest()
             ->get();
 
         return Inertia::render('Inventory/Products/Index', [
             'products' => $products,
             'allProducts' => $allProducts,
-            'categories' => Category::all(['id', 'cat_name']),
-            'brands' => Brand::all(['id', 'bra_name']),
+            'categories' => Category::active()->get(['id', 'cat_name']),
+            'brands' => Brand::active()->get(['id', 'bra_name']),
             'undOptions' => UndProduct::values(),
             'ivaOptions' => array_combine(TypeIva::values(), array_map(function ($case) {
                 return $case->name;

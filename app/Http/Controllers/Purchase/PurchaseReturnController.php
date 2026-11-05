@@ -38,9 +38,9 @@ class PurchaseReturnController extends Controller
     public function create()
     {
         return Inertia::render('PurchaseReturns/Create', [
-            'suppliers' => Supplier::all(),
-            'products' => Product::all(),
-            'warehouses' => Warehouse::all(),
+            'suppliers' => Supplier::active()->get(),
+            'products' => Product::active()->get(),
+            'warehouses' => Warehouse::active()->get(),
             'rates' => Rate::all()->map(function ($rate) {
                 return [
                     'rate_date' => optional($rate->rate_date)->format('Y-m-d'),
@@ -80,9 +80,9 @@ class PurchaseReturnController extends Controller
 
         return Inertia::render('PurchaseReturns/Edit', [
             'purchaseReturn' => $purchaseReturn,
-            'suppliers' => Supplier::all(),
-            'products' => Product::all(),
-            'warehouses' => Warehouse::all(),
+            'suppliers' => Supplier::active()->get(),
+            'products' => Product::active()->get(),
+            'warehouses' => Warehouse::active()->get(),
             'rates' => Rate::all()->map(function ($rate) {
                 return [
                     'rate_date' => optional($rate->rate_date)->format('Y-m-d'),

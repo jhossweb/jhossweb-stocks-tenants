@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, ShoppingCart } from 'lucide-vue-next';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate } from '@/composables/useDate';
 
 interface Purchase {
@@ -17,6 +18,8 @@ interface Purchase {
     };
     created_at: string;
 }
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     purchases: {
@@ -160,11 +163,24 @@ const props = defineProps<{
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-center">
-                                    <Link
-                                        :href="`/purchases/${purchase.id}/edit`"
-                                        class="text-xs text-indigo-400 hover:text-indigo-300"
-                                        >Ver Detalles</Link
+                                    <div
+                                        class="flex flex-wrap items-center justify-center gap-2"
                                     >
+                                        <Link
+                                            :href="`/purchases/${purchase.id}/edit`"
+                                            class="text-xs text-indigo-400 hover:text-indigo-300"
+                                            >Ver Detalles</Link
+                                        >
+                                        <DocumentLifecycleMenu
+                                            type="purchases"
+                                            :record="purchase"
+                                            :allow-deactivate="false"
+                                            :can-void="
+                                                can('purchases.invoices.void')
+                                            "
+                                            void-disabled-reason="No disponible: requiere ajustar el historial de costos."
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

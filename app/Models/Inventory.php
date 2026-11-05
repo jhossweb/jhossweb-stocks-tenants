@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\HasDocumentLifecycle;
+use App\Concerns\HasVoidability;
 use Database\Factories\InventoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,9 +15,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Inventory extends Model
 {
     /** @use HasFactory<InventoryFactory> */
-    use HasFactory;
+    use HasDocumentLifecycle, HasFactory, HasVoidability;
+
+    protected $appends = ['can_void', 'void_blocked_reason'];
 
     protected $fillable = [
+        'is_active',
+        'voided_at',
+        'voided_by',
+        'void_reason',
         'inv_number',
         'inv_date',
         'inv_trans_type_code',
@@ -26,6 +34,8 @@ class Inventory extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
+            'voided_at' => 'datetime',
             'inv_date' => 'date',
         ];
     }

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Undo2 } from 'lucide-vue-next';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate } from '@/composables/useDate';
 
 interface PurchaseReturn {
@@ -17,6 +19,8 @@ interface PurchaseReturn {
     };
     created_at: string;
 }
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     returns: {
@@ -159,11 +163,23 @@ const props = defineProps<{
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-center">
-                                    <Link
-                                        :href="`/purchase-returns/${item.id}/edit`"
-                                        class="text-xs text-indigo-400 hover:text-indigo-300"
-                                        >Ver Detalles</Link
+                                    <div
+                                        class="flex flex-wrap items-center justify-center gap-2"
                                     >
+                                        <Link
+                                            :href="`/purchase-returns/${item.id}/edit`"
+                                            class="text-xs text-indigo-400 hover:text-indigo-300"
+                                            >Ver Detalles</Link
+                                        >
+                                        <DocumentLifecycleMenu
+                                            type="purchase-returns"
+                                            :record="item"
+                                            :allow-deactivate="false"
+                                            :can-void="
+                                                can('purchases.returns.void')
+                                            "
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

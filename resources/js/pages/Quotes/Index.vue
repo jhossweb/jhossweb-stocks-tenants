@@ -9,9 +9,13 @@ import {
 } from 'lucide-vue-next';
 import { ref } from 'vue';
 import ConvertQuoteModal from '@/components/Quotes/ConvertQuoteModal.vue';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import { formatDate } from '@/composables/useDate';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import type { Quote, QuoteStatusValue } from '@/types/Quotes';
 import { QUOTE_STATUS_LABEL } from '@/types/Quotes';
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     quotes: {
@@ -158,6 +162,17 @@ const statusClass: Record<QuoteStatusValue, string> = {
                                     >
                                         <Download class="size-3" /> PDF
                                     </a>
+                                    <DocumentLifecycleMenu
+                                        type="quotes"
+                                        :record="quote"
+                                        :can-activate="
+                                            can('sales.quotes.activate')
+                                        "
+                                        :can-deactivate="
+                                            can('sales.quotes.deactivate')
+                                        "
+                                        :can-void="can('sales.quotes.void')"
+                                    />
                                 </div>
                             </td>
                         </tr>

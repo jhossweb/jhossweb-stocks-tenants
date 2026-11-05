@@ -35,6 +35,10 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
+    // Activa el enforcement de permisos en la suite de tests.
+    // Por defecto se omite para no romper tests que no siembran RBAC.
+    'enforce_permissions_in_tests' => false,
+
     'central_domains' => [
         '127.0.0.1',
         'localhost',

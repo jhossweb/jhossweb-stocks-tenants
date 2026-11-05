@@ -27,6 +27,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { useTenantFeatures } from '@/composables/Tenancy/useTenantFeatures';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
@@ -41,6 +42,7 @@ const mainNavItems: NavItem[] = [
         title: 'Inventory',
         href: '#',
         icon: PackageSearch,
+        permission: 'inventory.products.view',
         items: [
             {
                 title: 'Fichero',
@@ -50,18 +52,22 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Productos',
                         href: '/products',
+                        permission: 'inventory.products.view',
                     },
                     {
                         title: 'Categorías',
                         href: '/categories',
+                        permission: 'inventory.categories.view',
                     },
                     {
                         title: 'Marcas',
                         href: '/brands',
+                        permission: 'inventory.brands.view',
                     },
                     {
                         title: 'Almacenes',
                         href: '/warehouses',
+                        permission: 'inventory.warehouses.view',
                     },
                 ],
             },
@@ -73,10 +79,12 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Kardex',
                         href: '/products',
+                        permission: 'inventory.kardex.view',
                     },
                     {
                         title: 'Lista de Precios',
                         href: '/inventory/list-prices',
+                        permission: 'inventory.prices.view',
                     },
                 ],
             },
@@ -88,10 +96,12 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Ajuste de Inventario',
                         href: '/inventory/adjustments',
+                        permission: 'inventory.adjustments.view',
                     },
                     {
                         title: 'Ajustar Precios',
                         href: '/inventory/adjust-prices',
+                        permission: 'inventory.prices.view',
                     },
                 ],
             },
@@ -101,6 +111,7 @@ const mainNavItems: NavItem[] = [
         title: 'Compras',
         href: '#',
         icon: ShoppingCart,
+        permission: 'purchases.invoices.view',
         items: [
             {
                 title: 'Fichero',
@@ -109,7 +120,8 @@ const mainNavItems: NavItem[] = [
                 items: [
                     {
                         title: 'Proveedores',
-                        href: '/suppliers', // Assuming this path, might need to be adjusted
+                        href: '/suppliers',
+                        permission: 'purchases.suppliers.view', // Assuming this path, might need to be adjusted
                     },
                 ],
             },
@@ -121,10 +133,12 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Compras',
                         href: '/purchases',
+                        permission: 'purchases.invoices.view',
                     },
                     {
                         title: 'Devoluciones',
                         href: '/purchase-returns',
+                        permission: 'purchases.returns.view',
                     },
                 ],
             },
@@ -136,10 +150,12 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Cuentas por Pagar',
                         href: '/accounts-payable',
+                        permission: 'purchases.payables.view',
                     },
                     {
                         title: 'CxP por Proveedor',
                         href: '/accounts-payable/by-supplier',
+                        permission: 'purchases.payables.view',
                     },
                 ],
             },
@@ -149,6 +165,7 @@ const mainNavItems: NavItem[] = [
         title: 'Ventas',
         href: '#',
         icon: Users,
+        permission: 'sales.invoices.view',
         items: [
             {
                 title: 'Fichero',
@@ -158,6 +175,7 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Clientes',
                         href: '/customers',
+                        permission: 'sales.customers.view',
                     },
                 ],
             },
@@ -169,15 +187,18 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Factura de venta',
                         href: '/sales',
+                        permission: 'sales.invoices.view',
                     },
                     {
                         title: 'Cotizaciones',
                         href: '/quotes',
+                        permission: 'sales.quotes.view',
                         feature: 'sales.quotes',
                     },
                     {
                         title: 'Devoluciones de Ventas',
                         href: '/sale-returns',
+                        permission: 'sales.returns.view',
                     },
                 ],
             },
@@ -189,10 +210,12 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Cuentas por Cobrar',
                         href: '/accounts-receivable',
+                        permission: 'sales.receivables.view',
                     },
                     {
                         title: 'CxC por Cliente',
                         href: '/accounts-receivable/by-customer',
+                        permission: 'sales.receivables.view',
                     },
                 ],
             },
@@ -202,6 +225,7 @@ const mainNavItems: NavItem[] = [
         title: 'Finanzas',
         href: '#',
         icon: Building2,
+        permission: 'finance.accounts.view',
         items: [
             {
                 title: 'Crear',
@@ -211,6 +235,7 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Bancos',
                         href: '/bank-accounts',
+                        permission: 'finance.accounts.view',
                     },
                 ],
             },
@@ -222,14 +247,17 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Pagos',
                         href: '/payments',
+                        permission: 'purchases.payments.view',
                     },
                     {
                         title: 'Cobranza',
                         href: '/receipts',
+                        permission: 'sales.receipts.view',
                     },
                     {
                         title: 'Pago Nómina',
                         href: '/payrolls',
+                        permission: 'payroll.payrolls.view',
                     },
                 ],
             },
@@ -241,10 +269,12 @@ const mainNavItems: NavItem[] = [
                     {
                         title: 'Movimientos Bancarios',
                         href: '/bank-transaction-analysis',
+                        permission: 'finance.analysis.view',
                     },
                     {
                         title: 'Cierre de Caja',
                         href: '/cash-closing',
+                        permission: 'finance.cash_closing.view',
                     },
                 ],
             },
@@ -254,14 +284,17 @@ const mainNavItems: NavItem[] = [
         title: 'Gastos',
         href: '#',
         icon: CircleDollarSign,
+        permission: 'expenses.expenses.view',
         items: [
             {
                 title: 'Categorías',
                 href: '/expense-categories',
+                permission: 'expenses.categories.view',
             },
             {
                 title: 'Gastos',
                 href: '/expenses',
+                permission: 'expenses.expenses.view',
             },
         ],
     },
@@ -297,10 +330,12 @@ const mainNavItems: NavItem[] = [
         title: 'Configuración',
         href: '#',
         icon: Settings,
+        permission: 'settings.company.view',
         items: [
             {
                 title: 'Datos de la Empresa',
                 href: '/settings/company',
+                permission: 'settings.company.view',
             },
         ],
     },
@@ -320,10 +355,15 @@ const footerNavItems: NavItem[] = [
 ];
 
 const { hasFeature } = useTenantFeatures();
+const { can } = usePermissions();
 
 function filterNavItems(items: NavItem[]): NavItem[] {
     return items
-        .filter((item) => !item.feature || hasFeature(item.feature))
+        .filter(
+            (item) =>
+                (!item.feature || hasFeature(item.feature)) &&
+                (!item.permission || can(item.permission)),
+        )
         .map((item) =>
             item.items ? { ...item, items: filterNavItems(item.items) } : item,
         );

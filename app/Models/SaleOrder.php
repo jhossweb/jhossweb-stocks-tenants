@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Concerns\HasDocumentLifecycle;
+use App\Concerns\HasVoidability;
 use Database\Factories\SaleOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,9 +11,15 @@ use Illuminate\Database\Eloquent\Model;
 class SaleOrder extends Model
 {
     /** @use HasFactory<SaleOrderFactory> */
-    use HasFactory;
+    use HasDocumentLifecycle, HasFactory, HasVoidability;
+
+    protected $appends = ['can_void', 'void_blocked_reason'];
 
     protected $fillable = [
+        'is_active',
+        'voided_at',
+        'voided_by',
+        'void_reason',
         'sls_number',
         'sls_date',
         'sls_trans_type_code',
@@ -32,6 +40,8 @@ class SaleOrder extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
+            'voided_at' => 'datetime',
             'sls_date' => 'date',
             'sls_due_date' => 'date',
         ];

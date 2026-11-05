@@ -10,10 +10,12 @@ use App\Http\Requests\Admin\Tenant\StoreTenantRequest;
 use App\Http\Requests\Admin\Tenant\UpdateTenantLimitOverridesRequest;
 use App\Http\Requests\Admin\Tenant\UpdateTenantRequest;
 use App\Http\Requests\Admin\Tenant\UpdateTenantStatusRequest;
+use App\Models\Plan;
 use App\Models\Tenant;
 use App\Models\TenantLimitOverride;
 use App\Repositories\Tenancy\PlanRepository;
 use App\Repositories\Tenancy\TenantRepository;
+use App\Services\Tenancy\SubscriptionService;
 use App\Services\Tenancy\TenantLimitOverrideService;
 use App\Services\Tenancy\TenantService;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +30,7 @@ class TenantController extends Controller
         private readonly TenantService $service,
         private readonly PlanRepository $plans,
         private readonly TenantLimitOverrideService $limitOverrides,
+        private readonly SubscriptionService $subscriptions,
     ) {}
 
     public function index(Request $request): Response
@@ -56,15 +59,30 @@ class TenantController extends Controller
     {
         return Inertia::render('admin/tenants/create', [
             'domainSuffix' => config('tenancy.tenant_domain_suffix'),
+            'plans' => $this->plans->all(['is_active' => true])
+                ->map(fn (Plan $plan): array => [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'billing_cycle' => $plan->billing_cycle,
+                    'price_usd' => $plan->price_usd,
+                    'limits' => $plan->limits ?? [],
+                ])
+                ->all(),
         ]);
     }
 
     public function store(StoreTenantRequest $request): RedirectResponse
     {
+        $data = $request->validated();
+        $plan = Plan::query()->findOrFail($data['plan_id']);
+        unset($data['plan_id']);
+
         $tenant = $this->service->create(array_merge(
-            $request->validated(),
+            $data,
             ['id' => $request->validated('id') ?? $request->validated('slug') ?? null]
         ));
+
+        $this->subscriptions->assign($tenant, $plan);
 
         return redirect()
             ->route('admin.tenants.index')

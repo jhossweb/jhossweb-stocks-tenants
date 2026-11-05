@@ -14,6 +14,7 @@ enum TenantLimit: string
     case SuppliersMaxTotal = 'suppliers.max_total';
     case WarehousesMaxTotal = 'warehouses.max_total';
     case ProductsMaxTotal = 'products.max_total';
+    case UsersMaxTotal = 'users.max_total';
 
     public function label(): string
     {
@@ -26,6 +27,7 @@ enum TenantLimit: string
             self::SuppliersMaxTotal => 'Proveedores',
             self::WarehousesMaxTotal => 'Almacenes',
             self::ProductsMaxTotal => 'Productos',
+            self::UsersMaxTotal => 'Usuarios',
         };
     }
 
@@ -40,6 +42,7 @@ enum TenantLimit: string
             self::SuppliersMaxTotal,
             self::WarehousesMaxTotal,
             self::ProductsMaxTotal => LimitScope::Total,
+            self::UsersMaxTotal => LimitScope::Total,
         };
     }
 
@@ -59,6 +62,7 @@ enum TenantLimit: string
             self::SuppliersMaxTotal => 'contacts',
             self::WarehousesMaxTotal,
             self::ProductsMaxTotal => 'inventory',
+            self::UsersMaxTotal => 'users',
         };
     }
 
@@ -69,6 +73,7 @@ enum TenantLimit: string
             'purchases' => 'Compras',
             'contacts' => 'Contactos',
             'inventory' => 'Inventario',
+            'users' => 'Usuarios',
         };
     }
 

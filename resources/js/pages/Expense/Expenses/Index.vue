@@ -15,6 +15,7 @@ import {
     Repeat,
 } from 'lucide-vue-next';
 import { watch } from 'vue';
+import DocumentLifecycleMenu from '@/components/DocumentLifecycleMenu.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import PaymentForm from '@/components/payments/PaymentForm.vue';
 import PayModal from '@/components/payments/PayModal.vue';
@@ -25,6 +26,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from '@/components/ui/dialog';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { useExpenses } from '@/composables/Expense/useExpenses';
 import { formatDate } from '@/composables/useDate';
 import type {
@@ -34,6 +36,8 @@ import type {
     LatestRate,
     PaginatedData,
 } from '@/types/Expense';
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     expenses: PaginatedData<Expense>;
@@ -329,6 +333,25 @@ const handleDelete = () => {
                                                 <Eye class="h-3.5 w-3.5" />
                                                 Pagos
                                             </button>
+                                            <DocumentLifecycleMenu
+                                                type="expenses"
+                                                :record="expense"
+                                                :can-activate="
+                                                    can(
+                                                        'expenses.expenses.activate',
+                                                    )
+                                                "
+                                                :can-deactivate="
+                                                    can(
+                                                        'expenses.expenses.deactivate',
+                                                    )
+                                                "
+                                                :can-void="
+                                                    can(
+                                                        'expenses.expenses.void',
+                                                    )
+                                                "
+                                            />
                                         </div>
                                     </td>
                                 </tr>
