@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Finance\Bank;
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
+use App\Models\BankTransfer;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,8 +14,14 @@ class BankTransactionAnalysisController extends Controller
 {
     public function index(Request $request)
     {
-        $query = BankTransaction::with(['bankAccount', 'btr_transactionable'])
-            ->orderBy('created_at', 'desc');
+        $query = BankTransaction::with([
+            'bankAccount',
+            'btr_transactionable' => function (MorphTo $morph): void {
+                $morph->morphWith([
+                    BankTransfer::class => ['sourceAccount:id,bank_name', 'destinationAccount:id,bank_name'],
+                ]);
+            },
+        ])->orderBy('created_at', 'desc');
 
         if ($request->filled('bank_account_id')) {
             $query->where('btr_bank_account_id', $request->bank_account_id);

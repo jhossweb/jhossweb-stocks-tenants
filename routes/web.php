@@ -9,6 +9,7 @@ use App\Http\Controllers\Expense\ExpenseCategoryController;
 use App\Http\Controllers\Expense\ExpenseController;
 use App\Http\Controllers\Finance\Bank\BankAccountController;
 use App\Http\Controllers\Finance\Bank\BankTransactionAnalysisController;
+use App\Http\Controllers\Finance\Bank\BankTransferController;
 use App\Http\Controllers\Finance\CashClosingController;
 use App\Http\Controllers\Finance\Cobranza\AccountsReceivableController;
 use App\Http\Controllers\Finance\Cobranza\ReceiptController;
@@ -156,6 +157,8 @@ Route::middleware('tenant')->group(function () {
         // BANCOS
         // -----------------------------------------------------------------------
         Route::resource('bank-accounts', BankAccountController::class);
+        Route::resource('bank-transfers', BankTransferController::class)->only(['index', 'create', 'store', 'show'])->parameters(['bank-transfers' => 'bankTransfer']);
+        Route::post('bank-transfers/{bankTransfer}/void', [BankTransferController::class, 'void'])->name('bank-transfers.void');
         Route::get('bank-transaction-analysis', [BankTransactionAnalysisController::class, 'index'])->name('bank-transaction-analysis.index');
 
         // Cierre de Caja

@@ -106,6 +106,7 @@ final class RoutePermissionMap
         'suppliers' => 'purchases.suppliers',
         'payments' => 'purchases.payments',
         'bank-accounts' => 'finance.accounts',
+        'bank-transfers' => 'finance.transfers',
         'bank-transaction-analysis' => 'finance.analysis',
         'cash-closing' => 'finance.cash_closing',
         'expenses' => 'expenses.expenses',

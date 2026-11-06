@@ -18,6 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermissions } from '@/composables/Auth/usePermissions';
 import { formatDate } from '@/composables/useDate';
 import bankTransactionAnalysisRoutes from '@/routes/bank-transaction-analysis';
 
@@ -41,7 +42,12 @@ interface Transaction {
         bank_name: string;
     };
     btr_transactionable_type: string | null;
-    btr_transactionable?: Record<string, unknown> | null;
+    btr_transactionable?: {
+        id?: number;
+        bt_number?: string | null;
+        source_account?: { id: number; bank_name: string } | null;
+        destination_account?: { id: number; bank_name: string } | null;
+    } | null;
 }
 
 const friendlySourceName = (type: string | null | undefined): string => {
@@ -51,6 +57,7 @@ const friendlySourceName = (type: string | null | undefined): string => {
         'App\\Models\\Receipt': 'Recibo',
         'App\\Models\\Payroll': 'Nómina',
         'App\\Models\\AccountPayments': 'Pago',
+        'App\\Models\\BankTransfer': 'Transferencia',
     };
 
     if (!type) {
@@ -59,6 +66,8 @@ const friendlySourceName = (type: string | null | undefined): string => {
 
     return map[type] ?? type.split('\\').pop() ?? type;
 };
+
+const { can } = usePermissions();
 
 const props = defineProps<{
     transactions: {
@@ -295,11 +304,51 @@ const clearFilters = () => {
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-xs text-zinc-500">
-                                    {{
-                                        friendlySourceName(
-                                            txn.btr_transactionable_type,
-                                        )
-                                    }}
+                                    <template
+                                        v-if="
+                                            txn.btr_transactionable_type ===
+                                            'App\\Models\\BankTransfer'
+                                        "
+                                    >
+                                        <Link
+                                            v-if="
+                                                can('finance.transfers.view') &&
+                                                txn.btr_transactionable?.id
+                                            "
+                                            :href="`/bank-transfers/${txn.btr_transactionable.id}`"
+                                            class="text-indigo-400 hover:text-indigo-300"
+                                        >
+                                            {{
+                                                txn.btr_transactionable
+                                                    ?.bt_number ??
+                                                'Transferencia'
+                                            }}
+                                        </Link>
+                                        <span v-else>
+                                            {{
+                                                txn.btr_transactionable
+                                                    ?.bt_number ??
+                                                'Transferencia'
+                                            }}
+                                        </span>
+                                        <span
+                                            v-if="
+                                                txn.btr_reference?.endsWith(
+                                                    '-REV',
+                                                )
+                                            "
+                                            class="ml-1 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-red-400"
+                                        >
+                                            Reverso
+                                        </span>
+                                    </template>
+                                    <template v-else>
+                                        {{
+                                            friendlySourceName(
+                                                txn.btr_transactionable_type,
+                                            )
+                                        }}
+                                    </template>
                                 </td>
                             </tr>
                         </tbody>

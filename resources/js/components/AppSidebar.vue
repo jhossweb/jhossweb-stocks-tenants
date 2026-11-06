@@ -255,6 +255,11 @@ const mainNavItems: NavItem[] = [
                         permission: 'sales.receipts.view',
                     },
                     {
+                        title: 'Transferencias',
+                        href: '/bank-transfers',
+                        permission: 'finance.transfers.view',
+                    },
+                    {
                         title: 'Pago Nómina',
                         href: '/payrolls',
                         permission: 'payroll.payrolls.view',

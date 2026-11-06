@@ -514,6 +514,16 @@ resources/js/wayfinder/**
 - UI: `resources/js/components/ExportMenu.vue`.
 
 
+## Transferencias bancarias
+
+- Tabla tenant `bank_transfers`: número `TRF-0001`, fecha, cuentas origen/destino, monto, moneda, referencia, notas y datos de anulación.
+- Solo se permiten transferencias entre cuentas **de la misma moneda** y activas.
+- `BankTransferService` crea dos `bank_transactions` (`outflow` origen, `inflow` destino) vinculadas por el morph `btr_transactionable` al `BankTransfer`.
+- La anulación genera dos movimientos inversos (`-REV`) y marca la transferencia como anulada; no se elimina nada.
+- Permisos: `finance.transfers.view/create/void`. Ruta `bank-transfers.*`.
+- Vista: `Finance/Transfers/{Index,Create,Show}.vue`.
+- El análisis de movimientos bancarios muestra la transferencia y enlaza al detalle.
+
 ===
 
 <laravel-boost-guidelines>

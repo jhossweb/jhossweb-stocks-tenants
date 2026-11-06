@@ -72,6 +72,7 @@ final class TenantPermission
         'purchases.payments' => ['label' => 'Pagos a proveedores', 'group' => 'purchases', 'actions' => ['view', 'create', 'update', 'delete', 'export', 'void']],
 
         'finance.accounts' => ['label' => 'Cuentas bancarias', 'group' => 'finance', 'actions' => ['view', 'create', 'update', 'delete', 'export', 'activate', 'deactivate']],
+        'finance.transfers' => ['label' => 'Transferencias bancarias', 'group' => 'finance', 'actions' => ['view', 'create', 'void']],
         'finance.analysis' => ['label' => 'Análisis bancario', 'group' => 'finance', 'actions' => ['view', 'export']],
         'finance.cash_closing' => ['label' => 'Cierre de caja', 'group' => 'finance', 'actions' => ['view', 'create', 'export', 'void']],
 

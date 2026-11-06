@@ -22,6 +22,7 @@ final class DefaultTenantRoles
                 'sales.*',
                 'purchases.*',
                 'finance.*',
+                'finance.transfers.*',
                 'expenses.*',
                 'payroll.*',
                 'settings.company.*',
@@ -96,6 +97,7 @@ final class DefaultTenantRoles
                 'dashboard.view',
                 'reports.*',
                 'finance.*',
+                'finance.transfers.*',
                 'expenses.*',
                 'sales.receivables.view',
                 'sales.receivables.export',
@@ -130,6 +132,7 @@ final class DefaultTenantRoles
         }
 
         $permissions[] = 'settings.audit.view';
+        $permissions[] = 'finance.transfers.view';
         $permissions[] = 'settings.audit.export';
 
         return array_values(array_unique($permissions));
