@@ -68,6 +68,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AuthenticatesRequests::class,
             InitializeTenancy::class,
         );
+
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (UsageLimitExceededException $exception, Request $request) {
