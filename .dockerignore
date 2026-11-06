@@ -1,0 +1,45 @@
+# Control de versiones y entorno de desarrollo
+.git
+.github
+.gitignore
+.gitattributes
+.agents
+.opencode
+.idea
+.vscode
+.fleet
+.nova
+.zed
+.editorconfig
+.prettierignore
+.prettierrc
+
+# Dependencias (se instalan dentro de la imagen)
+node_modules
+vendor
+
+# Secretos y archivos locales
+.env
+.env.*
+.env.backup
+.env.production
+
+# Assets y runtime generados
+public/build
+public/hot
+public/storage
+bootstrap/ssr
+bootstrap/cache/*.php
+storage/*.key
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/pail
+
+# Archivos que no forman parte del despliegue
+documentations
+.playwright-mcp
+*.png
+*.deb
+wget-log

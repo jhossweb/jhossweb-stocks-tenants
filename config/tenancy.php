@@ -39,10 +39,19 @@ return [
     // Por defecto se omite para no romper tests que no siembran RBAC.
     'enforce_permissions_in_tests' => false,
 
-    'central_domains' => [
-        '127.0.0.1',
-        'localhost',
-    ],
+    /*
+     * Dominios del portal central. Además de localhost, se aceptan los
+     * dominios declarados en TENANCY_CENTRAL_DOMAINS (lista separada por
+     * comas), el dominio público que Railway inyecta en cada servicio y el
+     * host de APP_URL. Así el panel central responde en producción sin
+     * hardcodear el dominio del proveedor.
+     */
+    'central_domains' => array_values(array_filter(array_unique(array_merge(
+        ['127.0.0.1', 'localhost'],
+        array_map('trim', explode(',', (string) env('TENANCY_CENTRAL_DOMAINS', ''))),
+        [(string) env('RAILWAY_PUBLIC_DOMAIN', '')],
+        [(string) parse_url((string) env('APP_URL', ''), PHP_URL_HOST)],
+    )))),
 
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.

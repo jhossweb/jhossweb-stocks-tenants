@@ -1,11 +1,11 @@
 [build]
-builder = "NIXPACKS"
-# Nixpacks detecta composer y pnpm automáticamente por el pnpm-lock.yaml,
-# pero forzamos el comando de build para que limpie cachés y compile Vite:
-buildCommand = "composer install --no-dev --optimize-autoloader --no-scripts && pnpm install --frozen-lockfile && pnpm build"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-# Comando que reemplaza a tu entrypoint.sh en cada despliegue:
-startCommand = "php artisan migrate --force && php artisan tenants:migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && /start.sh"
+# El entrypoint del Dockerfile ejecuta migraciones centrales, migraciones
+# de tenant, sincronización de permisos, caches y luego arranca php-fpm+nginx.
+healthcheckPath = "/up"
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
